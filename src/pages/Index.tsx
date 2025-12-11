@@ -168,15 +168,12 @@ const SolutionSection = () => {
                 <img src={caldiModernChest} alt="Modern Caldi - your coffee guide" className="w-48 md:w-64 lg:w-80 h-auto drop-shadow-lg" />
               </div>
               {/* Single bag as the "prize" */}
-              <div className="absolute -bottom-4 -right-4 lg:-right-8">
-                
-              </div>
-              {/* Speech bubble callout */}
-              <div className="absolute -top-4 -left-8 lg:-left-16 bg-background border-4 border-foreground rounded-2xl px-4 py-3 rotate-[-3deg] shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
-                <span className="font-bangers text-secondary text-lg lg:text-xl">"Let's find your match!"</span>
-                {/* Speech bubble tail */}
-                <div className="absolute -bottom-3 right-8 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[12px] border-t-foreground"></div>
-                <div className="absolute -bottom-[6px] right-[34px] w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-background"></div>
+              {/* Speech bubble callout - positioned above character */}
+              <div className="absolute -top-16 sm:-top-20 left-1/2 -translate-x-1/2 bg-background border-4 border-foreground rounded-2xl px-4 py-2 sm:py-3 shadow-[4px_4px_0px_0px_hsl(var(--foreground))] whitespace-nowrap z-10">
+                <span className="font-bangers text-secondary text-base sm:text-lg lg:text-xl">"Let's find your match!"</span>
+                {/* Speech bubble tail - centered pointing down */}
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[12px] border-t-foreground"></div>
+                <div className="absolute -bottom-[6px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-background"></div>
               </div>
             </div>
           </div>

@@ -133,6 +133,11 @@
     box-shadow: 4px 4px 0px 0px hsl(var(--border));
   }
 
+  /* Enhanced shadow for hover states */
+  .caldi-shadow-hover {
+    box-shadow: 6px 6px 0px 0px hsl(var(--border));
+  }
+
   /* Thick border style */
   .caldi-border {
     @apply border-4 border-border rounded-lg;
@@ -140,6 +145,58 @@
 
   /* Card with full Caldi styling */
   .caldi-card {
-    @apply caldi-border caldi-shadow bg-card;
+    @apply caldi-border caldi-shadow bg-card transition-all duration-300;
+  }
+
+  /* Card hover effect */
+  .caldi-card:hover {
+    @apply -translate-y-1;
+    box-shadow: 6px 6px 0px 0px hsl(var(--border));
+  }
+
+  /* Rotated card variants */
+  .caldi-card-rotate-left {
+    @apply rotate-[-2deg];
+  }
+
+  .caldi-card-rotate-right {
+    @apply rotate-[2deg];
+  }
+
+  .caldi-card-rotate-slight {
+    @apply rotate-[-1deg];
+  }
+
+  /* Hero text shadow for readability */
+  .hero-text-shadow {
+    text-shadow: 2px 2px 0px hsl(var(--background)), 
+                 -1px -1px 0px hsl(var(--background)),
+                 1px -1px 0px hsl(var(--background)),
+                 -1px 1px 0px hsl(var(--background));
+  }
+
+  /* Backdrop blur card */
+  .caldi-card-glass {
+    @apply bg-background/80 backdrop-blur-sm caldi-border caldi-shadow;
+  }
+
+  /* Character float animation */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .animate-float-delayed {
+    animation: float 4s ease-in-out infinite;
+    animation-delay: 2s;
+  }
+
+  /* Hover scale utility */
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
   }
 }

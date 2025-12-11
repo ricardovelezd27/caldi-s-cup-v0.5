@@ -108,7 +108,7 @@ const ProblemSection = () => {
     emoji: "😵‍💫",
     title: "Too Many Choices",
     description: "Hundreds of beans, roasts, and origins. Where do you even start?",
-    rotation: "caldi-card-rotate-left"
+    rotation: ""
   }, {
     emoji: "🤔",
     title: "Confusing Jargon",
@@ -118,7 +118,7 @@ const ProblemSection = () => {
     emoji: "😤",
     title: "Hit or Miss",
     description: "Bought a fancy bag and hated it? We've all been there.",
-    rotation: "caldi-card-rotate-right"
+    rotation: ""
   }];
   return <section className="py-20 bg-secondary/5">
       <Container>

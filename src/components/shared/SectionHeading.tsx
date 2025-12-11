@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 interface SectionHeadingProps {
   title: string;
   subtitle?: string;
-  color?: 'foreground' | 'primary' | 'secondary';
+  color?: 'foreground' | 'primary' | 'secondary' | 'accent';
   align?: 'left' | 'center' | 'right';
   className?: string;
 }
@@ -19,6 +19,7 @@ export const SectionHeading = ({
     foreground: 'text-foreground',
     primary: 'text-primary',
     secondary: 'text-secondary',
+    accent: 'text-accent',
   };
 
   const alignClasses = {

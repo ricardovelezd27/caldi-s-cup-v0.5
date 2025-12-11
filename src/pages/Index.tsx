@@ -4,11 +4,7 @@ import { Container, SectionHeading, CaldiCard } from "@/components/shared";
 import { APP_CONFIG } from "@/constants/app";
 
 // Import assets
-import caldiFarmer from "@/assets/characters/caldi-farmer.png";
-import caldiModern from "@/assets/characters/caldi-modern.png";
 import caldiModernChest from "@/assets/characters/caldi-modern-chest.png";
-import coffeeBagGroup from "@/assets/illustrations/coffee-bag-group.svg";
-import coffeeBagSingle from "@/assets/illustrations/coffee-bag-single.svg";
 import pathToClarity from "@/assets/backgrounds/path-to-clarity.svg";
 const HeroSection = () => {
   return <section className="relative min-h-[80vh] flex items-center overflow-hidden">
@@ -25,25 +21,9 @@ const HeroSection = () => {
       <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/30 via-transparent to-background/50" />
       
       <Container size="wide" className="relative z-10">
-        {/* Desktop Layout: Visual Journey from Chaos to Clarity */}
-        <div className="hidden md:grid grid-cols-5 gap-4 items-center">
-          
-          {/* LEFT: Farmer Caldi + Many Bags (CHAOS/ORIGIN) */}
-          <div className="col-span-1 flex flex-col items-center justify-end relative">
-            <div className="animate-float">
-              <img src={caldiFarmer} alt="Farmer Caldi representing coffee origins" className="w-40 lg:w-56 xl:w-64 h-auto drop-shadow-lg" />
-            </div>
-            <div className="relative -mt-4">
-              
-              {/* Visual label */}
-              <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-sm font-bangers text-muted-foreground tracking-wider">
-                TOO MANY CHOICES
-              </span>
-            </div>
-          </div>
-          
-          {/* CENTER: CTA Content - Floating over the Path */}
-          <div className="col-span-3 text-center flex flex-col items-center justify-center py-12">
+        {/* Desktop Layout: Centered Content */}
+        <div className="hidden md:flex justify-center items-center">
+          <div className="text-center flex flex-col items-center justify-center py-12">
             <div className="caldi-card-glass p-8 lg:p-12 max-w-2xl">
               <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bangers text-foreground mb-6 leading-tight hero-text-shadow">
                 {APP_CONFIG.tagline}
@@ -56,26 +36,11 @@ const HeroSection = () => {
               </Button>
             </div>
           </div>
-          
-          {/* RIGHT: Modern Caldi + Single Bag (CLARITY/DESTINATION) */}
-          <div className="col-span-1 flex flex-col items-center justify-end relative">
-            <div className="animate-float-delayed">
-              <img src={caldiModern} alt="Modern Caldi - your coffee guide" className="w-40 lg:w-56 xl:w-64 h-auto drop-shadow-lg" />
-            </div>
-            <div className="relative -mt-4">
-              
-              {/* Visual label */}
-              <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-sm font-bangers text-secondary tracking-wider whitespace-nowrap">
-                YOUR PERFECT MATCH
-              </span>
-            </div>
-          </div>
         </div>
         
-        {/* Mobile Layout: Simplified but still tells the story */}
+        {/* Mobile Layout */}
         <div className="flex md:hidden flex-col items-center py-8">
-          {/* Hero text first on mobile */}
-          <div className="text-center mb-8">
+          <div className="text-center">
             <h1 className="text-4xl sm:text-5xl font-bangers text-foreground mb-4 leading-tight hero-text-shadow">
               {APP_CONFIG.tagline}
             </h1>
@@ -85,19 +50,6 @@ const HeroSection = () => {
             <Button size="lg" className="text-lg font-bold">
               Discover Your Taste
             </Button>
-          </div>
-          
-          {/* Visual journey below */}
-          <div className="flex items-end justify-center gap-6 mt-4">
-            <div className="flex flex-col items-center">
-              <img src={caldiFarmer} alt="Farmer Caldi" className="w-20 sm:w-24 h-auto" />
-              <img src={coffeeBagGroup} alt="Many choices" className="w-24 sm:w-28 h-auto -mt-2" />
-            </div>
-            <div className="text-2xl text-secondary font-bangers">→</div>
-            <div className="flex flex-col items-center">
-              <img src={caldiModern} alt="Modern Caldi" className="w-20 sm:w-24 h-auto" />
-              <img src={coffeeBagSingle} alt="Your match" className="w-10 sm:w-12 h-auto -mt-2" />
-            </div>
           </div>
         </div>
       </Container>

@@ -116,6 +116,7 @@ const SolutionSection = () => {
           {/* Right: Modern Caldi as guide */}
           <div className="order-1 md:order-2 flex justify-center">
             <div className="relative">
+              <div className="animate-float">
                 <img src={caldiModernChest} alt="Modern Caldi - your coffee guide" className="w-96 md:w-[32rem] lg:w-[40rem] h-auto drop-shadow-lg" />
               </div>
               {/* Single bag as the "prize" */}

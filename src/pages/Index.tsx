@@ -116,9 +116,7 @@ const SolutionSection = () => {
           {/* Right: Modern Caldi as guide */}
           <div className="order-1 md:order-2 flex justify-center">
             <div className="relative">
-              <div className="animate-float">
-                <img src={caldiModernChest} alt="Modern Caldi - your coffee guide" className="w-96 md:w-[32rem] lg:w-[40rem] h-auto drop-shadow-lg" />
-              </div>
+              <img src={caldiModernChest} alt="Modern Caldi - your coffee guide" className="w-96 md:w-[32rem] lg:w-[40rem] h-auto drop-shadow-lg" />
               {/* Single bag as the "prize" */}
               {/* Speech bubble callout - positioned above character */}
               <div className="absolute -top-16 sm:-top-20 left-1/2 -translate-x-1/2 bg-background border-4 border-foreground rounded-2xl px-4 py-2 sm:py-3 shadow-[4px_4px_0px_0px_hsl(var(--foreground))] whitespace-nowrap z-10">

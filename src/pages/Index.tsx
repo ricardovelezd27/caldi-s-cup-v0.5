@@ -171,9 +171,12 @@ const SolutionSection = () => {
               <div className="absolute -bottom-4 -right-4 lg:-right-8">
                 
               </div>
-              {/* Speech bubble hint */}
-              <div className="absolute -top-2 -left-4 lg:-left-8 caldi-card-glass px-4 py-2 rotate-[-3deg]">
-                <span className="font-bangers text-secondary text-sm lg:text-base">Let's find your match!</span>
+              {/* Speech bubble callout */}
+              <div className="absolute -top-4 -left-8 lg:-left-16 bg-background border-4 border-foreground rounded-2xl px-4 py-3 rotate-[-3deg] shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
+                <span className="font-bangers text-secondary text-lg lg:text-xl">"Let's find your match!"</span>
+                {/* Speech bubble tail */}
+                <div className="absolute -bottom-3 right-8 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[12px] border-t-foreground"></div>
+                <div className="absolute -bottom-[6px] right-[34px] w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-background"></div>
               </div>
             </div>
           </div>

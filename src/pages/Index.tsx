@@ -6,45 +6,66 @@ import { APP_CONFIG } from "@/constants/app";
 // Import assets
 import caldiModernChest from "@/assets/characters/caldi-modern-chest.png";
 import pathToClarity from "@/assets/backgrounds/path-to-clarity.svg";
+import logo from "@/assets/logo.svg";
+
 const HeroSection = () => {
-  return <section className="relative min-h-[80vh] flex items-center overflow-hidden">
+  return (
+    <section className="relative min-h-[80vh] flex items-center overflow-hidden">
       {/* Path of Clarity - THE DOMINANT BACKGROUND */}
-      <div className="absolute inset-0 z-0" style={{
-      backgroundImage: `url(${pathToClarity})`,
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      backgroundSize: 'cover',
-      opacity: 0.7
-    }} />
-      
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: `url(${pathToClarity})`,
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+          opacity: 0.7,
+        }}
+      />
+
       {/* Subtle gradient overlay for text readability */}
       <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/30 via-transparent to-background/50" />
-      
+
       <Container size="wide" className="relative z-10">
         {/* Desktop Layout: Centered Content */}
         <div className="hidden md:flex justify-center items-center">
           <div className="text-center flex flex-col items-center justify-center py-12">
             <div className="caldi-card-glass p-8 lg:p-12 max-w-2xl">
+              {/* Big centered logo */}
+              <img
+                src={logo}
+                alt="Caldi's Cup"
+                className="h-24 lg:h-32 mx-auto mb-6"
+              />
               <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bangers text-foreground mb-6 leading-tight hero-text-shadow">
                 {APP_CONFIG.tagline}
               </h1>
               <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8 font-inter max-w-lg mx-auto">
                 {APP_CONFIG.description}
               </p>
-              <Button size="lg" className="text-xl lg:text-2xl font-bold px-8 py-6 hover-scale">
+              <Button
+                size="lg"
+                className="text-xl lg:text-2xl font-bold px-8 py-6"
+              >
                 Discover Your Taste
               </Button>
             </div>
           </div>
         </div>
-        
-        {/* Mobile Layout */}
+
+        {/* Mobile Layout - improved contrast */}
         <div className="flex md:hidden flex-col items-center py-8">
-          <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl font-bangers text-foreground mb-4 leading-tight hero-text-shadow">
+          <div className="text-center bg-background/90 backdrop-blur-sm rounded-2xl p-6 mx-4 border-4 border-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
+            {/* Big centered logo */}
+            <img
+              src={logo}
+              alt="Caldi's Cup"
+              className="h-16 sm:h-20 mx-auto mb-4"
+            />
+            <h1 className="text-4xl sm:text-5xl font-bangers text-foreground mb-4 leading-tight">
               {APP_CONFIG.tagline}
             </h1>
-            <p className="text-base sm:text-lg text-muted-foreground mb-6 font-inter max-w-sm mx-auto px-4">
+            <p className="text-base sm:text-lg text-muted-foreground mb-6 font-inter max-w-sm mx-auto">
               {APP_CONFIG.description}
             </p>
             <Button size="lg" className="text-lg font-bold">
@@ -53,7 +74,8 @@ const HeroSection = () => {
           </div>
         </div>
       </Container>
-    </section>;
+    </section>
+  );
 };
 const ProblemSection = () => {
   const problems = [{
@@ -132,10 +154,13 @@ const SolutionSection = () => {
     </section>;
 };
 const Index = () => {
-  return <PageLayout>
+  return (
+    <PageLayout heroHasLogo>
       <HeroSection />
       <ProblemSection />
       <SolutionSection />
-    </PageLayout>;
+    </PageLayout>
+  );
 };
+
 export default Index;

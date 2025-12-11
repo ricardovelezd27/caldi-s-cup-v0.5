@@ -117,7 +117,7 @@ const SolutionSection = () => {
           <div className="order-1 md:order-2 flex justify-center">
             <div className="relative">
               <div className="animate-float">
-                <img src={caldiModernChest} alt="Modern Caldi - your coffee guide" className="w-48 md:w-64 lg:w-80 h-auto drop-shadow-lg" />
+                <img src={caldiModernChest} alt="Modern Caldi - your coffee guide" className="w-96 md:w-[32rem] lg:w-[40rem] h-auto drop-shadow-lg" />
               </div>
               {/* Single bag as the "prize" */}
               {/* Speech bubble callout - positioned above character */}

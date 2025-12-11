@@ -4,8 +4,9 @@ import { Container, SectionHeading, CaldiCard } from "@/components/shared";
 import { APP_CONFIG } from "@/constants/app";
 
 // Import assets
-import caldiFarmer from "@/assets/characters/caldi-farmer.svg";
-import caldiModern from "@/assets/characters/caldi-modern.svg";
+import caldiFarmer from "@/assets/characters/caldi-farmer.png";
+import caldiModern from "@/assets/characters/caldi-modern.png";
+import caldiModernChest from "@/assets/characters/caldi-modern-chest.png";
 import coffeeBagGroup from "@/assets/illustrations/coffee-bag-group.svg";
 import coffeeBagSingle from "@/assets/illustrations/coffee-bag-single.svg";
 import pathToClarity from "@/assets/backgrounds/path-to-clarity.svg";
@@ -210,7 +211,7 @@ const SolutionSection = () => {
             <div className="relative">
               <div className="animate-float">
                 <img 
-                  src={caldiModern} 
+                  src={caldiModernChest} 
                   alt="Modern Caldi - your coffee guide" 
                   className="w-48 md:w-64 lg:w-80 h-auto drop-shadow-lg"
                 />

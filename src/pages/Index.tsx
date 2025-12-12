@@ -63,9 +63,11 @@ const HeroSection = () => {
             />
             <h1 className="text-2xl sm:text-3xl font-bangers text-foreground mb-2 leading-tight">
               {APP_CONFIG.tagline}
+            <h1 className="text-2xl sm:text-3xl font-bangers mb-2 leading-tight">
+            <span className="text-foreground">Coffee got complicated.</span>
+            <br />
+            <span className="text-secondary">Caldi brings it back to clarity.</span>
             </h1>
-            <p className="text-base sm:text-lg text-muted-foreground mb-4 font-inter max-w-sm mx-auto">
-              {APP_CONFIG.description}
             </p>
             <Button size="lg" className="text-lg font-bold">
               Give Caldi AI a try!

@@ -32,7 +32,7 @@ const HeroSection = () => {
           <div className="text-center flex flex-col items-center justify-center py-12">
             <div className="caldi-card-glass p-8 lg:p-12 max-w-2xl">
               {/* Big centered logo */}
-              <img src={logo} alt="Caldi's Cup" className="h-48 lg:h-56 mx-auto mb-6" />
+              <img src={logo} alt="Caldi's Cup" className="h-56 lg:h-64 mx-auto mb-6" />
               <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bangers text-foreground mb-6 leading-tight hero-text-shadow">
                 {APP_CONFIG.tagline}
               </h1>
@@ -50,7 +50,7 @@ const HeroSection = () => {
         <div className="flex md:hidden flex-col items-center py-8">
           <div className="text-center bg-background/90 backdrop-blur-sm rounded-2xl p-6 mx-4 border-4 border-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
             {/* Big centered logo */}
-            <img src={logo} alt="Caldi's Cup" className="h-28 sm:h-32 mx-auto mb-4" />
+            <img src={logo} alt="Caldi's Cup" className="h-30 sm:h-34 mx-auto mb-4" />
             <h1 className="text-2xl sm:text-3xl font-bangers text-foreground mb-4 leading-tight">
               {APP_CONFIG.tagline}
             </h1>

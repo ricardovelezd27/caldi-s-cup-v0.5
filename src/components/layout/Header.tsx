@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/constants/app";
-import logo from "@/assets/logo.svg";
 interface HeaderProps {
   showLogo?: boolean;
 }

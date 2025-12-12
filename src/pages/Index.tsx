@@ -11,7 +11,7 @@ import logo from "@/assets/logo.svg";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[60vh] flex items-center overflow-hidden">
+    <section className="relative flex flex-col overflow-hidden pb-8">
       {/* Path of Clarity - THE DOMINANT BACKGROUND */}
       <div
         className="absolute inset-0 z-0"
@@ -29,8 +29,8 @@ const HeroSection = () => {
 
       <Container size="wide" className="relative z-10">
         {/* Desktop Layout: Centered Content */}
-        <div className="hidden md:flex justify-center items-center">
-          <div className="text-center flex flex-col items-center justify-center py-4">
+        <div className="hidden md:flex justify-center">
+          <div className="text-center flex flex-col items-center py-6">
             <div className="caldi-card-glass p-4 lg:p-6 max-w-2xl">
               {/* Big centered logo */}
               <img src={logo} alt="Caldi's Cup" className="h-56 lg:h-64 mx-auto mb-3" />
@@ -66,9 +66,11 @@ const HeroSection = () => {
       </Container>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center">
-        <ChevronDown className="w-6 h-6 text-foreground" />
-        <ChevronDown className="w-6 h-6 text-foreground/50 -mt-3" />
+      <div className="flex justify-center mt-4">
+        <div className="flex flex-col items-center">
+          <ChevronDown className="w-6 h-6 text-foreground" />
+          <ChevronDown className="w-6 h-6 text-foreground/50 -mt-3" />
+        </div>
       </div>
     </section>
   );

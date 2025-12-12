@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
   name: "Caldi's Cup",
-  tagline: "Coffee got complicated. Caldi brings it back to clarity.",
+  tagline: "Coffee got complicated, Caldi brings it back to clarity.",
   description: "No more guessing. No more jargon. Discover coffees that match your unique taste.",
   year: new Date().getFullYear(),
   social: {

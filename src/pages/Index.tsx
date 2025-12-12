@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { PageLayout } from "@/components/layout";
 import { Container, SectionHeading, CaldiCard } from "@/components/shared";
 import { APP_CONFIG } from "@/constants/app";
+import { ChevronDown } from "lucide-react";
 
 // Import assets
 import caldiModernChest from "@/assets/characters/caldi-modern-chest.png";
@@ -29,14 +30,14 @@ const HeroSection = () => {
       <Container size="wide" className="relative z-10">
         {/* Desktop Layout: Centered Content */}
         <div className="hidden md:flex justify-center items-center">
-          <div className="text-center flex flex-col items-center justify-center py-6">
-            <div className="caldi-card-glass p-6 lg:p-8 max-w-2xl">
+          <div className="text-center flex flex-col items-center justify-center py-4">
+            <div className="caldi-card-glass p-4 lg:p-6 max-w-2xl">
               {/* Big centered logo */}
-              <img src={logo} alt="Caldi's Cup" className="h-56 lg:h-64 mx-auto mb-6" />
-              <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bangers text-foreground mb-6 leading-tight hero-text-shadow">
+              <img src={logo} alt="Caldi's Cup" className="h-56 lg:h-64 mx-auto mb-3" />
+              <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bangers text-foreground mb-3 leading-tight hero-text-shadow">
                 {APP_CONFIG.tagline}
               </h1>
-              <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8 font-inter max-w-lg mx-auto">
+              <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-4 font-inter max-w-lg mx-auto">
                 {APP_CONFIG.description}
               </p>
               <Button size="lg" className="text-xl lg:text-2xl font-bold px-8 py-6">
@@ -47,14 +48,14 @@ const HeroSection = () => {
         </div>
 
         {/* Mobile Layout - improved contrast */}
-        <div className="flex md:hidden flex-col items-center py-8">
-          <div className="text-center bg-background/90 backdrop-blur-sm rounded-2xl p-6 mx-4 border-4 border-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
+        <div className="flex md:hidden flex-col items-center py-4">
+          <div className="text-center bg-background/90 backdrop-blur-sm rounded-2xl p-4 mx-4 border-4 border-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
             {/* Big centered logo */}
-            <img src={logo} alt="Caldi's Cup" className="h-30 sm:h-34 mx-auto mb-4" />
-            <h1 className="text-2xl sm:text-3xl font-bangers text-foreground mb-4 leading-tight">
+            <img src={logo} alt="Caldi's Cup" className="h-30 sm:h-34 mx-auto mb-2" />
+            <h1 className="text-2xl sm:text-3xl font-bangers text-foreground mb-2 leading-tight">
               {APP_CONFIG.tagline}
             </h1>
-            <p className="text-base sm:text-lg text-muted-foreground mb-6 font-inter max-w-sm mx-auto">
+            <p className="text-base sm:text-lg text-muted-foreground mb-4 font-inter max-w-sm mx-auto">
               {APP_CONFIG.description}
             </p>
             <Button size="lg" className="text-lg font-bold">
@@ -63,6 +64,12 @@ const HeroSection = () => {
           </div>
         </div>
       </Container>
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center">
+        <ChevronDown className="w-6 h-6 text-foreground" />
+        <ChevronDown className="w-6 h-6 text-foreground/50 -mt-3" />
+      </div>
     </section>
   );
 };

@@ -66,7 +66,7 @@ const HeroSection = () => {
       </Container>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center">
+      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center">
         <ChevronDown className="w-6 h-6 text-foreground" />
         <ChevronDown className="w-6 h-6 text-foreground/50 -mt-3" />
       </div>

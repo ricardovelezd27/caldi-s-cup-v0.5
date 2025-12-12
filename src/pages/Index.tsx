@@ -102,7 +102,7 @@ const ProblemSection = () => {
   return (
     <section className="py-20 bg-secondary/5">
       <Container>
-        <SectionHeading title="Sound Familiar?" color="accent" className="mb-12" />
+        <SectionHeading title="Does this sound familiar?" color="accent" className="mb-12" />
         <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
           {problems.map((problem, index) => (
             <CaldiCard
@@ -137,7 +137,7 @@ const SolutionSection = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="font-bold">
-                Take the Quiz
+                Give Caldi AI a try!
               </Button>
               <Button variant="outline" size="lg" className="font-bold">
                 Learn More

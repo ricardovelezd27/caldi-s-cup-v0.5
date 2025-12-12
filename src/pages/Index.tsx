@@ -33,7 +33,7 @@ const HeroSection = () => {
             <div className="caldi-card-glass p-8 lg:p-12 max-w-2xl">
               {/* Big centered logo */}
               <img src={logo} alt="Caldi's Cup" className="h-48 lg:h-56 mx-auto mb-6" />
-              <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bangers text-foreground mb-6 leading-tight hero-text-shadow">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bangers text-foreground mb-6 leading-tight hero-text-shadow">
                 {APP_CONFIG.tagline}
               </h1>
               <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8 font-inter max-w-lg mx-auto">
@@ -51,7 +51,7 @@ const HeroSection = () => {
           <div className="text-center bg-background/90 backdrop-blur-sm rounded-2xl p-6 mx-4 border-4 border-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
             {/* Big centered logo */}
             <img src={logo} alt="Caldi's Cup" className="h-28 sm:h-32 mx-auto mb-4" />
-            <h1 className="text-4xl sm:text-5xl font-bangers text-foreground mb-4 leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-bangers text-foreground mb-4 leading-tight">
               {APP_CONFIG.tagline}
             </h1>
             <p className="text-base sm:text-lg text-muted-foreground mb-6 font-inter max-w-sm mx-auto">

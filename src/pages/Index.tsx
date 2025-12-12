@@ -8,21 +8,16 @@ import { ChevronDown } from "lucide-react";
 import caldiModernChest from "@/assets/characters/caldi-modern-chest.png";
 import pathToClarity from "@/assets/backgrounds/path-to-clarity.svg";
 import logo from "@/assets/logo.svg";
-
 const HeroSection = () => {
-  return (
-    <section className="relative flex flex-col overflow-hidden pb-8">
+  return <section className="relative flex flex-col overflow-hidden pb-8">
       {/* Path of Clarity - THE DOMINANT BACKGROUND */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: `url(${pathToClarity})`,
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-          opacity: 0.7,
-        }}
-      />
+      <div className="absolute inset-0 z-0" style={{
+      backgroundImage: `url(${pathToClarity})`,
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+      backgroundSize: "cover",
+      opacity: 0.7
+    }} />
 
       {/* Subtle gradient overlay for text readability */}
       <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/30 via-transparent to-background/50" />
@@ -33,7 +28,7 @@ const HeroSection = () => {
           <div className="text-center flex flex-col items-center py-6">
             <div className="caldi-card-glass p-4 lg:p-6 max-w-2xl">
               {/* Big centered logo */}
-              <img src={logo} alt="Caldi's Cup" className="h-56 lg:h-64 mx-auto mb-3" />
+              <img alt="Caldi's Cup" src="/lovable-uploads/9a1c8ca1-fc3b-47c6-b890-a494d5153e05.png" className="h-28 lg:h-36 mx-auto mb-4" />
               <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bangers text-foreground mb-3 leading-tight hero-text-shadow">
                 {APP_CONFIG.tagline}
               </h1>
@@ -72,56 +67,42 @@ const HeroSection = () => {
           <ChevronDown className="w-6 h-6 text-foreground/50 -mt-3" />
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
 const ProblemSection = () => {
-  const problems = [
-    {
-      emoji: "😵‍💫",
-      title: "Too Many Choices",
-      description: "Hundreds of beans, roasts, and origins. Where do you even start?",
-      rotation: "",
-    },
-    {
-      emoji: "🤔",
-      title: "Confusing Jargon",
-      description: '"Bright acidity with stone fruit notes" — what does that even mean?',
-      rotation: "",
-    },
-    {
-      emoji: "😤",
-      title: "Hit or Miss",
-      description: "Bought a fancy bag and hated it? We've all been there.",
-      rotation: "",
-    },
-  ];
-  return (
-    <section className="py-20 bg-secondary/5">
+  const problems = [{
+    emoji: "😵‍💫",
+    title: "Too Many Choices",
+    description: "Hundreds of beans, roasts, and origins. Where do you even start?",
+    rotation: ""
+  }, {
+    emoji: "🤔",
+    title: "Confusing Jargon",
+    description: '"Bright acidity with stone fruit notes" — what does that even mean?',
+    rotation: ""
+  }, {
+    emoji: "😤",
+    title: "Hit or Miss",
+    description: "Bought a fancy bag and hated it? We've all been there.",
+    rotation: ""
+  }];
+  return <section className="py-20 bg-secondary/5">
       <Container>
         <SectionHeading title="Sound Familiar?" color="accent" className="mb-12" />
         <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-          {problems.map((problem, index) => (
-            <CaldiCard
-              key={problem.title}
-              className={`text-center ${problem.rotation}`}
-              style={{
-                animationDelay: `${index * 100}ms`,
-              }}
-            >
+          {problems.map((problem, index) => <CaldiCard key={problem.title} className={`text-center ${problem.rotation}`} style={{
+          animationDelay: `${index * 100}ms`
+        }}>
               <div className="text-5xl mb-4">{problem.emoji}</div>
               <h3 className="text-2xl lg:text-3xl font-bangers text-foreground mb-3">{problem.title}</h3>
               <p className="text-muted-foreground font-inter text-base lg:text-lg">{problem.description}</p>
-            </CaldiCard>
-          ))}
+            </CaldiCard>)}
         </div>
       </Container>
-    </section>
-  );
+    </section>;
 };
 const SolutionSection = () => {
-  return (
-    <section className="py-20">
+  return <section className="py-20">
       <Container size="wide">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Left: Text content */}
@@ -145,11 +126,7 @@ const SolutionSection = () => {
           {/* Right: Modern Caldi as guide */}
           <div className="order-1 md:order-2 flex justify-center">
             <div className="relative">
-              <img
-                src={caldiModernChest}
-                alt="Modern Caldi - your coffee guide"
-                className="w-96 md:w-[32rem] lg:w-[40rem] h-auto drop-shadow-lg"
-              />
+              <img src={caldiModernChest} alt="Modern Caldi - your coffee guide" className="w-96 md:w-[32rem] lg:w-[40rem] h-auto drop-shadow-lg" />
               {/* Single bag as the "prize" */}
               {/* Speech bubble callout - positioned above character */}
               <div className="absolute -top-16 sm:-top-20 left-1/2 -translate-x-1/2 bg-background border-4 border-foreground rounded-2xl px-4 py-2 sm:py-3 shadow-[4px_4px_0px_0px_hsl(var(--foreground))] whitespace-nowrap z-10">
@@ -164,17 +141,13 @@ const SolutionSection = () => {
           </div>
         </div>
       </Container>
-    </section>
-  );
+    </section>;
 };
 const Index = () => {
-  return (
-    <PageLayout heroHasLogo>
+  return <PageLayout heroHasLogo>
       <HeroSection />
       <ProblemSection />
       <SolutionSection />
-    </PageLayout>
-  );
+    </PageLayout>;
 };
-
 export default Index;

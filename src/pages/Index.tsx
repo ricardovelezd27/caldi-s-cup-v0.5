@@ -7,20 +7,13 @@ import { ChevronDown } from "lucide-react";
 // Import assets
 import caldiModernChest from "@/assets/characters/caldi-modern-chest.png";
 import pathToClarity from "@/assets/backgrounds/path-to-clarity.svg";
-import logo from "@/assets/logo.svg";
 const HeroSection = () => {
   return (
     <section className="relative flex flex-col overflow-hidden pb-8">
       {/* Path of Clarity - THE DOMINANT BACKGROUND */}
       <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: `url(${pathToClarity})`,
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-          opacity: 0.7,
-        }}
+        className="absolute inset-0 z-0 hero-background"
+        style={{ backgroundImage: `url(${pathToClarity})` }}
       />
 
       {/* Subtle gradient overlay for text readability */}
@@ -46,7 +39,7 @@ const HeroSection = () => {
                 {APP_CONFIG.description}
               </p>
               <Button size="lg" className="text-xl lg:text-2xl font-bold px-8 py-6">
-                Give Caldi AI a try!
+                {APP_CONFIG.cta.primary}
               </Button>
             </div>
           </div>
@@ -67,7 +60,7 @@ const HeroSection = () => {
               <span className="text-secondary">Caldi brings it back to clarity.</span>
             </h1>
             <Button size="lg" className="text-lg font-bold">
-              Give Caldi AI a try!
+              {APP_CONFIG.cta.primary}
             </Button>
           </div>
         </div>
@@ -89,19 +82,16 @@ const ProblemSection = () => {
       emoji: "😵‍💫",
       title: "Too Many Choices",
       description: "Hundreds of beans, roasts, and origins. Where do you even start?",
-      rotation: "",
     },
     {
       emoji: "🤔",
       title: "Confusing Jargon",
       description: '"Bright acidity with stone fruit notes" — what does that even mean?',
-      rotation: "",
     },
     {
       emoji: "😤",
       title: "Hit or Miss",
       description: "Bought a fancy bag and hated it? We've all been there.",
-      rotation: "",
     },
   ];
   return (
@@ -112,7 +102,7 @@ const ProblemSection = () => {
           {problems.map((problem, index) => (
             <CaldiCard
               key={problem.title}
-              className={`text-center ${problem.rotation}`}
+              className="text-center"
               style={{
                 animationDelay: `${index * 100}ms`,
               }}
@@ -142,10 +132,10 @@ const SolutionSection = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="font-bold">
-                Give Caldi AI a try!
+                {APP_CONFIG.cta.primary}
               </Button>
               <Button variant="outline" size="lg" className="font-bold">
-                Learn More
+                {APP_CONFIG.cta.secondary}
               </Button>
             </div>
           </div>

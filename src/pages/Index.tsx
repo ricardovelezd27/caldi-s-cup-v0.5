@@ -10,7 +10,7 @@ import logo from "@/assets/logo.svg";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[80vh] flex items-center overflow-hidden">
+    <section className="relative min-h-[60vh] flex items-center overflow-hidden">
       {/* Path of Clarity - THE DOMINANT BACKGROUND */}
       <div
         className="absolute inset-0 z-0"
@@ -30,7 +30,7 @@ const HeroSection = () => {
         {/* Desktop Layout: Centered Content */}
         <div className="hidden md:flex justify-center items-center">
           <div className="text-center flex flex-col items-center justify-center py-6">
-            <div className="caldi-card-glass p-8 lg:p-12 max-w-2xl">
+            <div className="caldi-card-glass p-6 lg:p-8 max-w-2xl">
               {/* Big centered logo */}
               <img src={logo} alt="Caldi's Cup" className="h-56 lg:h-64 mx-auto mb-6" />
               <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bangers text-foreground mb-6 leading-tight hero-text-shadow">

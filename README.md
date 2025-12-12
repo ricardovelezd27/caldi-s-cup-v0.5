@@ -19,7 +19,45 @@
 - 🔲 Results Page with taste profile
 - 🔲 Waitlist signup integration
 
-### Design System
+---
+
+## Architectural Decisions
+
+### Modular Monolith Justification
+
+The initial architecture is a **Modular Monolith** as mandated by V03 architectural guidelines. This choice prioritizes:
+
+- **Centralized data management** - Single source of truth
+- **Integrated functionality** - Components work together seamlessly
+- **Robustness against changes** - Easier refactoring than microservices
+- **Simplicity for MVP** - Reduced operational overhead
+
+### UI/UX First Development Approach
+
+Development prioritizes UI/UX completion before backend integration:
+
+1. Complete visual design and interactions
+2. Test user flows with mock data
+3. Validate design system consistency
+4. Then connect Supabase for persistence
+
+### Component Organization Rationale
+
+```
+src/components/
+├── ui/        → shadcn primitives (untouched)
+├── layout/    → Page structure (Header, Footer, PageLayout)
+└── shared/    → Brand components (CaldiCard, SectionHeading, Container)
+```
+
+This separation ensures:
+- UI primitives remain upgrade-safe
+- Layout components handle page structure
+- Shared components enforce brand consistency
+
+---
+
+## Design System
 
 **Color Hierarchy (60/30/10 Rule):**
 - 60% Foam White (`#FDFCF7`) - backgrounds
@@ -39,7 +77,74 @@
 - 4px solid borders with 4px floating sticker shadow
 - Border radius: 0.5rem (8px)
 
-### Folder Structure
+---
+
+## Known Issues / Technical Debt
+
+| Issue | Status | Notes |
+|-------|--------|-------|
+| ~~Unused import in Header.tsx~~ | ✅ Fixed | Removed dead `logo.svg` import |
+| Header logo scroll behavior | 🔲 Planned | Needs fade transition animation |
+| Animations deferred | 🔲 Planned | MVP uses static UI per constraint |
+
+---
+
+## Areas of Improvement for Future Sessions
+
+| Area | Current State | Improvement Needed |
+|------|--------------|-------------------|
+| **Quiz Feature** | Not started | Build 4-6 question card-based quiz |
+| **Waitlist** | Not started | Add email capture with validation |
+| **Results Page** | Not started | Display personalized taste profile |
+| **Animations** | Deferred | Add bouncy micro-interactions (Phase 2) |
+| **Header Scroll** | Basic | Add fade transition for logo reveal |
+| **Dark Mode** | CSS Ready | Add toggle UI and localStorage persistence |
+| **Mobile Nav** | Empty placeholder | Add hamburger menu when pages expand |
+| **Testing** | None | Add unit tests per TDD mandate |
+| **Accessibility** | Basic semantic HTML | Add ARIA labels, keyboard navigation |
+| **SEO** | Minimal | Add meta tags, structured data |
+
+---
+
+## Security Boundary Summary
+
+| Boundary | Status |
+|----------|--------|
+| Backend Integration | Not connected (deferred) |
+| User Data Collection | None yet |
+| Row Level Security (RLS) | N/A until Supabase connected |
+| API Keys / Secrets | None in codebase |
+| Input Validation | Will implement with quiz/waitlist |
+
+---
+
+## Next Phase Roadmap
+
+### Phase 2: Quiz & Waitlist MVP
+
+1. **Coffee Preference Quiz**
+   - 4-6 visual card-based questions
+   - Intensity, flavor profile, brewing method, ethics preferences
+   - Local state management (mock data first)
+
+2. **Results Page**
+   - Personalized taste profile visualization
+   - Mock coffee recommendations
+   - Share functionality
+
+3. **Waitlist Signup**
+   - Email capture form with validation
+   - Connect to Supabase for storage
+   - Confirmation toast/email
+
+4. **Backend Connection**
+   - Enable Lovable Cloud / Supabase
+   - Store quiz responses and emails
+   - Set up RLS policies
+
+---
+
+## Folder Structure
 
 ```
 src/

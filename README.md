@@ -1,73 +1,95 @@
-# Welcome to your Lovable project
+# Caldi's Cup
 
-## Project info
+> Coffee got complicated, Caldi brings it back to clarity.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Project Status
 
-## How can I edit this code?
+### Current System State
 
-There are several ways of editing your application.
+**Architecture:** Modular Monolith (React + Vite + Tailwind CSS + TypeScript)
 
-**Use Lovable**
+**Phase:** 1 - Foundation & Landing Page MVP
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+**Status:** UI/UX development in progress (backend integration deferred)
 
-Changes made via Lovable will be committed automatically to this repo.
+### MVP Scope (Phase 1)
 
-**Use your preferred IDE**
+- ✅ Landing Page with Hero, Problem, and Solution sections
+- 🔲 Coffee Preference Quiz (4-6 questions)
+- 🔲 Results Page with taste profile
+- 🔲 Waitlist signup integration
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Design System
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+**Color Hierarchy (60/30/10 Rule):**
+- 60% Foam White (`#FDFCF7`) - backgrounds
+- 30% Clarity Teal (`#4db6ac`) - main accent
+- 10% Energy Yellow (`#F1C30F`) - primary CTAs
 
-Follow these steps:
+**Supporting Colors:**
+- Bean Black (`#2C4450`) - text, borders, shadows
+- Warm Orange (`#E67E22`) - secondary highlights
+- Chaos Red (`#E74C3C`) - warnings/errors only
+
+**Typography:**
+- Headings: `Bangers` (cursive), letter-spacing 0.05em
+- Body: `Inter` (sans-serif), weights 400/500/700
+
+**Visual Style:**
+- 4px solid borders with 4px floating sticker shadow
+- Border radius: 0.5rem (8px)
+
+### Folder Structure
+
+```
+src/
+├── assets/           # Images and brand assets
+├── components/
+│   ├── layout/       # PageLayout, Header, Footer
+│   ├── shared/       # CaldiCard, SectionHeading, Container
+│   └── ui/           # shadcn components
+├── constants/        # APP_CONFIG, ROUTES
+├── features/         # Feature modules (quiz, etc.)
+├── hooks/            # Custom React hooks
+├── pages/            # Route pages
+└── types/            # TypeScript type definitions
+```
+
+### Active Assets
+
+- `src/assets/characters/caldi-modern-chest.png` - Modern Caldi mascot
+- `src/assets/backgrounds/path-to-clarity.svg` - Hero background
+- `public/favicon.png` - Site favicon
+
+---
+
+## Development
+
+### Prerequisites
+
+- Node.js & npm ([install with nvm](https://github.com/nvm-sh/nvm))
+
+### Quick Start
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Technologies
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- **Vite** - Build tool
+- **React 18** - UI framework
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Utility-first styling
+- **shadcn/ui** - Component library
 
-**Use GitHub Codespaces**
+## Deployment
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Open [Lovable](https://lovable.dev) and click Share → Publish.
 
-## What technologies are used for this project?
+## Custom Domain
 
-This project is built with:
+Navigate to Project > Settings > Domains and click Connect Domain.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+[Read more](https://docs.lovable.dev/features/custom-domain)

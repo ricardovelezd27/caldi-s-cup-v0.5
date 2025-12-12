@@ -3,6 +3,10 @@ export const APP_CONFIG = {
   tagline: "Coffee got complicated, Caldi brings it back to clarity.",
   description: "No more guessing. No more jargon. Discover coffees that match your unique taste.",
   year: new Date().getFullYear(),
+  cta: {
+    primary: "Give Caldi AI a try!",
+    secondary: "Learn More",
+  },
   social: {
     // Ready for future social links
   },

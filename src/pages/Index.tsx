@@ -29,7 +29,7 @@ const HeroSection = () => {
       <Container size="wide" className="relative z-10">
         {/* Desktop Layout: Centered Content */}
         <div className="hidden md:flex justify-center items-center">
-          <div className="text-center flex flex-col items-center justify-center py-12">
+          <div className="text-center flex flex-col items-center justify-center py-6">
             <div className="caldi-card-glass p-8 lg:p-12 max-w-2xl">
               {/* Big centered logo */}
               <img src={logo} alt="Caldi's Cup" className="h-56 lg:h-64 mx-auto mb-6" />

@@ -46,7 +46,7 @@ const HeroSection = () => {
         <div className="flex md:hidden flex-col items-center py-4">
           <div className="text-center bg-background/90 backdrop-blur-sm rounded-2xl p-4 mx-4 border-4 border-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
             {/* Big centered logo */}
-            <img src={logo} alt="Caldi's Cup" className="h-30 sm:h-34 mx-auto mb-2" />
+            <img alt="Caldi's Cup" className="h-30 sm:h-34 mx-auto mb-2" src="/lovable-uploads/024919ae-9240-42e9-ab0f-5a6c8fedeaf5.png" />
             <h1 className="text-2xl sm:text-3xl font-bangers text-foreground mb-2 leading-tight">
               {APP_CONFIG.tagline}
             </h1>

@@ -68,7 +68,6 @@ const HeroSection = () => {
             <br />
             <span className="text-secondary">Caldi brings it back to clarity.</span>
             </h1>
-            </p>
             <Button size="lg" className="text-lg font-bold">
               Give Caldi AI a try!
             </Button>

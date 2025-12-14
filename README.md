@@ -1,73 +1,200 @@
-# Welcome to your Lovable project
+# Caldi's Cup
 
-## Project info
+> Coffee got complicated, Caldi brings it back to clarity.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Project Status
 
-## How can I edit this code?
+### Current System State
 
-There are several ways of editing your application.
+**Architecture:** Modular Monolith (React + Vite + Tailwind CSS + TypeScript)
 
-**Use Lovable**
+**Phase:** 1 - Foundation & Landing Page MVP
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+**Status:** UI/UX development in progress (backend integration deferred)
 
-Changes made via Lovable will be committed automatically to this repo.
+### MVP Scope (Phase 1)
 
-**Use your preferred IDE**
+- ✅ Landing Page with Hero, Problem, and Solution sections
+- 🔲 Coffee Preference Quiz (4-6 questions)
+- 🔲 Results Page with taste profile
+- 🔲 Waitlist signup integration
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Architectural Decisions
 
-Follow these steps:
+### Modular Monolith Justification
+
+The initial architecture is a **Modular Monolith** as mandated by V03 architectural guidelines. This choice prioritizes:
+
+- **Centralized data management** - Single source of truth
+- **Integrated functionality** - Components work together seamlessly
+- **Robustness against changes** - Easier refactoring than microservices
+- **Simplicity for MVP** - Reduced operational overhead
+
+### UI/UX First Development Approach
+
+Development prioritizes UI/UX completion before backend integration:
+
+1. Complete visual design and interactions
+2. Test user flows with mock data
+3. Validate design system consistency
+4. Then connect Supabase for persistence
+
+### Component Organization Rationale
+
+```
+src/components/
+├── ui/        → shadcn primitives (untouched)
+├── layout/    → Page structure (Header, Footer, PageLayout)
+└── shared/    → Brand components (CaldiCard, SectionHeading, Container)
+```
+
+This separation ensures:
+- UI primitives remain upgrade-safe
+- Layout components handle page structure
+- Shared components enforce brand consistency
+
+---
+
+## Design System
+
+**Color Hierarchy (60/30/10 Rule):**
+- 60% Foam White (`#FDFCF7`) - backgrounds
+- 30% Clarity Teal (`#4db6ac`) - main accent
+- 10% Energy Yellow (`#F1C30F`) - primary CTAs
+
+**Supporting Colors:**
+- Bean Black (`#2C4450`) - text, borders, shadows
+- Warm Orange (`#E67E22`) - secondary highlights
+- Chaos Red (`#E74C3C`) - warnings/errors only
+
+**Typography:**
+- Headings: `Bangers` (cursive), letter-spacing 0.05em
+- Body: `Inter` (sans-serif), weights 400/500/700
+
+**Visual Style:**
+- 4px solid borders with 4px floating sticker shadow
+- Border radius: 0.5rem (8px)
+
+---
+
+## Known Issues / Technical Debt
+
+| Issue | Status | Notes |
+|-------|--------|-------|
+| ~~Unused import in Header.tsx~~ | ✅ Fixed | Removed dead `logo.svg` import |
+| Header logo scroll behavior | 🔲 Planned | Needs fade transition animation |
+| Animations deferred | 🔲 Planned | MVP uses static UI per constraint |
+
+---
+
+## Areas of Improvement for Future Sessions
+
+| Area | Current State | Improvement Needed |
+|------|--------------|-------------------|
+| **Quiz Feature** | Not started | Build 4-6 question card-based quiz |
+| **Waitlist** | Not started | Add email capture with validation |
+| **Results Page** | Not started | Display personalized taste profile |
+| **Animations** | Deferred | Add bouncy micro-interactions (Phase 2) |
+| **Header Scroll** | Basic | Add fade transition for logo reveal |
+| **Dark Mode** | CSS Ready | Add toggle UI and localStorage persistence |
+| **Mobile Nav** | Empty placeholder | Add hamburger menu when pages expand |
+| **Testing** | None | Add unit tests per TDD mandate |
+| **Accessibility** | Basic semantic HTML | Add ARIA labels, keyboard navigation |
+| **SEO** | Minimal | Add meta tags, structured data |
+
+---
+
+## Security Boundary Summary
+
+| Boundary | Status |
+|----------|--------|
+| Backend Integration | Not connected (deferred) |
+| User Data Collection | None yet |
+| Row Level Security (RLS) | N/A until Supabase connected |
+| API Keys / Secrets | None in codebase |
+| Input Validation | Will implement with quiz/waitlist |
+
+---
+
+## Next Phase Roadmap
+
+### Phase 2: Quiz & Waitlist MVP
+
+1. **Coffee Preference Quiz**
+   - 4-6 visual card-based questions
+   - Intensity, flavor profile, brewing method, ethics preferences
+   - Local state management (mock data first)
+
+2. **Results Page**
+   - Personalized taste profile visualization
+   - Mock coffee recommendations
+   - Share functionality
+
+3. **Waitlist Signup**
+   - Email capture form with validation
+   - Connect to Supabase for storage
+   - Confirmation toast/email
+
+4. **Backend Connection**
+   - Enable Lovable Cloud / Supabase
+   - Store quiz responses and emails
+   - Set up RLS policies
+
+---
+
+## Folder Structure
+
+```
+src/
+├── assets/           # Images and brand assets
+├── components/
+│   ├── layout/       # PageLayout, Header, Footer
+│   ├── shared/       # CaldiCard, SectionHeading, Container
+│   └── ui/           # shadcn components
+├── constants/        # APP_CONFIG, ROUTES
+├── features/         # Feature modules (quiz, etc.)
+├── hooks/            # Custom React hooks
+├── pages/            # Route pages
+└── types/            # TypeScript type definitions
+```
+
+### Active Assets
+
+- `src/assets/characters/caldi-modern-chest.png` - Modern Caldi mascot
+- `src/assets/backgrounds/path-to-clarity.svg` - Hero background
+- `public/favicon.png` - Site favicon
+
+---
+
+## Development
+
+### Prerequisites
+
+- Node.js & npm ([install with nvm](https://github.com/nvm-sh/nvm))
+
+### Quick Start
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Technologies
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- **Vite** - Build tool
+- **React 18** - UI framework
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Utility-first styling
+- **shadcn/ui** - Component library
 
-**Use GitHub Codespaces**
+## Deployment
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Open [Lovable](https://lovable.dev) and click Share → Publish.
 
-## What technologies are used for this project?
+## Custom Domain
 
-This project is built with:
+Navigate to Project > Settings > Domains and click Connect Domain.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+[Read more](https://docs.lovable.dev/features/custom-domain)

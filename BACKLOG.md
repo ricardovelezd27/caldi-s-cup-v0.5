@@ -113,9 +113,12 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 |----------|---------|--------|-------------|
 | 🔴 High | Onboarding Flow | Not Started | Multi-step wizard explaining Caldi AI |
 | 🔴 High | Authentication | Not Started | Guest vs. Sign-in with Supabase |
+| 🔴 High | Dashboard | Not Started | Personal AI barista interface with Caldi |
 | 🔴 High | Coffee Quiz | Not Started | 4-6 visual card-based preference questions |
 | 🔴 High | Results Page | Not Started | Personalized taste profile visualization |
 | 🟡 Medium | Waitlist Signup | Not Started | Email capture with preference data |
+| 🟡 Medium | Header Scroll Animation | Not Started | Logo fade transition on scroll past hero |
+| 🟡 Medium | Mobile Navigation | Not Started | Hamburger menu for responsive navigation |
 
 ### Phase 3: AI Personalization
 

@@ -122,7 +122,7 @@ export default function MarketplaceBrowsePage() {
 
   return (
     <PageLayout>
-      <Container className="py-8">
+      <Container size="wide" className="py-8">
         {/* Page Header */}
         <div className="mb-8">
           <SectionHeading 

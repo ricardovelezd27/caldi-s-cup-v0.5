@@ -91,9 +91,9 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 
 | Priority | Feature | Status | Description |
 |----------|---------|--------|-------------|
-| 🔴 High | Product Page | Not Started | Coffee product detail with attributes, roaster info |
+| 🔴 High | Product Page | ✅ Complete | Coffee product detail with attributes, roaster info |
 | 🔴 High | Roaster Storefront | Not Started | Cafe/roaster profile with their product catalog |
-| 🔴 High | Marketplace Browse | Not Started | Product listing with filters, search, sorting |
+| 🔴 High | Marketplace Browse | ✅ Complete | Product listing with filters, search, sorting |
 | 🔴 High | Shopping Cart | Not Started | Add to cart, quantity management, cart preview |
 | 🟡 Medium | Wishlist | Not Started | Save products for later |
 
@@ -118,7 +118,7 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 | 🔴 High | Results Page | Not Started | Personalized taste profile visualization |
 | 🟡 Medium | Waitlist Signup | Not Started | Email capture with preference data |
 | 🟡 Medium | Header Scroll Animation | Not Started | Logo fade transition on scroll past hero |
-| 🟡 Medium | Mobile Navigation | Not Started | Hamburger menu for responsive navigation |
+| 🟡 Medium | Mobile Navigation | ✅ Complete | Hamburger menu with Sheet drawer |
 
 ### Phase 3: AI Personalization
 
@@ -263,8 +263,8 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 | Route | Component | Phase | Description |
 |-------|-----------|-------|-------------|
 | `/` | Index | 1 ✅ | Landing page |
-| `/marketplace` | MarketplaceBrowse | 2A | Browse all products |
-| `/product/:id` | ProductPage | 2A | Product detail |
+| `/marketplace` | MarketplaceBrowse | 2A ✅ | Browse all products |
+| `/product/:id` | ProductPage | 2A ✅ | Product detail |
 | `/roaster/:id` | RoasterStorefront | 2A | Roaster profile + catalog |
 | `/cart` | ShoppingCart | 2A | Shopping cart |
 | `/checkout` | CheckoutRedirect | 2B | Redirect to Shopify checkout |
@@ -313,4 +313,4 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 
 ---
 
-*Last Updated: 2025-01-14*
+*Last Updated: 2025-12-15*

@@ -8,13 +8,16 @@
 
 **Architecture:** Modular Monolith (React + Vite + Tailwind CSS + TypeScript)
 
-**Phase:** 1 - Foundation & Landing Page MVP
+**Phase:** 2A - Marketplace UI (Mock Data)
 
-**Status:** UI/UX development in progress (backend integration deferred)
+**Status:** Marketplace browse complete, UI/UX development in progress
 
-### MVP Scope (Phase 1)
+### Completed Features
 
 - ✅ Landing Page with Hero, Problem, and Solution sections
+- ✅ Product Page with attributes, flavor chart, roaster info
+- ✅ Marketplace Browse with filters, sorting, pagination
+- ✅ Responsive navigation (desktop links + mobile hamburger menu)
 - 🔲 Coffee Preference Quiz (4-6 questions)
 - 🔲 Results Page with taste profile
 - 🔲 Waitlist signup integration
@@ -99,7 +102,7 @@ This separation ensures:
 | **Animations** | Deferred | Add bouncy micro-interactions (Phase 2) |
 | **Header Scroll** | Basic | Add fade transition for logo reveal |
 | **Dark Mode** | CSS Ready | Add toggle UI and localStorage persistence |
-| **Mobile Nav** | Empty placeholder | Add hamburger menu when pages expand |
+| ~~**Mobile Nav**~~ | ✅ Done | Hamburger menu with Sheet slide-out |
 | **Testing** | None | Add unit tests per TDD mandate |
 | **Accessibility** | Basic semantic HTML | Add ARIA labels, keyboard navigation |
 | **SEO** | Minimal | Add meta tags, structured data |

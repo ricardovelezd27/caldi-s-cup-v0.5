@@ -2,6 +2,35 @@
 
 All notable changes to Caldi's Cup are documented here.
 
+## [0.2.0] - 2025-12-15 - Marketplace Browse & Navigation
+
+### Added
+- **Marketplace Browse Page** (`/marketplace`) with full feature set:
+  - Product grid with responsive layout (1/2/3 columns)
+  - Filter panel (search, origin, roast level, grind, price range)
+  - Sort dropdown (best match, price, newest, rating)
+  - Pagination controls with page navigation
+  - Skeleton loaders during loading states
+- **Navigation System**:
+  - Desktop navigation links in header (Marketplace)
+  - Mobile hamburger menu with Sheet slide-out drawer
+  - Centralized `NAV_LINKS` array in app constants
+- **New Components**:
+  - `ProductCard` (with React.memo optimization)
+  - `ProductCardSkeleton`, `SortDropdown`, `FilterPanel`
+  - `ProductGrid`, `MarketplacePagination`
+- **New Utilities**:
+  - `useDebouncedValue` hook for search debouncing
+  - Filter/sort/paginate utilities in `productFilters.ts`
+  - API contract types (`ProductsQueryParams`, `ProductsResponse`)
+- 9 additional mock products (total 12) for testing pagination
+
+### Changed
+- Desktop container uses `size="wide"` for marketplace
+- Product Page accordions have consistent `px-4` padding
+
+---
+
 ## [0.1.0] - 2025-12-12 - Foundation & Code Cleanup
 
 ### Added

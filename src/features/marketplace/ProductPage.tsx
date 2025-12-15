@@ -10,7 +10,8 @@ import {
   FlavorRadarChart,
   RoasterInfoCard,
   ProductActions,
-  ProductAccordions
+  ProductAccordions,
+  ProductDescription
 } from "./components";
 import { getProductById, getRoasterByProductId } from "./data/mockProducts";
 
@@ -55,16 +56,28 @@ const ProductPage = () => {
         {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column: Image, Attributes, Flavor Chart, Roaster */}
-          <div className="lg:col-span-5 space-y-6">
-            {/* Product Image */}
-            <ProductImage 
-              src={product.imageUrl} 
-              alt={product.name} 
-            />
+          <div className="lg:col-span-5 flex flex-col gap-6">
+            {/* Product Image - order-1 on all */}
+            <div className="order-1">
+              <ProductImage 
+                src={product.imageUrl} 
+                alt={product.name} 
+              />
+            </div>
 
-            {/* Attribute Sliders */}
+            {/* Product Info - Mobile/Tablet only, order-2 */}
+            <div className="order-2 lg:hidden">
+              <ProductInfo product={product} />
+            </div>
+
+            {/* Product Description - Mobile/Tablet only, order-3 */}
+            <div className="order-3 lg:hidden">
+              <ProductDescription product={product} />
+            </div>
+
+            {/* Attribute Sliders - order-4 mobile, order-2 desktop */}
             {product.attributeScores && (
-              <div className="border-4 border-border rounded-lg p-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card space-y-4">
+              <div className="order-4 lg:order-2 border-4 border-border rounded-lg p-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card space-y-4">
                 <h3 className="font-bangers text-lg text-foreground tracking-wide">
                   Coffee Attributes
                 </h3>
@@ -89,36 +102,48 @@ const ProductPage = () => {
               </div>
             )}
 
-            {/* Flavor Radar Chart */}
-            <div className="border-4 border-border rounded-lg p-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card">
+            {/* Flavor Radar Chart - order-5 mobile, order-3 desktop */}
+            <div className="order-5 lg:order-3 border-4 border-border rounded-lg p-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card">
               <FlavorRadarChart notes={product.flavorProfile.notes} />
             </div>
 
-            {/* Roaster Info - Desktop */}
+            {/* Product Actions - Mobile/Tablet only, order-6 */}
+            <div className="order-6 lg:hidden">
+              <ProductActions product={product} />
+            </div>
+
+            {/* Accordions - Mobile/Tablet only (no description), order-7 */}
+            <div className="order-7 lg:hidden border-4 border-border rounded-lg shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card overflow-hidden">
+              <ProductAccordions product={product} hideDescription />
+            </div>
+
+            {/* Roaster Info - Mobile/Tablet, order-8 */}
             {roaster && (
-              <div className="hidden lg:block">
+              <div className="order-8 lg:hidden">
+                <RoasterInfoCard roaster={roaster} />
+              </div>
+            )}
+
+            {/* Roaster Info - Desktop only, order-4 */}
+            {roaster && (
+              <div className="hidden lg:block lg:order-4">
                 <RoasterInfoCard roaster={roaster} />
               </div>
             )}
           </div>
 
-          {/* Right Column: Product Info, Actions, Accordions */}
-          <div className="lg:col-span-7 space-y-6">
+          {/* Right Column: Product Info, Actions, Accordions - Desktop only */}
+          <div className="hidden lg:flex lg:col-span-7 flex-col gap-6">
             {/* Product Info */}
             <ProductInfo product={product} />
 
             {/* Product Actions (Cart) */}
             <ProductActions product={product} />
 
-            {/* Accordions */}
-            <ProductAccordions product={product} />
-
-            {/* Roaster Info - Mobile */}
-            {roaster && (
-              <div className="lg:hidden">
-                <RoasterInfoCard roaster={roaster} />
-              </div>
-            )}
+            {/* Accordions - with description */}
+            <div className="border-4 border-border rounded-lg shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card overflow-hidden">
+              <ProductAccordions product={product} />
+            </div>
           </div>
         </div>
       </Container>

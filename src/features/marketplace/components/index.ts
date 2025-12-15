@@ -5,3 +5,4 @@ export { FlavorRadarChart } from "./FlavorRadarChart";
 export { RoasterInfoCard } from "./RoasterInfoCard";
 export { ProductActions } from "./ProductActions";
 export { ProductAccordions } from "./ProductAccordions";
+export { ProductDescription } from "./ProductDescription";

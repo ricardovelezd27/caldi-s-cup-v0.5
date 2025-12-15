@@ -113,7 +113,8 @@ const ProductPage = () => {
             </div>
 
             {/* Accordions - Mobile/Tablet only (no description), order-7 */}
-            <div className="order-7 lg:hidden border-4 border-border rounded-lg shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card overflow-hidden">
+            {/* NOTE: px-4 padding matches other card components for consistent spacing */}
+            <div className="order-7 lg:hidden border-4 border-border rounded-lg px-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card overflow-hidden">
               <ProductAccordions product={product} hideDescription />
             </div>
 
@@ -141,7 +142,8 @@ const ProductPage = () => {
             <ProductActions product={product} />
 
             {/* Accordions - with description */}
-            <div className="border-4 border-border rounded-lg shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card overflow-hidden">
+            {/* NOTE: px-4 padding matches other card components for consistent spacing */}
+            <div className="border-4 border-border rounded-lg px-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card overflow-hidden">
               <ProductAccordions product={product} />
             </div>
           </div>

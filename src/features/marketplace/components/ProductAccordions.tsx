@@ -4,37 +4,55 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { FileText, Coffee, MessageSquare } from "lucide-react";
+import { FileText, Coffee, MessageSquare, MapPin } from "lucide-react";
 import type { Product } from "@/types/coffee";
 
 interface ProductAccordionsProps {
   product: Product;
+  /** Hide description accordion (for mobile where it's shown separately) */
+  hideDescription?: boolean;
 }
 
-export const ProductAccordions = ({ product }: ProductAccordionsProps) => {
-  return (
-    <Accordion type="single" collapsible className="w-full" defaultValue="description">
-      {/* Description */}
-      <AccordionItem value="description" className="border-b-2 border-border">
-        <AccordionTrigger className="hover:no-underline py-4">
-          <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-secondary" />
-            <span className="font-semibold">Description</span>
-          </div>
-        </AccordionTrigger>
-        <AccordionContent className="pb-4">
-          <div className="space-y-4 text-muted-foreground">
-            <p>{product.description}</p>
-            
-            {product.tastingNotes && (
-              <div>
-                <h4 className="font-semibold text-foreground mb-1">Tasting Notes</h4>
-                <p>{product.tastingNotes}</p>
-              </div>
-            )}
+export const ProductAccordions = ({ product, hideDescription = false }: ProductAccordionsProps) => {
+  const hasSpecs = product.origin || product.processingMethod || product.altitude || product.harvest || product.producer;
 
-            {/* Product Details */}
-            <div className="grid grid-cols-2 gap-3 pt-2">
+  return (
+    <Accordion type="single" collapsible className="w-full" defaultValue={hideDescription ? undefined : "description"}>
+      {/* Description - Hidden on mobile where ProductDescription is used */}
+      {!hideDescription && (
+        <AccordionItem value="description" className="border-b-2 border-border">
+          <AccordionTrigger className="hover:no-underline py-4">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-secondary" />
+              <span className="font-semibold">Description</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-4">
+            <div className="space-y-4 text-muted-foreground">
+              <p>{product.description}</p>
+              
+              {product.tastingNotes && (
+                <div>
+                  <h4 className="font-semibold text-foreground mb-1">Tasting Notes</h4>
+                  <p>{product.tastingNotes}</p>
+                </div>
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      )}
+
+      {/* Coffee Specs - Separate accordion item */}
+      {hasSpecs && (
+        <AccordionItem value="specs" className="border-b-2 border-border">
+          <AccordionTrigger className="hover:no-underline py-4">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-secondary" />
+              <span className="font-semibold">Coffee Specs</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pb-4">
+            <div className="grid grid-cols-2 gap-3 text-muted-foreground">
               {product.origin && (
                 <div>
                   <span className="text-xs uppercase tracking-wide text-muted-foreground">Origin</span>
@@ -66,9 +84,9 @@ export const ProductAccordions = ({ product }: ProductAccordionsProps) => {
                 </div>
               )}
             </div>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
+          </AccordionContent>
+        </AccordionItem>
+      )}
 
       {/* Brewing Guide */}
       <AccordionItem value="brewing" className="border-b-2 border-border">

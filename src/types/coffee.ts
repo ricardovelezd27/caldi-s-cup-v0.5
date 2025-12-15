@@ -13,6 +13,13 @@ export interface FlavorProfile {
   acidity: AcidityLevel;
 }
 
+// Flavor attribute scores for visual display (1-5 scale)
+export interface FlavorAttributeScores {
+  body: number;      // 1 = Light, 5 = Full
+  acidity: number;   // 1 = Subtle, 5 = Bright
+  sweetness: number; // 1 = Dry, 5 = Sweet
+}
+
 export interface CoffeeBean {
   id: string;
   name: string;
@@ -82,11 +89,13 @@ export interface Product extends CoffeeBean {
   producer?: string; // Farm or cooperative name
   tastingNotes?: string; // Detailed tasting description
   brewingTips?: string;
+  brewingGuide?: string; // Detailed brewing instructions
   images: string[];
   rating?: number; // 0-5
   reviewCount?: number;
   isFeatured?: boolean;
   isBestSeller?: boolean;
+  attributeScores?: FlavorAttributeScores; // Visual attribute display
   createdAt: string;
   updatedAt: string;
 }

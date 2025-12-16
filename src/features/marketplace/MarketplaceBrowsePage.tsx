@@ -26,6 +26,7 @@ import { FilterPanel } from "./components/FilterPanel";
 import { SortDropdown } from "./components/SortDropdown";
 import { ProductGrid } from "./components/ProductGrid";
 import { MarketplacePagination } from "./components/MarketplacePagination";
+import { ActiveFilterChips } from "./components/ActiveFilterChips";
 
 const PAGE_SIZE = 6;
 
@@ -196,6 +197,14 @@ export default function MarketplaceBrowsePage() {
               {/* Sort Dropdown */}
               <SortDropdown value={sortBy} onChange={setSortBy} />
             </div>
+
+            {/* Active Filter Chips */}
+            <ActiveFilterChips
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              availableRoasters={availableRoasters}
+              priceRange={priceRange}
+            />
 
             {/* Product Grid */}
             <ProductGrid

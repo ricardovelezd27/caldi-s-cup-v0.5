@@ -15,6 +15,7 @@ export const APP_CONFIG = {
 export const ROUTES = {
   home: "/",
   marketplace: "/marketplace",
+  cart: "/cart",
   quiz: "/quiz",
   results: "/results",
   about: "/about",

@@ -9,34 +9,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import type { Product, ProductVariant } from "@/types/coffee";
+import { useCart } from "@/contexts/CartContext";
+import type { Product } from "@/types/coffee";
 
 interface ProductActionsProps {
   product: Product;
 }
 
 export const ProductActions = ({ product }: ProductActionsProps) => {
-  const { toast } = useToast();
+  const { addToCart, getCartItem } = useCart();
   const [selectedVariantId, setSelectedVariantId] = useState<string>(
     product.variants[0]?.id || ""
   );
   const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
 
   const selectedVariant = product.variants.find(v => v.id === selectedVariantId);
   const isInStock = selectedVariant?.available && (selectedVariant?.inventoryQuantity || 0) > 0;
+  const existingCartItem = selectedVariant 
+    ? getCartItem(product.id, selectedVariant.id) 
+    : undefined;
 
   const handleQuantityChange = (delta: number) => {
     setQuantity(prev => Math.max(1, Math.min(prev + delta, selectedVariant?.inventoryQuantity || 10)));
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!selectedVariant) return;
     
-    toast({
-      title: "Added to cart!",
-      description: `${quantity}x ${product.name} (${selectedVariant.name})`,
-    });
+    setIsAdding(true);
+    try {
+      await addToCart(product, selectedVariant, quantity);
+      // Reset quantity after adding
+      setQuantity(1);
+    } finally {
+      // Brief visual feedback
+      setTimeout(() => setIsAdding(false), 500);
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -100,6 +109,13 @@ export const ProductActions = ({ product }: ProductActionsProps) => {
             Out of Stock
           </Badge>
         )}
+
+        {/* Show if item already in cart */}
+        {existingCartItem && (
+          <p className="text-sm text-muted-foreground">
+            {existingCartItem.quantity} already in cart
+          </p>
+        )}
       </div>
 
       {/* Quantity Selector */}
@@ -137,10 +153,19 @@ export const ProductActions = ({ product }: ProductActionsProps) => {
         className="w-full"
         size="lg"
         onClick={handleAddToCart}
-        disabled={!isInStock}
+        disabled={!isInStock || isAdding}
       >
-        <ShoppingCart className="w-5 h-5 mr-2" />
-        Add to Cart
+        {isAdding ? (
+          <>
+            <Check className="w-5 h-5 mr-2" />
+            Added!
+          </>
+        ) : (
+          <>
+            <ShoppingCart className="w-5 h-5 mr-2" />
+            Add to Cart
+          </>
+        )}
       </Button>
 
       {/* Total Price */}

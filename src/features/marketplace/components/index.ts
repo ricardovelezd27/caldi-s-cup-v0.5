@@ -13,3 +13,10 @@ export { FilterPanel } from "./FilterPanel";
 export { SortDropdown } from "./SortDropdown";
 export { ProductGrid } from "./ProductGrid";
 export { MarketplacePagination } from "./MarketplacePagination";
+// Roaster Storefront components
+export { RoasterHero } from "./RoasterHero";
+export { RoasterAbout } from "./RoasterAbout";
+export { RoasterContact } from "./RoasterContact";
+export { RoasterSidebarCard } from "./RoasterSidebarCard";
+export { FeaturedProductsSection } from "./FeaturedProductsSection";
+export { RoasterProductCatalog } from "./RoasterProductCatalog";

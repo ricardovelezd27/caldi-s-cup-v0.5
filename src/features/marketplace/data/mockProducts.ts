@@ -728,6 +728,13 @@ export const mockProducts: Product[] = [
   }
 ];
 
+/**
+ * Get all products by roaster ID
+ */
+export const getProductsByRoasterId = (roasterId: string): Product[] => {
+  return mockProducts.filter(p => p.roasterId === roasterId);
+};
+
 export const getProductById = (id: string): Product | undefined => {
   return mockProducts.find(p => p.id === id);
 };

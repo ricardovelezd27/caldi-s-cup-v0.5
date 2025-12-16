@@ -46,13 +46,22 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 - Design system implementation
 - Hero section with Caldi character narrative
 
-### Phase 2A: Marketplace UI Skeleton (Mock Data)
+### Phase 2A: Marketplace UI Skeleton (Mock Data) ✅
 **Goal**: Validate marketplace UX before Shopify integration
-- Product page design
-- Roaster storefront design
-- Browse/search interface
-- Shopping cart UI
+- ✅ Product page design
+- ✅ Roaster storefront design
+- ✅ Browse/search interface
+- ✅ Shopping cart UI
 - **Validation Gate**: User testing confirms marketplace UX
+
+### Phase 4: Error Handling & Production Resilience ✅
+**Goal**: Production-ready error handling
+- ✅ Error boundaries (global crash protection)
+- ✅ Error logging service
+- ✅ Network resilience (retry, offline detection)
+- ✅ Storage fallbacks (localStorage → sessionStorage → memory)
+- ✅ Rate limiting (cart operation spam protection)
+- **Validation Gate**: No white-screen crashes, graceful degradation
 
 ### Phase 2B: Shopify + Vendor Integration
 **Goal**: Enable real products and roaster onboarding
@@ -76,7 +85,7 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 - Personalized homepage curation
 - **Validation Gate**: Improved conversion vs. non-personalized
 
-### Phase 4: Scale & Automation
+### Phase 5: Scale & Automation
 **Goal**: Grow vendor base and automate operations
 - Self-service roaster onboarding
 - Automated product sync
@@ -87,15 +96,25 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 
 ## Feature Backlog
 
-### Phase 2A: Marketplace UI (Mock Data)
+### Phase 2A: Marketplace UI (Mock Data) ✅ COMPLETE
 
 | Priority | Feature | Status | Description |
 |----------|---------|--------|-------------|
 | 🔴 High | Product Page | ✅ Complete | Coffee product detail with attributes, roaster info |
-| 🔴 High | Roaster Storefront | Not Started | Cafe/roaster profile with their product catalog |
+| 🔴 High | Roaster Storefront | ✅ Complete | Cafe/roaster profile with their product catalog |
 | 🔴 High | Marketplace Browse | ✅ Complete | Product listing with filters, search, sorting |
-| 🔴 High | Shopping Cart | Not Started | Add to cart, quantity management, cart preview |
+| 🔴 High | Shopping Cart | ✅ Complete | Add to cart, quantity management, cart preview |
 | 🟡 Medium | Wishlist | Not Started | Save products for later |
+
+### Phase 4: Error Handling ✅ COMPLETE
+
+| Priority | Feature | Status | Description |
+|----------|---------|--------|-------------|
+| 🔴 High | Error Boundaries | ✅ Complete | React error catching with fallback UI |
+| 🔴 High | Error Logging | ✅ Complete | Centralized logging service |
+| 🔴 High | Network Resilience | ✅ Complete | Retry with backoff, offline detection |
+| 🔴 High | Storage Fallbacks | ✅ Complete | Graceful degradation for storage |
+| 🔴 High | Rate Limiting | ✅ Complete | Prevent cart operation spam |
 
 ### Phase 2B: Shopify Integration
 
@@ -144,90 +163,72 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 
 ## High-Priority Feature Specifications
 
-### 1. Product Page (Phase 2A)
+### 1. Product Page (Phase 2A) ✅ COMPLETE
 
 **User Story**: As a coffee enthusiast, I want to see detailed information about a coffee product so I can decide if it matches my preferences.
 
 **Route**: `/product/:id`
 
 **Acceptance Criteria**:
-- [ ] Hero image gallery (3-5 images)
-- [ ] Product name, roaster name (linked to storefront)
-- [ ] Price and variant selection (size/grind)
-- [ ] Flavor profile visualization (radar chart or badges)
-- [ ] Origin, roast level, processing method
-- [ ] Ethical badges (organic, fair trade, single origin)
-- [ ] Roaster description and link
-- [ ] Add to cart button with quantity selector
+- [x] Hero image gallery (3-5 images)
+- [x] Product name, roaster name (linked to storefront)
+- [x] Price and variant selection (size/grind)
+- [x] Flavor profile visualization (radar chart)
+- [x] Origin, roast level, processing method
+- [x] Ethical badges (organic, fair trade, single origin)
+- [x] Roaster description and link
+- [x] Add to cart button with quantity selector
 - [ ] "You might also like" section (mock data initially)
-
-**Technical Notes**:
-- Component: `src/features/marketplace/ProductPage.tsx`
-- Uses mock data initially, then Shopify Storefront API
-- Types: `Product`, `ProductVariant` from `src/types/coffee.ts`
 
 ---
 
-### 2. Roaster Storefront (Phase 2A)
+### 2. Roaster Storefront (Phase 2A) ✅ COMPLETE
 
 **User Story**: As a visitor, I want to explore a roaster's profile and their full catalog so I can discover their brand and products.
 
 **Route**: `/roaster/:id`
 
 **Acceptance Criteria**:
-- [ ] Roaster hero banner with logo
-- [ ] About section with story/mission
-- [ ] Location and contact info
-- [ ] Product grid with all their offerings
-- [ ] Filter by roast level, flavor, price
-- [ ] "Featured" or "Best Sellers" highlight
-
-**Technical Notes**:
-- Component: `src/features/marketplace/RoasterStorefront.tsx`
-- Uses mock data initially, then Shopify vendor data via Webkul
-- Types: `Roaster` from `src/types/coffee.ts`
+- [x] Roaster hero banner with logo
+- [x] About section with story/mission
+- [x] Location and contact info
+- [x] Product grid with all their offerings
+- [x] Filter by roast level, flavor, price
+- [x] "Featured" or "Best Sellers" highlight
 
 ---
 
-### 3. Marketplace Browse (Phase 2A)
+### 3. Marketplace Browse (Phase 2A) ✅ COMPLETE
 
 **User Story**: As a user, I want to browse and search all available coffees with filters so I can find products matching my preferences.
 
 **Route**: `/marketplace`
 
 **Acceptance Criteria**:
-- [ ] Product grid with cards (image, name, roaster, price, flavor badges)
-- [ ] Search bar with instant results
-- [ ] Filters: roast level, origin, flavor notes, price range, ethical options
-- [ ] Sort: relevance, price, newest, rating
-- [ ] Pagination or infinite scroll
-- [ ] Empty state for no results
-
-**Technical Notes**:
-- Component: `src/features/marketplace/MarketplaceBrowse.tsx`
-- Uses mock data initially, then Shopify Storefront API queries
-- AI layer intercepts and re-ranks results in Phase 3
+- [x] Product grid with cards (image, name, roaster, price, flavor badges)
+- [x] Search bar with instant results
+- [x] Filters: roast level, origin, flavor notes, price range, roaster
+- [x] Sort: relevance, price, newest, rating
+- [x] Pagination
+- [x] Empty state for no results
 
 ---
 
-### 4. Shopping Cart (Phase 2A)
+### 4. Shopping Cart (Phase 2A) ✅ COMPLETE
 
 **User Story**: As a shopper, I want to manage items in my cart so I can review before checkout.
 
-**Route**: `/cart` (also slide-out panel)
+**Route**: `/cart`
 
 **Acceptance Criteria**:
-- [ ] List of cart items with image, name, variant, quantity, price
-- [ ] Quantity adjustment (+/-)
-- [ ] Remove item
-- [ ] Subtotal calculation
-- [ ] "Continue Shopping" and "Proceed to Checkout" CTAs
-- [ ] Empty cart state
-
-**Technical Notes**:
-- Component: `src/features/cart/ShoppingCart.tsx`
-- Local state initially (localStorage), then Shopify cart API
-- Types: `CartItem` from `src/types/coffee.ts`
+- [x] List of cart items with image, name, variant, quantity, price
+- [x] Quantity adjustment (+/-)
+- [x] Remove item
+- [x] Subtotal calculation
+- [x] "Continue Shopping" and "Proceed to Checkout" CTAs
+- [x] Empty cart state
+- [x] Input validation with Zod schemas
+- [x] Optimistic updates with rollback
 
 ---
 
@@ -265,8 +266,8 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 | `/` | Index | 1 ✅ | Landing page |
 | `/marketplace` | MarketplaceBrowse | 2A ✅ | Browse all products |
 | `/product/:id` | ProductPage | 2A ✅ | Product detail |
-| `/roaster/:id` | RoasterStorefront | 2A | Roaster profile + catalog |
-| `/cart` | ShoppingCart | 2A | Shopping cart |
+| `/roaster/:id` | RoasterStorefront | 2A ✅ | Roaster profile + catalog |
+| `/cart` | ShoppingCart | 2A ✅ | Shopping cart |
 | `/checkout` | CheckoutRedirect | 2B | Redirect to Shopify checkout |
 | `/onboarding` | OnboardingFlow | 2C | Intro to Caldi AI |
 | `/quiz` | QuizFlow | 2C | Preference questions |
@@ -293,6 +294,7 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 - AI personalization layer
 - Search ranking and recommendations
 - Brand experience and design
+- Error handling and resilience
 
 ### Roasters Handle:
 - Product uploads via Webkul portal
@@ -310,7 +312,8 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 - **TDD Workflow**: Write tests before implementation for complex logic
 - **Animations Deferred**: Keep UI static for MVP, add motion in Phase 3+
 - **Security**: Zero-trust approach when handling user input
+- **Error Handling**: Production resilience with boundaries and logging
 
 ---
 
-*Last Updated: 2025-12-15*
+*Last Updated: 2025-12-16*

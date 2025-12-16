@@ -1,16 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from "react";
 import type { CartItem, Product, ProductVariant } from "@/types/coffee";
 import type { ShopifyCartState, CartOperations } from "@/types/cart";
-import {
-  localCartService,
-  loadCartFromStorage,
-  saveCartToStorage,
-  calculateCartTotals,
-  addItemToCart,
-  updateItemQuantity,
-  removeItemFromCart,
-  getCartItemByIds,
-} from "@/services/cart/localCartService";
+import { localCartService } from "@/services/cart/localCartService";
 import { useToast } from "@/hooks/use-toast";
 
 // ============= State & Actions =============
@@ -49,28 +40,28 @@ function cartReducer(state: ShopifyCartState, action: CartAction): ShopifyCartSt
     }
 
     case "SET_ITEMS": {
-      const { subtotal, itemCount } = calculateCartTotals(action.payload);
+      const { subtotal, itemCount } = localCartService.calculateTotals(action.payload);
       return { ...state, items: action.payload, subtotal, itemCount };
     }
 
     case "ADD_ITEM": {
       const { product, variant, quantity } = action.payload;
-      const newItems = addItemToCart(state.items, product, variant, quantity);
-      const { subtotal, itemCount } = calculateCartTotals(newItems);
+      const newItems = localCartService.addItem(state.items, product, variant, quantity);
+      const { subtotal, itemCount } = localCartService.calculateTotals(newItems);
       return { ...state, items: newItems, subtotal, itemCount };
     }
 
     case "UPDATE_QUANTITY": {
       const { productId, variantId, quantity } = action.payload;
-      const newItems = updateItemQuantity(state.items, productId, variantId, quantity);
-      const { subtotal, itemCount } = calculateCartTotals(newItems);
+      const newItems = localCartService.updateQuantity(state.items, productId, variantId, quantity);
+      const { subtotal, itemCount } = localCartService.calculateTotals(newItems);
       return { ...state, items: newItems, subtotal, itemCount };
     }
 
     case "REMOVE_ITEM": {
       const { productId, variantId } = action.payload;
-      const newItems = removeItemFromCart(state.items, productId, variantId);
-      const { subtotal, itemCount } = calculateCartTotals(newItems);
+      const newItems = localCartService.removeItem(state.items, productId, variantId);
+      const { subtotal, itemCount } = localCartService.calculateTotals(newItems);
       return { ...state, items: newItems, subtotal, itemCount };
     }
 
@@ -100,14 +91,14 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   // Hydrate from localStorage on mount
   useEffect(() => {
-    const stored = loadCartFromStorage();
+    const stored = localCartService.loadFromStorage();
     dispatch({ type: "HYDRATE", payload: stored });
   }, []);
 
   // Persist to localStorage on state change
   useEffect(() => {
     if (state.items.length > 0 || localStorage.getItem("caldis-cup-cart")) {
-      saveCartToStorage({
+      localCartService.saveToStorage({
         items: state.items,
         subtotal: state.subtotal,
         itemCount: state.itemCount,
@@ -180,7 +171,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const getCartItem = useCallback(
     (productId: string, variantId: string): CartItem | undefined => {
-      return getCartItemByIds(state.items, productId, variantId);
+      return localCartService.getItem(state.items, productId, variantId);
     },
     [state.items]
   );

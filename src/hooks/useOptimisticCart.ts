@@ -2,6 +2,7 @@ import { useCallback, useRef } from "react";
 import { useCart } from "@/contexts/cart";
 import { getItemOperationKey, type CartItemOperationState } from "@/types/cart";
 import { toast } from "sonner";
+import { getCartRateLimiter } from "@/utils/rateLimit";
 
 /**
  * useOptimisticCart Hook
@@ -15,12 +16,16 @@ import { toast } from "sonner";
  * - Automatic rollback on error
  * - Debounced quantity updates (300ms)
  * - Toast notifications for failures
+ * - Rate limiting to prevent spam
  */
 export function useOptimisticCart() {
   const { items, itemOperations, dispatch, updateQuantity, removeItem } = useCart();
   
   // Track pending debounced updates
   const pendingUpdates = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  
+  // Get rate limiter
+  const rateLimiter = getCartRateLimiter();
   
   /**
    * Get the current operation state for a specific item
@@ -45,11 +50,17 @@ export function useOptimisticCart() {
   );
 
   /**
-   * Optimistically update quantity with debouncing and rollback support
+   * Optimistically update quantity with debouncing, rollback, and rate limiting
    */
   const optimisticUpdateQuantity = useCallback(
     async (productId: string, variantId: string, newQuantity: number) => {
       const key = getItemOperationKey(productId, variantId);
+      
+      // Check rate limit
+      if (!rateLimiter.tryConsume(key)) {
+        toast.warning("Too many updates. Please wait a moment.");
+        return;
+      }
       
       // Find current item and store previous quantity for potential rollback
       const currentItem = items.find(
@@ -107,15 +118,21 @@ export function useOptimisticCart() {
 
       pendingUpdates.current.set(key, timeoutId);
     },
-    [items, dispatch, updateQuantity, removeItem]
+    [items, dispatch, updateQuantity, removeItem, rateLimiter]
   );
 
   /**
-   * Optimistically remove an item
+   * Optimistically remove an item with rate limiting
    */
   const optimisticRemoveItem = useCallback(
     async (productId: string, variantId: string) => {
       const key = getItemOperationKey(productId, variantId);
+      
+      // Check rate limit
+      if (!rateLimiter.tryConsume(key)) {
+        toast.warning("Too many updates. Please wait a moment.");
+        return;
+      }
       
       // Store current item for potential rollback
       const currentItem = items.find(
@@ -152,7 +169,7 @@ export function useOptimisticCart() {
         toast.error("Failed to remove item. Please try again.");
       }
     },
-    [items, dispatch, removeItem]
+    [items, dispatch, removeItem, rateLimiter]
   );
 
   /**
@@ -162,11 +179,23 @@ export function useOptimisticCart() {
     return Object.values(itemOperations).some(op => op.isUpdating);
   }, [itemOperations]);
 
+  /**
+   * Get remaining rate limit tokens for an item
+   */
+  const getRateLimitRemaining = useCallback(
+    (productId: string, variantId: string): number => {
+      const key = getItemOperationKey(productId, variantId);
+      return rateLimiter.getRemaining(key);
+    },
+    [rateLimiter]
+  );
+
   return {
     optimisticUpdateQuantity,
     optimisticRemoveItem,
     getItemState,
     clearItemError,
     hasActiveOperations,
+    getRateLimitRemaining,
   };
 }

@@ -2,6 +2,52 @@
 
 All notable changes to Caldi's Cup are documented here.
 
+## [0.4.0] - 2025-12-16 - Error Handling & Production Resilience
+
+### Added
+- **Error Boundaries** (Phase 4A):
+  - `ErrorBoundary` component - global React error catcher
+  - `ErrorFallback` component - user-friendly error UI with recovery options
+  - App wrapped with ErrorBoundary to prevent white-screen crashes
+
+- **Error Logging Service** (Phase 4B):
+  - `errorLogger` service with structured logging
+  - Log levels: debug, info, warn, error, fatal
+  - In-memory buffer (50 entries) for debugging
+  - User context support for error correlation
+  - Ready for external service integration (Sentry, LogRocket)
+
+- **Network Resilience** (Phase 4C):
+  - `retryWithBackoff` utility - exponential backoff with jitter
+  - `useNetworkStatus` hook - monitor connectivity
+  - `OfflineIndicator` component - banner when offline
+  - Configurable retry options (max retries, delays, abort signal)
+
+- **Storage Fallbacks** (Phase 4D):
+  - `storageFactory` with automatic fallbacks: localStorage → sessionStorage → memory
+  - User notification when storage is degraded
+  - Safe JSON parse/stringify utilities
+  - CartContext integrated with storage fallbacks
+
+- **Rate Limiting** (Phase 4E):
+  - Token bucket rate limiter (`createRateLimiter`)
+  - Cart-specific rate limiter singleton
+  - Integrated with `useOptimisticCart` hook
+  - 10 ops burst, 2/sec refill rate
+
+- **Documentation** (Phase 4F):
+  - `docs/ERROR_HANDLING.md` - comprehensive error handling guide
+  - Updated README.md with Phase 4 status
+  - Updated BACKLOG.md with completed items
+
+### Changed
+- ErrorBoundary now uses `errorLogger.captureFatal()` for crash logging
+- CartContext uses `getStorage()` for storage abstraction
+- `useOptimisticCart` now includes rate limiting protection
+- App.tsx includes `OfflineIndicator` component
+
+---
+
 ## [0.3.0] - 2025-12-16 - Backend-Agnostic Integration Prep
 
 ### Added

@@ -8,6 +8,7 @@ export { ProductAccordions } from "./ProductAccordions";
 export { ProductDescription } from "./ProductDescription";
 // Marketplace Browse components
 export { ProductCard } from "./ProductCard";
+export { CartQuantityControl } from "./CartQuantityControl";
 export { ProductCardSkeleton } from "./ProductCardSkeleton";
 export { FilterPanel } from "./FilterPanel";
 export { SortDropdown } from "./SortDropdown";

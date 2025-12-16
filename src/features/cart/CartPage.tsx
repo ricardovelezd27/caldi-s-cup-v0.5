@@ -34,7 +34,7 @@ export const CartPage = () => {
     <PageLayout>
       <Container size="wide" className="py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="flex flex-col gap-4 mb-8">
           <div>
             <h1 className="font-['Bangers'] text-4xl md:text-5xl text-foreground tracking-wide">
               Shopping Cart
@@ -44,8 +44,8 @@ export const CartPage = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Button variant="outline" asChild>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+            <Button variant="outline" asChild className="active:scale-[0.98] transition-transform">
               <Link to={ROUTES.marketplace}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Continue Shopping
@@ -55,9 +55,12 @@ export const CartPage = () => {
             {items.length > 0 && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" className="text-destructive hover:text-destructive">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Clear Cart
+                  <Button 
+                    variant="outline" 
+                    className="text-destructive hover:text-destructive active:scale-[0.98] transition-transform"
+                  >
+                    <Trash2 className="w-4 h-4 sm:mr-2" />
+                    <span className="sm:inline">Clear Cart</span>
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -71,7 +74,7 @@ export const CartPage = () => {
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleClearCart}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90 active:scale-[0.98] transition-transform"
                     >
                       Clear Cart
                     </AlertDialogAction>

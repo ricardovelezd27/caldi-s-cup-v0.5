@@ -3,7 +3,7 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/cart";
 import { ROUTES } from "@/constants/app";
 import {
   CartItemRow,

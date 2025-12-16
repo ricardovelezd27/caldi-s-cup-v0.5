@@ -1,17 +1,11 @@
 import { ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/cart";
+import { formatPrice } from "@/utils/formatters";
 
 export const OrderSummary = () => {
   const { subtotal, itemCount, proceedToCheckout, isLoading, isShopifyConnected } = useCart();
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(price);
-  };
 
   const handleCheckout = () => {
     proceedToCheckout();

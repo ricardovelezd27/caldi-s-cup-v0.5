@@ -1,7 +1,7 @@
 import React from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/cart";
 
 interface CartQuantityControlProps {
   productId: string;

@@ -13,56 +13,62 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-interface Roaster {
+interface FilterOption {
   id: string;
-  name: string;
-  productCount: number;
+  label: string;
+  count?: number;
 }
 
-interface RoasterFilterModalProps {
+interface FilterOptionsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  roasters: Roaster[];
-  selectedRoasterIds: string[];
-  onApply: (roasterIds: string[]) => void;
+  title: string;
+  options: FilterOption[];
+  selectedIds: string[];
+  onApply: (ids: string[]) => void;
+  showSearch?: boolean;
+  searchPlaceholder?: string;
 }
 
 /**
- * Modal for extended roaster filtering with search and multi-select
+ * Reusable modal for extended filtering with search and multi-select
  */
-export function RoasterFilterModal({
+export function FilterOptionsModal({
   open,
   onOpenChange,
-  roasters,
-  selectedRoasterIds,
+  title,
+  options,
+  selectedIds,
   onApply,
-}: RoasterFilterModalProps) {
+  showSearch = true,
+  searchPlaceholder = "Search...",
+}: FilterOptionsModalProps) {
   const [search, setSearch] = useState("");
-  const [localSelection, setLocalSelection] = useState<string[]>(selectedRoasterIds);
+  const [localSelection, setLocalSelection] = useState<string[]>(selectedIds);
 
   // Reset local selection when modal opens
   const handleOpenChange = (isOpen: boolean) => {
     if (isOpen) {
-      setLocalSelection(selectedRoasterIds);
+      setLocalSelection(selectedIds);
       setSearch("");
     }
     onOpenChange(isOpen);
   };
 
-  // Filter roasters by search term
-  const filteredRoasters = useMemo(() => {
-    if (!search.trim()) return roasters;
+  // Filter options by search term
+  const filteredOptions = useMemo(() => {
+    if (!search.trim()) return options;
     const searchLower = search.toLowerCase();
-    return roasters.filter((roaster) =>
-      roaster.name.toLowerCase().includes(searchLower)
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(searchLower)
     );
-  }, [roasters, search]);
+  }, [options, search]);
 
-  const toggleRoaster = (roasterId: string) => {
+  const toggleOption = (optionId: string) => {
     setLocalSelection((prev) =>
-      prev.includes(roasterId)
-        ? prev.filter((id) => id !== roasterId)
-        : [...prev, roasterId]
+      prev.includes(optionId)
+        ? prev.filter((id) => id !== optionId)
+        : [...prev, optionId]
     );
   };
 
@@ -83,25 +89,27 @@ export function RoasterFilterModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-2xl border-4 border-border shadow-[4px_4px_0px_0px_hsl(var(--border))]">
         <DialogHeader>
-          <DialogTitle className="font-heading text-2xl">Filter by Roaster</DialogTitle>
+          <DialogTitle className="font-heading text-2xl">{title}</DialogTitle>
         </DialogHeader>
 
         {/* Search Input */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search roasters..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 border-4 border-border shadow-[4px_4px_0px_0px_hsl(var(--border))]"
-          />
-        </div>
+        {showSearch && (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder={searchPlaceholder}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 border-4 border-border shadow-[4px_4px_0px_0px_hsl(var(--border))]"
+            />
+          </div>
+        )}
 
         {/* Selection count */}
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>
-            {localSelection.length} roaster{localSelection.length !== 1 ? "s" : ""} selected
+            {localSelection.length} selected
           </span>
           {localSelection.length > 0 && (
             <Button
@@ -115,34 +123,36 @@ export function RoasterFilterModal({
           )}
         </div>
 
-        {/* Roaster Grid */}
+        {/* Options Grid */}
         <ScrollArea className="h-64 pr-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {filteredRoasters.map((roaster) => (
+            {filteredOptions.map((option) => (
               <div
-                key={roaster.id}
+                key={option.id}
                 className="flex items-start gap-2 p-2 rounded-md hover:bg-muted/50 transition-colors"
               >
                 <Checkbox
-                  id={`modal-roaster-${roaster.id}`}
-                  checked={localSelection.includes(roaster.id)}
-                  onCheckedChange={() => toggleRoaster(roaster.id)}
+                  id={`modal-option-${option.id}`}
+                  checked={localSelection.includes(option.id)}
+                  onCheckedChange={() => toggleOption(option.id)}
                 />
                 <Label
-                  htmlFor={`modal-roaster-${roaster.id}`}
+                  htmlFor={`modal-option-${option.id}`}
                   className="text-sm font-normal cursor-pointer leading-tight"
                 >
-                  {roaster.name}
-                  <span className="block text-xs text-muted-foreground">
-                    ({roaster.productCount} product{roaster.productCount !== 1 ? "s" : ""})
-                  </span>
+                  {option.label}
+                  {option.count !== undefined && (
+                    <span className="block text-xs text-muted-foreground">
+                      ({option.count} product{option.count !== 1 ? "s" : ""})
+                    </span>
+                  )}
                 </Label>
               </div>
             ))}
           </div>
-          {filteredRoasters.length === 0 && (
+          {filteredOptions.length === 0 && (
             <p className="text-center text-muted-foreground py-8">
-              No roasters found matching "{search}"
+              No options found matching "{search}"
             </p>
           )}
         </ScrollArea>

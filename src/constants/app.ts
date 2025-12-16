@@ -19,6 +19,7 @@ export const ROUTES = {
   results: "/results",
   about: "/about",
   cart: "/cart",
+  auth: "/auth",
 } as const;
 
 export const NAV_LINKS = [{ label: "Marketplace (coming soon)", path: "/marketplace" }] as const;

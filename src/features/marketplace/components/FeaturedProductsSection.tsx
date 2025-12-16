@@ -18,8 +18,8 @@ export const FeaturedProductsSection = ({ products }: FeaturedProductsSectionPro
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {products.map((product) => (
+      <div className="grid grid-cols-1 gap-3">
+        {products.slice(0, 3).map((product) => (
           <Link
             key={product.id}
             to={`/product/${product.id}`}

@@ -7,6 +7,7 @@ export interface ProductFilters {
   origins: string[];
   roastLevels: RoastLevel[];
   grinds: string[];
+  roasterIds: string[];
   priceRange: [number, number];
 }
 
@@ -15,6 +16,7 @@ export const DEFAULT_FILTERS: ProductFilters = {
   origins: [],
   roastLevels: [],
   grinds: [],
+  roasterIds: [],
   priceRange: [0, 50],
 };
 

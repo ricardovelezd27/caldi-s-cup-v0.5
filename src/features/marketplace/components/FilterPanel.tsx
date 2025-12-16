@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,28 +9,40 @@ import { Separator } from "@/components/ui/separator";
 import { RoastLevel } from "@/types/coffee";
 import { ProductFilters, DEFAULT_FILTERS } from "../types/api";
 import { formatGrind, formatRoastLevel } from "../utils/productFilters";
+import { RoasterFilterModal } from "./RoasterFilterModal";
+
+interface Roaster {
+  id: string;
+  name: string;
+  productCount: number;
+}
 
 interface FilterPanelProps {
   filters: ProductFilters;
   onFiltersChange: (filters: ProductFilters) => void;
   availableOrigins: string[];
   availableGrinds: string[];
+  availableRoasters: Roaster[];
   priceRange: [number, number];
 }
 
 const ROAST_LEVELS: RoastLevel[] = ["light", "medium", "dark"];
+const TOP_ROASTERS_COUNT = 3;
 
 /**
  * Filter panel component for marketplace browse page
- * Contains search, origin, roast level, grind, and price filters
+ * Contains search, roaster, origin, roast level, grind, and price filters
  */
 export function FilterPanel({
   filters,
   onFiltersChange,
   availableOrigins,
   availableGrinds,
+  availableRoasters,
   priceRange,
 }: FilterPanelProps) {
+  const [roasterModalOpen, setRoasterModalOpen] = useState(false);
+
   const updateFilter = <K extends keyof ProductFilters>(
     key: K,
     value: ProductFilters[K]
@@ -60,8 +73,18 @@ export function FilterPanel({
     filters.origins.length > 0 ||
     filters.roastLevels.length > 0 ||
     filters.grinds.length > 0 ||
+    filters.roasterIds.length > 0 ||
     filters.priceRange[0] > priceRange[0] ||
     filters.priceRange[1] < priceRange[1];
+
+  // Get top roasters for concise display
+  const topRoasters = availableRoasters.slice(0, TOP_ROASTERS_COUNT);
+  const hasMoreRoasters = availableRoasters.length > TOP_ROASTERS_COUNT;
+
+  // Handle roaster modal apply
+  const handleRoasterApply = (roasterIds: string[]) => {
+    updateFilter("roasterIds", roasterIds);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -97,6 +120,47 @@ export function FilterPanel({
             className="pl-9 border-4 border-border shadow-[4px_4px_0px_0px_hsl(var(--border))]"
           />
         </div>
+      </div>
+
+      <Separator className="bg-border" />
+
+      {/* Roaster Filter */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label className="font-medium">Roaster</Label>
+          {filters.roasterIds.length > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {filters.roasterIds.length} selected
+            </span>
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          {topRoasters.map((roaster) => (
+            <div key={roaster.id} className="flex items-center gap-2">
+              <Checkbox
+                id={`roaster-${roaster.id}`}
+                checked={filters.roasterIds.includes(roaster.id)}
+                onCheckedChange={() => toggleArrayFilter("roasterIds", roaster.id)}
+              />
+              <Label
+                htmlFor={`roaster-${roaster.id}`}
+                className="text-sm font-normal cursor-pointer"
+              >
+                {roaster.name}
+              </Label>
+            </div>
+          ))}
+        </div>
+        {hasMoreRoasters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setRoasterModalOpen(true)}
+            className="text-primary hover:text-primary/80 p-0 h-auto font-medium"
+          >
+            More Options...
+          </Button>
+        )}
       </div>
 
       <Separator className="bg-border" />
@@ -196,6 +260,15 @@ export function FilterPanel({
           <span>${priceRange[1]}</span>
         </div>
       </div>
+
+      {/* Roaster Filter Modal */}
+      <RoasterFilterModal
+        open={roasterModalOpen}
+        onOpenChange={setRoasterModalOpen}
+        roasters={availableRoasters}
+        selectedRoasterIds={filters.roasterIds}
+        onApply={handleRoasterApply}
+      />
     </div>
   );
 }

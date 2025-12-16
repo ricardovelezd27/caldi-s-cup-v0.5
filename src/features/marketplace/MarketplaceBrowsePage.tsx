@@ -19,6 +19,7 @@ import {
   paginateProducts,
   getUniqueOrigins,
   getUniqueGrinds,
+  getUniqueRoasters,
   getPriceRange,
 } from "./utils/productFilters";
 import { FilterPanel } from "./components/FilterPanel";
@@ -50,6 +51,10 @@ export default function MarketplaceBrowsePage() {
   );
   const availableGrinds = useMemo(
     () => getUniqueGrinds(mockProducts),
+    []
+  );
+  const availableRoasters = useMemo(
+    () => getUniqueRoasters(mockProducts),
     []
   );
   const priceRange = useMemo(() => getPriceRange(mockProducts), []);
@@ -89,7 +94,7 @@ export default function MarketplaceBrowsePage() {
   // Reset to page 1 when filters or sort change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters.origins, filters.roastLevels, filters.grinds, filters.priceRange, debouncedSearch, sortBy]);
+  }, [filters.origins, filters.roastLevels, filters.grinds, filters.roasterIds, filters.priceRange, debouncedSearch, sortBy]);
 
   // Simulate loading state for UX feedback
   useEffect(() => {
@@ -114,6 +119,7 @@ export default function MarketplaceBrowsePage() {
     filters.origins.length +
     filters.roastLevels.length +
     filters.grinds.length +
+    filters.roasterIds.length +
     (filters.search ? 1 : 0) +
     (filters.priceRange[0] > priceRange[0] ||
     filters.priceRange[1] < priceRange[1]
@@ -141,6 +147,7 @@ export default function MarketplaceBrowsePage() {
                 onFiltersChange={handleFiltersChange}
                 availableOrigins={availableOrigins}
                 availableGrinds={availableGrinds}
+                availableRoasters={availableRoasters}
                 priceRange={priceRange}
               />
             </div>
@@ -176,6 +183,7 @@ export default function MarketplaceBrowsePage() {
                       onFiltersChange={handleFiltersChange}
                       availableOrigins={availableOrigins}
                       availableGrinds={availableGrinds}
+                      availableRoasters={availableRoasters}
                       priceRange={priceRange}
                     />
                   </div>

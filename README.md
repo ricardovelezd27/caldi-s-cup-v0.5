@@ -8,13 +8,19 @@
 
 **Architecture:** Modular Monolith (React + Vite + Tailwind CSS + TypeScript)
 
-**Phase:** 1 - Foundation & Landing Page MVP
+**Phase:** 2A Complete + Phase 4 Complete (Error Handling & Production Resilience)
 
-**Status:** UI/UX development in progress (backend integration deferred)
+**Status:** Marketplace UI complete with mock data, production-ready error handling implemented
 
-### MVP Scope (Phase 1)
+### Completed Features
 
 - ✅ Landing Page with Hero, Problem, and Solution sections
+- ✅ Product Page with attributes, flavor chart, roaster info
+- ✅ Marketplace Browse with filters, sorting, pagination
+- ✅ Roaster Storefront with tabs and product catalog
+- ✅ Shopping Cart with optimistic updates and validation
+- ✅ Responsive navigation (desktop links + mobile hamburger menu)
+- ✅ Error handling & production resilience (Phase 4)
 - 🔲 Coffee Preference Quiz (4-6 questions)
 - 🔲 Results Page with taste profile
 - 🔲 Waitlist signup integration
@@ -39,7 +45,7 @@ Development prioritizes UI/UX completion before backend integration:
 1. Complete visual design and interactions
 2. Test user flows with mock data
 3. Validate design system consistency
-4. Then connect Supabase for persistence
+4. Then connect Supabase/Shopify for persistence
 
 ### Component Organization Rationale
 
@@ -47,13 +53,32 @@ Development prioritizes UI/UX completion before backend integration:
 src/components/
 ├── ui/        → shadcn primitives (untouched)
 ├── layout/    → Page structure (Header, Footer, PageLayout)
-└── shared/    → Brand components (CaldiCard, SectionHeading, Container)
+├── shared/    → Brand components (CaldiCard, SectionHeading, Container)
+└── error/     → Error handling (ErrorBoundary, ErrorFallback, OfflineIndicator)
 ```
 
 This separation ensures:
 - UI primitives remain upgrade-safe
 - Layout components handle page structure
 - Shared components enforce brand consistency
+- Error components provide production resilience
+
+---
+
+## Error Handling Architecture
+
+Phase 4 implemented comprehensive error handling for production resilience:
+
+| Layer | Component | Purpose |
+|-------|-----------|---------|
+| **Boundaries** | `ErrorBoundary` | Catches React crashes, shows recovery UI |
+| **Logging** | `errorLogger` | Structured logging with external service readiness |
+| **Network** | `retryWithBackoff` | Exponential backoff for failed requests |
+| **Network** | `useNetworkStatus` | Monitor connectivity, show offline banner |
+| **Storage** | `storageFactory` | Fallbacks: localStorage → sessionStorage → memory |
+| **Rate Limit** | `createRateLimiter` | Token bucket to prevent operation spam |
+
+See `docs/ERROR_HANDLING.md` for full documentation.
 
 ---
 
@@ -99,7 +124,8 @@ This separation ensures:
 | **Animations** | Deferred | Add bouncy micro-interactions (Phase 2) |
 | **Header Scroll** | Basic | Add fade transition for logo reveal |
 | **Dark Mode** | CSS Ready | Add toggle UI and localStorage persistence |
-| **Mobile Nav** | Empty placeholder | Add hamburger menu when pages expand |
+| ~~**Mobile Nav**~~ | ✅ Done | Hamburger menu with Sheet slide-out |
+| ~~**Error Handling**~~ | ✅ Done | Phase 4 complete |
 | **Testing** | None | Add unit tests per TDD mandate |
 | **Accessibility** | Basic semantic HTML | Add ARIA labels, keyboard navigation |
 | **SEO** | Minimal | Add meta tags, structured data |
@@ -114,13 +140,22 @@ This separation ensures:
 | User Data Collection | None yet |
 | Row Level Security (RLS) | N/A until Supabase connected |
 | API Keys / Secrets | None in codebase |
-| Input Validation | Will implement with quiz/waitlist |
+| Input Validation | ✅ Cart validation with Zod schemas |
+| Error Boundaries | ✅ Global crash protection |
+| Rate Limiting | ✅ Cart operations protected |
 
 ---
 
 ## Next Phase Roadmap
 
-### Phase 2: Quiz & Waitlist MVP
+### Phase 2B: Shopify + Vendor Integration
+
+1. **Enable Shopify Basic + Webkul Multi-Vendor**
+2. **Onboard 3-5 pilot roasters**
+3. **Connect Shopify Storefront API to frontend**
+4. **Validation Gate**: First real orders processed
+
+### Phase 2C: User Onboarding & Quiz
 
 1. **Coffee Preference Quiz**
    - 4-6 visual card-based questions
@@ -152,12 +187,17 @@ src/
 ├── components/
 │   ├── layout/       # PageLayout, Header, Footer
 │   ├── shared/       # CaldiCard, SectionHeading, Container
+│   ├── error/        # ErrorBoundary, ErrorFallback, OfflineIndicator
 │   └── ui/           # shadcn components
 ├── constants/        # APP_CONFIG, ROUTES
-├── features/         # Feature modules (quiz, etc.)
+├── contexts/         # React contexts (cart)
+├── features/         # Feature modules (marketplace, cart)
 ├── hooks/            # Custom React hooks
 ├── pages/            # Route pages
-└── types/            # TypeScript type definitions
+├── schemas/          # Zod validation schemas
+├── services/         # Service layer (cart, errorLogging)
+├── types/            # TypeScript type definitions
+└── utils/            # Utilities (formatters, validation, network, storage, rateLimit)
 ```
 
 ### Active Assets
@@ -165,6 +205,18 @@ src/
 - `src/assets/characters/caldi-modern-chest.png` - Modern Caldi mascot
 - `src/assets/backgrounds/path-to-clarity.svg` - Hero background
 - `public/favicon.png` - Site favicon
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| `README.md` | Project overview and status |
+| `CHANGELOG.md` | Version history |
+| `BACKLOG.md` | Feature backlog and roadmap |
+| `docs/BACKEND_OPTIONS.md` | Shopify vs Supabase comparison |
+| `docs/ERROR_HANDLING.md` | Error handling architecture |
 
 ---
 
@@ -188,6 +240,7 @@ npm run dev
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Utility-first styling
 - **shadcn/ui** - Component library
+- **Zod** - Schema validation
 
 ## Deployment
 

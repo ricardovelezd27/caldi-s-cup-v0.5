@@ -1,5 +1,6 @@
 import type { CartItem, Product, ProductVariant } from "@/types/coffee";
-import type { ExtendedCartState, CartOperations, CartItemOperations } from "@/types/cart";
+import type { ExtendedCartState, CartOperations } from "@/types/cart";
+import type { StorageType } from "@/utils/storage/storageFactory";
 
 // ============= Action Types =============
 
@@ -37,4 +38,6 @@ export const initialState: ExtendedCartState = {
 export interface CartContextValue extends ExtendedCartState, CartOperations {
   /** Dispatch function for advanced use cases */
   dispatch: React.Dispatch<CartAction>;
+  /** Current storage type being used */
+  storageType?: StorageType;
 }

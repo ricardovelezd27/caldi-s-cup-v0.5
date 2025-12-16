@@ -2,6 +2,35 @@
 
 All notable changes to Caldi's Cup are documented here.
 
+## [0.3.0] - 2025-12-16 - Backend-Agnostic Integration Prep
+
+### Added
+- **Backend-Agnostic Architecture**:
+  - `ExtendedCartState` type replacing Shopify-specific naming
+  - `CartItemOperations` for per-item loading/error states
+  - `lineId` field in `CartItem` for external backend sync
+- **Optimistic Updates**:
+  - `useOptimisticCart` hook with debounced updates (300ms)
+  - Automatic rollback on failure
+  - Per-item loading states
+- **Service Factory Pattern**:
+  - `createCartService()` supports local/shopify/supabase backends
+  - `getDefaultDataSource()` and `isBackendAvailable()` helpers
+- **Backend Options Documentation**:
+  - `docs/BACKEND_OPTIONS.md` with Shopify vs Supabase comparison
+  - Database schema for Supabase alternative
+  - Stripe integration examples
+  - Migration path documentation
+
+### Changed
+- Renamed `ShopifyCartState` to `ExtendedCartState` (deprecated alias kept)
+- Renamed `shopifyCartId` to `externalCartId`
+- Renamed `isShopifyConnected` to `isBackendConnected`
+- Cart context now exposes `dispatch` for advanced use cases
+- Updated all components to use backend-agnostic terminology
+
+---
+
 ## [0.2.0] - 2025-12-15 - Marketplace Browse & Navigation
 
 ### Added

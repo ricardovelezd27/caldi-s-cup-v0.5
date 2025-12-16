@@ -1,4 +1,4 @@
-import type { ShopifyCartState } from "@/types/cart";
+import type { ExtendedCartState } from "@/types/cart";
 import type { CartAction } from "./cartTypes";
 import { localCartService } from "@/services/cart/localCartService";
 
@@ -6,7 +6,7 @@ import { localCartService } from "@/services/cart/localCartService";
  * Pure reducer function for cart state management
  * Isolated for testability and SRP compliance
  */
-export function cartReducer(state: ShopifyCartState, action: CartAction): ShopifyCartState {
+export function cartReducer(state: ExtendedCartState, action: CartAction): ExtendedCartState {
   switch (action.type) {
     case "SET_LOADING":
       return { ...state, isLoading: action.payload };
@@ -47,7 +47,61 @@ export function cartReducer(state: ShopifyCartState, action: CartAction): Shopif
     }
 
     case "CLEAR_CART":
-      return { ...state, items: [], subtotal: 0, itemCount: 0 };
+      return { ...state, items: [], subtotal: 0, itemCount: 0, itemOperations: {} };
+
+    // ============= Optimistic Update Actions =============
+
+    case "SET_ITEM_LOADING": {
+      const { key, isUpdating } = action.payload;
+      return {
+        ...state,
+        itemOperations: {
+          ...state.itemOperations,
+          [key]: {
+            ...state.itemOperations[key],
+            isUpdating,
+            error: isUpdating ? null : state.itemOperations[key]?.error ?? null,
+          },
+        },
+      };
+    }
+
+    case "SET_ITEM_ERROR": {
+      const { key, error, previousQuantity } = action.payload;
+      return {
+        ...state,
+        itemOperations: {
+          ...state.itemOperations,
+          [key]: {
+            isUpdating: false,
+            error,
+            previousQuantity,
+          },
+        },
+      };
+    }
+
+    case "ROLLBACK_QUANTITY": {
+      const { productId, variantId, previousQuantity } = action.payload;
+      const newItems = localCartService.updateQuantity(state.items, productId, variantId, previousQuantity);
+      const { subtotal, itemCount } = localCartService.calculateTotals(newItems);
+      return { ...state, items: newItems, subtotal, itemCount };
+    }
+
+    // ============= External Cart Sync Actions =============
+
+    case "SET_EXTERNAL_CART": {
+      const { externalCartId, checkoutUrl } = action.payload;
+      return {
+        ...state,
+        externalCartId,
+        checkoutUrl: checkoutUrl ?? state.checkoutUrl,
+        isBackendConnected: true,
+      };
+    }
+
+    case "SET_BACKEND_CONNECTED":
+      return { ...state, isBackendConnected: action.payload };
 
     default:
       return state;

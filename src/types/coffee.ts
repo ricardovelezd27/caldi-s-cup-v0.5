@@ -106,6 +106,8 @@ export interface CartItem {
   product: Product;
   variant: ProductVariant;
   quantity: number;
+  /** External cart line ID - populated when synced with backend (Shopify, Supabase, etc.) */
+  lineId?: string;
 }
 
 export interface Cart {

@@ -18,6 +18,7 @@ export const ROUTES = {
   quiz: "/quiz",
   results: "/results",
   about: "/about",
+  cart: "/cart",
 } as const;
 
 export const NAV_LINKS = [{ label: "Marketplace (coming soon)", path: "/marketplace" }] as const;

@@ -74,22 +74,22 @@ const RoasterStorefrontPage = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="products" className="mt-8">
-          <TabsList className="grid w-full grid-cols-3 max-w-md border-4 border-border">
+          <TabsList className="grid w-full grid-cols-3 max-w-md bg-transparent border-4 border-border">
             <TabsTrigger 
               value="products" 
-              className="font-medium data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground"
+              className="font-medium bg-transparent data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:shadow-none"
             >
               Products
             </TabsTrigger>
             <TabsTrigger 
               value="about" 
-              className="font-medium data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground"
+              className="font-medium bg-transparent data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:shadow-none"
             >
               About
             </TabsTrigger>
             <TabsTrigger 
               value="contact" 
-              className="font-medium data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground"
+              className="font-medium bg-transparent data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:font-bold data-[state=active]:shadow-none"
             >
               Contact
             </TabsTrigger>

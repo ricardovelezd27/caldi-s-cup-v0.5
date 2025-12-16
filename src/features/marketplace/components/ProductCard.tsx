@@ -24,6 +24,7 @@ export const ProductCard = memo(function ProductCard({
     roastLevel,
     basePrice,
     imageUrl,
+    roasterId,
     roasterName,
     rating,
     reviewCount,
@@ -90,7 +91,14 @@ export const ProductCard = memo(function ProductCard({
 
         {/* Origin & Roaster */}
         <p className="text-sm text-muted-foreground line-clamp-1">
-          {origin} • {roasterName}
+          {origin} •{" "}
+          <Link
+            to={`/roaster/${roasterId}`}
+            className="hover:text-secondary hover:underline transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {roasterName}
+          </Link>
         </p>
 
         {/* Rating */}

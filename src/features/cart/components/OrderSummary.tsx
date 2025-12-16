@@ -5,7 +5,7 @@ import { useCart } from "@/contexts/cart";
 import { formatPrice } from "@/utils/formatters";
 
 export const OrderSummary = () => {
-  const { subtotal, itemCount, proceedToCheckout, isLoading, isShopifyConnected } = useCart();
+  const { subtotal, itemCount, proceedToCheckout, isLoading, isBackendConnected } = useCart();
 
   const handleCheckout = () => {
     proceedToCheckout();
@@ -46,12 +46,12 @@ export const OrderSummary = () => {
         disabled={itemCount === 0 || isLoading}
       >
         <ShoppingBag className="w-5 h-5 mr-2" />
-        {isShopifyConnected ? "Proceed to Checkout" : "Proceed to Checkout"}
+        Proceed to Checkout
       </Button>
 
-      {!isShopifyConnected && (
+      {!isBackendConnected && (
         <p className="text-xs text-center text-muted-foreground">
-          Shopify checkout integration coming in Phase 2B
+          Checkout integration coming in Phase 2B
         </p>
       )}
     </div>

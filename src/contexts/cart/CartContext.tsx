@@ -44,8 +44,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     () => ({
       ...state,
       ...operations,
+      dispatch,
     }),
-    [state, operations]
+    [state, operations, dispatch]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

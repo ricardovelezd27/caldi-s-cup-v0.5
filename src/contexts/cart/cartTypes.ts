@@ -1,5 +1,5 @@
 import type { CartItem, Product, ProductVariant } from "@/types/coffee";
-import type { ShopifyCartState, CartOperations } from "@/types/cart";
+import type { ExtendedCartState, CartOperations, CartItemOperations } from "@/types/cart";
 
 // ============= Action Types =============
 
@@ -10,20 +10,31 @@ export type CartAction =
   | { type: "UPDATE_QUANTITY"; payload: { productId: string; variantId: string; quantity: number } }
   | { type: "REMOVE_ITEM"; payload: { productId: string; variantId: string } }
   | { type: "CLEAR_CART" }
-  | { type: "HYDRATE"; payload: { items: CartItem[]; subtotal: number; itemCount: number } };
+  | { type: "HYDRATE"; payload: { items: CartItem[]; subtotal: number; itemCount: number } }
+  // Optimistic update actions
+  | { type: "SET_ITEM_LOADING"; payload: { key: string; isUpdating: boolean } }
+  | { type: "SET_ITEM_ERROR"; payload: { key: string; error: string | null; previousQuantity?: number } }
+  | { type: "ROLLBACK_QUANTITY"; payload: { productId: string; variantId: string; previousQuantity: number } }
+  // External cart sync actions
+  | { type: "SET_EXTERNAL_CART"; payload: { externalCartId: string; checkoutUrl?: string } }
+  | { type: "SET_BACKEND_CONNECTED"; payload: boolean };
 
 // ============= Initial State =============
 
-export const initialState: ShopifyCartState = {
+export const initialState: ExtendedCartState = {
   items: [],
   subtotal: 0,
   itemCount: 0,
-  shopifyCartId: null,
+  externalCartId: null,
   checkoutUrl: null,
-  isShopifyConnected: false,
+  isBackendConnected: false,
   isLoading: false,
+  itemOperations: {},
 };
 
 // ============= Context Value Type =============
 
-export interface CartContextValue extends ShopifyCartState, CartOperations {}
+export interface CartContextValue extends ExtendedCartState, CartOperations {
+  /** Dispatch function for advanced use cases */
+  dispatch: React.Dispatch<CartAction>;
+}

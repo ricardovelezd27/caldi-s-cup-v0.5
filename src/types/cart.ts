@@ -1,21 +1,28 @@
 import type { Product, ProductVariant, CartItem, Cart } from "./coffee";
 
-// ============= Shopify-Ready Cart Types =============
+// ============= Backend-Agnostic Cart Types =============
 
 /**
  * Extended cart state that supports both local mock data
- * and future Shopify Cart API integration
+ * and future backend integration (Shopify, Supabase, etc.)
  */
-export interface ShopifyCartState extends Cart {
-  /** Shopify Cart ID (null when using local cart) */
-  shopifyCartId: string | null;
-  /** Shopify Checkout URL (null when using local cart) */
+export interface ExtendedCartState extends Cart {
+  /** External cart ID from backend (null when using local cart) */
+  externalCartId: string | null;
+  /** Checkout URL from backend (null when using local cart) */
   checkoutUrl: string | null;
-  /** Whether the cart is synced with Shopify */
-  isShopifyConnected: boolean;
+  /** Whether the cart is synced with a backend */
+  isBackendConnected: boolean;
   /** Loading state for async operations */
   isLoading: boolean;
+  /** Per-item operation states for optimistic updates */
+  itemOperations: CartItemOperations;
 }
+
+/**
+ * @deprecated Use ExtendedCartState instead. Kept for backwards compatibility.
+ */
+export type ShopifyCartState = ExtendedCartState;
 
 /**
  * Cart line item structure matching Shopify's Cart API
@@ -29,9 +36,35 @@ export interface ShopifyCartLine {
   variant: ProductVariant;
 }
 
+// ============= Optimistic Update Types =============
+
+/**
+ * Per-item operation state for optimistic updates
+ * Tracks loading/error state for individual cart items
+ */
+export interface CartItemOperationState {
+  isUpdating: boolean;
+  error: string | null;
+  /** Previous quantity for rollback on failure */
+  previousQuantity?: number;
+}
+
+/**
+ * Map of operation states by composite key (productId:variantId)
+ */
+export type CartItemOperations = Record<string, CartItemOperationState>;
+
+/**
+ * Helper to create composite key for item operations
+ */
+export const getItemOperationKey = (productId: string, variantId: string): string =>
+  `${productId}:${variantId}`;
+
+// ============= Cart Operations Interface =============
+
 /**
  * Cart operations interface - abstraction layer
- * Allows swapping between local and Shopify implementations
+ * Allows swapping between local, Shopify, and Supabase implementations
  */
 export interface CartOperations {
   /** Add item to cart */
@@ -48,20 +81,22 @@ export interface CartOperations {
   proceedToCheckout: () => Promise<string | null>;
 }
 
+// ============= Service Configuration =============
+
 /**
- * Cart data source type
+ * Cart data source type - supports multiple backends
  */
-export type CartDataSource = "local" | "shopify";
+export type CartDataSource = "local" | "shopify" | "supabase";
 
 /**
  * Cart service configuration
  */
 export interface CartServiceConfig {
   dataSource: CartDataSource;
-  /** Shopify Storefront API access token (for future use) */
-  storefrontAccessToken?: string;
-  /** Shopify store domain (for future use) */
-  storeDomain?: string;
+  /** Backend API key or access token */
+  apiKey?: string;
+  /** Backend endpoint or store domain */
+  endpoint?: string;
 }
 
 // Re-export base types for convenience

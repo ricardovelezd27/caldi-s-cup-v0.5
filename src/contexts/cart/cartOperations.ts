@@ -1,12 +1,12 @@
 import { useCallback, useMemo } from "react";
 import type { Dispatch } from "react";
 import type { CartItem, Product, ProductVariant } from "@/types/coffee";
-import type { ShopifyCartState, CartOperations } from "@/types/cart";
+import type { ExtendedCartState, CartOperations } from "@/types/cart";
 import type { CartAction } from "./cartTypes";
 import { localCartService } from "@/services/cart/localCartService";
 
 interface UseCartOperationsProps {
-  state: ShopifyCartState;
+  state: ExtendedCartState;
   dispatch: Dispatch<CartAction>;
   toast: (opts: { title: string; description: string }) => void;
 }
@@ -85,8 +85,8 @@ export function useCartOperations({ state, dispatch, toast }: UseCartOperationsP
   );
 
   const proceedToCheckout = useCallback(async (): Promise<string | null> => {
-    // In Phase 2B, this will return the Shopify checkout URL
-    if (state.isShopifyConnected && state.checkoutUrl) {
+    // In Phase 2B, this will return the backend checkout URL
+    if (state.isBackendConnected && state.checkoutUrl) {
       window.location.href = state.checkoutUrl;
       return state.checkoutUrl;
     }
@@ -94,10 +94,10 @@ export function useCartOperations({ state, dispatch, toast }: UseCartOperationsP
     // Phase 2A: Show informative message
     toast({
       title: "Checkout coming soon!",
-      description: "Shopify checkout integration will be available in Phase 2B.",
+      description: "Backend checkout integration will be available in Phase 2B.",
     });
     return null;
-  }, [state.isShopifyConnected, state.checkoutUrl, toast]);
+  }, [state.isBackendConnected, state.checkoutUrl, toast]);
 
   // Memoize operations object to prevent unnecessary re-renders
   return useMemo<CartOperations>(

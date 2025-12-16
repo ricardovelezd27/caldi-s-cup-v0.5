@@ -2,7 +2,8 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import type { CartItem } from "@/types/coffee";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/cart";
+import { formatPrice } from "@/utils/formatters";
 
 interface CartItemRowProps {
   item: CartItem;
@@ -23,13 +24,6 @@ export const CartItemRow = ({ item }: CartItemRowProps) => {
 
   const handleRemove = () => {
     removeItem(product.id, variant.id);
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(price);
   };
 
   const lineTotal = variant.price * quantity;

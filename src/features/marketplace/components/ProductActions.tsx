@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/cart";
 import type { Product } from "@/types/coffee";
 
 interface ProductActionsProps {

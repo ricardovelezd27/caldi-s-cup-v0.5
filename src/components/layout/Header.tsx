@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { Menu, ShoppingCart } from "lucide-react";
 import { ROUTES, NAV_LINKS } from "@/constants/app";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/cart";
 import {
   Sheet,
   SheetContent,

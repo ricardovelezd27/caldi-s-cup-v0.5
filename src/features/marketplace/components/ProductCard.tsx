@@ -4,7 +4,7 @@ import { Star, ShoppingCart } from "lucide-react";
 import { Product } from "@/types/coffee";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/cart";
 import { formatRoastLevel } from "../utils/productFilters";
 import { CartQuantityControl } from "./CartQuantityControl";
 

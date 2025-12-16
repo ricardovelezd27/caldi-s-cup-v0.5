@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { RoastLevel } from "@/types/coffee";
 import { ProductFilters, DEFAULT_FILTERS } from "../types/api";
 import { formatGrind, formatRoastLevel } from "../utils/productFilters";
-import { RoasterFilterModal } from "./RoasterFilterModal";
+import { FilterOptionsModal } from "./FilterOptionsModal";
 
 interface Roaster {
   id: string;
@@ -27,7 +27,7 @@ interface FilterPanelProps {
 }
 
 const ROAST_LEVELS: RoastLevel[] = ["light", "medium", "dark"];
-const TOP_ROASTERS_COUNT = 3;
+const TOP_ITEMS_COUNT = 3;
 
 /**
  * Filter panel component for marketplace browse page
@@ -42,6 +42,8 @@ export function FilterPanel({
   priceRange,
 }: FilterPanelProps) {
   const [roasterModalOpen, setRoasterModalOpen] = useState(false);
+  const [originModalOpen, setOriginModalOpen] = useState(false);
+  const [grindModalOpen, setGrindModalOpen] = useState(false);
 
   const updateFilter = <K extends keyof ProductFilters>(
     key: K,
@@ -64,7 +66,7 @@ export function FilterPanel({
   const clearAllFilters = () => {
     onFiltersChange({
       ...DEFAULT_FILTERS,
-      priceRange: priceRange, // Keep the actual price range
+      priceRange: priceRange,
     });
   };
 
@@ -77,14 +79,41 @@ export function FilterPanel({
     filters.priceRange[0] > priceRange[0] ||
     filters.priceRange[1] < priceRange[1];
 
-  // Get top roasters for concise display
-  const topRoasters = availableRoasters.slice(0, TOP_ROASTERS_COUNT);
-  const hasMoreRoasters = availableRoasters.length > TOP_ROASTERS_COUNT;
+  // Get top items for concise display
+  const topRoasters = availableRoasters.slice(0, TOP_ITEMS_COUNT);
+  const hasMoreRoasters = availableRoasters.length > TOP_ITEMS_COUNT;
 
-  // Handle roaster modal apply
-  const handleRoasterApply = (roasterIds: string[]) => {
-    updateFilter("roasterIds", roasterIds);
-  };
+  const topOrigins = availableOrigins.slice(0, TOP_ITEMS_COUNT);
+  const hasMoreOrigins = availableOrigins.length > TOP_ITEMS_COUNT;
+
+  const topGrinds = availableGrinds.slice(0, TOP_ITEMS_COUNT);
+  const hasMoreGrinds = availableGrinds.length > TOP_ITEMS_COUNT;
+
+  // Roast levels are typically 3 or less, so no "More Options" needed
+  const hasMoreRoastLevels = ROAST_LEVELS.length > TOP_ITEMS_COUNT;
+  const topRoastLevels = ROAST_LEVELS.slice(0, TOP_ITEMS_COUNT);
+
+  // Modal data transformations
+  const roasterOptions = availableRoasters.map((r) => ({
+    id: r.id,
+    label: r.name,
+    count: r.productCount,
+  }));
+
+  const originOptions = availableOrigins.map((o) => ({
+    id: o,
+    label: o,
+  }));
+
+  const grindOptions = availableGrinds.map((g) => ({
+    id: g,
+    label: formatGrind(g),
+  }));
+
+  const roastLevelOptions = ROAST_LEVELS.map((l) => ({
+    id: l,
+    label: formatRoastLevel(l),
+  }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -167,9 +196,16 @@ export function FilterPanel({
 
       {/* Origin Filter */}
       <div className="space-y-3">
-        <Label className="font-medium">Origin</Label>
+        <div className="flex items-center justify-between">
+          <Label className="font-medium">Origin</Label>
+          {filters.origins.length > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {filters.origins.length} selected
+            </span>
+          )}
+        </div>
         <div className="flex flex-col gap-2">
-          {availableOrigins.map((origin) => (
+          {topOrigins.map((origin) => (
             <div key={origin} className="flex items-center gap-2">
               <Checkbox
                 id={`origin-${origin}`}
@@ -185,15 +221,32 @@ export function FilterPanel({
             </div>
           ))}
         </div>
+        {hasMoreOrigins && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setOriginModalOpen(true)}
+            className="text-primary hover:text-primary/80 p-0 h-auto font-medium"
+          >
+            More Options...
+          </Button>
+        )}
       </div>
 
       <Separator className="bg-border" />
 
       {/* Roast Level Filter */}
       <div className="space-y-3">
-        <Label className="font-medium">Roast Level</Label>
+        <div className="flex items-center justify-between">
+          <Label className="font-medium">Roast Level</Label>
+          {filters.roastLevels.length > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {filters.roastLevels.length} selected
+            </span>
+          )}
+        </div>
         <div className="flex flex-col gap-2">
-          {ROAST_LEVELS.map((level) => (
+          {topRoastLevels.map((level) => (
             <div key={level} className="flex items-center gap-2">
               <Checkbox
                 id={`roast-${level}`}
@@ -209,15 +262,32 @@ export function FilterPanel({
             </div>
           ))}
         </div>
+        {hasMoreRoastLevels && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {/* No modal needed for 3 items */}}
+            className="text-primary hover:text-primary/80 p-0 h-auto font-medium"
+          >
+            More Options...
+          </Button>
+        )}
       </div>
 
       <Separator className="bg-border" />
 
       {/* Grind Type Filter */}
       <div className="space-y-3">
-        <Label className="font-medium">Grind Type</Label>
+        <div className="flex items-center justify-between">
+          <Label className="font-medium">Grind Type</Label>
+          {filters.grinds.length > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {filters.grinds.length} selected
+            </span>
+          )}
+        </div>
         <div className="flex flex-col gap-2">
-          {availableGrinds.map((grind) => (
+          {topGrinds.map((grind) => (
             <div key={grind} className="flex items-center gap-2">
               <Checkbox
                 id={`grind-${grind}`}
@@ -233,6 +303,16 @@ export function FilterPanel({
             </div>
           ))}
         </div>
+        {hasMoreGrinds && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setGrindModalOpen(true)}
+            className="text-primary hover:text-primary/80 p-0 h-auto font-medium"
+          >
+            More Options...
+          </Button>
+        )}
       </div>
 
       <Separator className="bg-border" />
@@ -261,13 +341,35 @@ export function FilterPanel({
         </div>
       </div>
 
-      {/* Roaster Filter Modal */}
-      <RoasterFilterModal
+      {/* Filter Modals */}
+      <FilterOptionsModal
         open={roasterModalOpen}
         onOpenChange={setRoasterModalOpen}
-        roasters={availableRoasters}
-        selectedRoasterIds={filters.roasterIds}
-        onApply={handleRoasterApply}
+        title="Filter by Roaster"
+        options={roasterOptions}
+        selectedIds={filters.roasterIds}
+        onApply={(ids) => updateFilter("roasterIds", ids)}
+        searchPlaceholder="Search roasters..."
+      />
+
+      <FilterOptionsModal
+        open={originModalOpen}
+        onOpenChange={setOriginModalOpen}
+        title="Filter by Origin"
+        options={originOptions}
+        selectedIds={filters.origins}
+        onApply={(ids) => updateFilter("origins", ids)}
+        searchPlaceholder="Search origins..."
+      />
+
+      <FilterOptionsModal
+        open={grindModalOpen}
+        onOpenChange={setGrindModalOpen}
+        title="Filter by Grind Type"
+        options={grindOptions}
+        selectedIds={filters.grinds}
+        onApply={(ids) => updateFilter("grinds", ids)}
+        searchPlaceholder="Search grind types..."
       />
     </div>
   );

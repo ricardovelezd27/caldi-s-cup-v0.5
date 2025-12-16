@@ -2,53 +2,6 @@
 
 All notable changes to Caldi's Cup are documented here.
 
-## [0.5.0] - 2025-12-16 - Authentication Foundation
-
-### Added
-- **Lovable Cloud Integration** (Phase 5A):
-  - Supabase backend infrastructure enabled
-  - Auto-generated client at `src/integrations/supabase/client.ts`
-  - Environment variables configured
-
-- **Database Schema** (Phase 5B):
-  - `profiles` table with RLS (view/update own profile)
-  - `user_roles` table with `app_role` enum (user, roaster, admin)
-  - `has_role()` security definer function (prevents RLS recursion)
-  - `handle_new_user()` trigger - auto-creates profile and assigns default role
-  - `update_updated_at_column()` trigger for timestamp management
-
-- **Authentication UI** (Phase 5C):
-  - `Auth.tsx` page with login/signup tabs
-  - `LoginForm.tsx` with email/password validation
-  - `SignupForm.tsx` with optional display name
-  - `AuthCard.tsx` branded wrapper (4px borders, shadows)
-  - Zod schemas in `auth.schema.ts` for input validation
-
-- **Auth Context & Integration** (Phase 5D):
-  - `AuthProvider` with session management
-  - `useAuth` hook (user, session, profile, signIn, signUp, signOut)
-  - `UserMenu` dropdown component (avatar, profile, logout)
-  - Header integration with auth state
-  - Mobile menu auth links
-
-- **System Connections** (Phase 5E):
-  - Error logger connected to auth (user context tracking)
-  - Routes updated with `/auth` path
-
-### Changed
-- App.tsx now wraps with `AuthProvider`
-- Header shows `UserMenu` when logged in, "Sign In" when logged out
-- Auth auto-confirm enabled for easier testing
-
-### Security
-- Roles stored in separate `user_roles` table (not on profiles)
-- RLS policies on all tables
-- Security definer function prevents privilege escalation
-- Zod validation on all auth inputs
-- No sensitive data logged to console
-
----
-
 ## [0.4.0] - 2025-12-16 - Error Handling & Production Resilience
 
 ### Added

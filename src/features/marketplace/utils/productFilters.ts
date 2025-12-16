@@ -44,6 +44,11 @@ export function filterProducts(
       if (!hasMatchingGrind) return false;
     }
 
+    // Roaster filter
+    if (filters.roasterIds.length > 0) {
+      if (!filters.roasterIds.includes(product.roasterId)) return false;
+    }
+
     // Price range filter
     const [minPrice, maxPrice] = filters.priceRange;
     if (product.basePrice < minPrice || product.basePrice > maxPrice) {
@@ -131,6 +136,26 @@ export function getUniqueGrinds(products: Product[]): string[] {
     });
   });
   return Array.from(grinds).sort();
+}
+
+/**
+ * Extracts unique roasters from products for filter options
+ */
+export function getUniqueRoasters(
+  products: Product[]
+): { id: string; name: string; productCount: number }[] {
+  const roasterMap = new Map<string, { name: string; count: number }>();
+  products.forEach((product) => {
+    const existing = roasterMap.get(product.roasterId);
+    if (existing) {
+      existing.count++;
+    } else {
+      roasterMap.set(product.roasterId, { name: product.roasterName, count: 1 });
+    }
+  });
+  return Array.from(roasterMap.entries())
+    .map(([id, { name, count }]) => ({ id, name, productCount: count }))
+    .sort((a, b) => b.productCount - a.productCount);
 }
 
 /**

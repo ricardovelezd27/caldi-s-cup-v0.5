@@ -15,12 +15,9 @@ export const APP_CONFIG = {
 export const ROUTES = {
   home: "/",
   marketplace: "/marketplace",
-  cart: "/cart",
   quiz: "/quiz",
   results: "/results",
   about: "/about",
 } as const;
 
-export const NAV_LINKS = [
-  { label: "Marketplace", path: "/marketplace" },
-] as const;
+export const NAV_LINKS = [{ label: "Marketplace (coming soon)", path: "/marketplace" }] as const;

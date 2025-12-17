@@ -6,11 +6,11 @@
 
 ### Current System State
 
-**Architecture:** Modular Monolith (React + Vite + Tailwind CSS + TypeScript)
+**Architecture:** Modular Monolith (React + Vite + Tailwind CSS + TypeScript + Lovable Cloud)
 
-**Phase:** 2A Complete + Phase 4 Complete (Error Handling & Production Resilience)
+**Phase:** Phase 5 Complete (Authentication Foundation)
 
-**Status:** Marketplace UI complete with mock data, production-ready error handling implemented
+**Status:** Full authentication system with Lovable Cloud backend, profiles, and role management
 
 ### Completed Features
 
@@ -21,6 +21,8 @@
 - ✅ Shopping Cart with optimistic updates and validation
 - ✅ Responsive navigation (desktop links + mobile hamburger menu)
 - ✅ Error handling & production resilience (Phase 4)
+- ✅ Authentication system with login/signup (Phase 5)
+- ✅ User profiles and role management
 - 🔲 Coffee Preference Quiz (4-6 questions)
 - 🔲 Results Page with taste profile
 - 🔲 Waitlist signup integration
@@ -136,11 +138,12 @@ See `docs/ERROR_HANDLING.md` for full documentation.
 
 | Boundary | Status |
 |----------|--------|
-| Backend Integration | Not connected (deferred) |
-| User Data Collection | None yet |
-| Row Level Security (RLS) | N/A until Supabase connected |
-| API Keys / Secrets | None in codebase |
-| Input Validation | ✅ Cart validation with Zod schemas |
+| Backend Integration | ✅ Lovable Cloud connected |
+| User Data Collection | ✅ Profiles table with RLS |
+| Row Level Security (RLS) | ✅ All tables protected |
+| Role Management | ✅ Separate user_roles table |
+| API Keys / Secrets | ✅ Managed via Lovable Cloud |
+| Input Validation | ✅ Cart + Auth validation with Zod |
 | Error Boundaries | ✅ Global crash protection |
 | Rate Limiting | ✅ Cart operations protected |
 
@@ -185,16 +188,21 @@ See `docs/ERROR_HANDLING.md` for full documentation.
 src/
 ├── assets/           # Images and brand assets
 ├── components/
+│   ├── auth/         # Authentication (AuthCard, LoginForm, SignupForm, UserMenu)
 │   ├── layout/       # PageLayout, Header, Footer
 │   ├── shared/       # CaldiCard, SectionHeading, Container
 │   ├── error/        # ErrorBoundary, ErrorFallback, OfflineIndicator
 │   └── ui/           # shadcn components
 ├── constants/        # APP_CONFIG, ROUTES
-├── contexts/         # React contexts (cart)
+├── contexts/
+│   ├── auth/         # AuthContext, useAuth hook
+│   └── cart/         # CartContext, useCart hook
 ├── features/         # Feature modules (marketplace, cart)
 ├── hooks/            # Custom React hooks
-├── pages/            # Route pages
-├── schemas/          # Zod validation schemas
+├── integrations/
+│   └── supabase/     # Supabase client and types
+├── pages/            # Route pages (Index, Auth, NotFound)
+├── schemas/          # Zod validation schemas (cart, auth)
 ├── services/         # Service layer (cart, errorLogging)
 ├── types/            # TypeScript type definitions
 └── utils/            # Utilities (formatters, validation, network, storage, rateLimit)

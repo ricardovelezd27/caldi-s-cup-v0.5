@@ -14,9 +14,43 @@ export type Database = {
   }
   public: {
     Tables: {
+      brew_logs: {
+        Row: {
+          brew_method: string
+          brewed_at: string | null
+          coffee_name: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          rating: number | null
+          user_id: string
+        }
+        Insert: {
+          brew_method: string
+          brewed_at?: string | null
+          coffee_name: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          rating?: number | null
+          user_id: string
+        }
+        Update: {
+          brew_method?: string
+          brewed_at?: string | null
+          coffee_name?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          rating?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          brewing_level: Database["public"]["Enums"]["brewing_level"] | null
           coffee_tribe: Database["public"]["Enums"]["coffee_tribe"] | null
           created_at: string
           display_name: string | null
@@ -24,9 +58,11 @@ export type Database = {
           is_onboarded: boolean | null
           onboarded_at: string | null
           updated_at: string
+          weekly_goal_target: number | null
         }
         Insert: {
           avatar_url?: string | null
+          brewing_level?: Database["public"]["Enums"]["brewing_level"] | null
           coffee_tribe?: Database["public"]["Enums"]["coffee_tribe"] | null
           created_at?: string
           display_name?: string | null
@@ -34,9 +70,11 @@ export type Database = {
           is_onboarded?: boolean | null
           onboarded_at?: string | null
           updated_at?: string
+          weekly_goal_target?: number | null
         }
         Update: {
           avatar_url?: string | null
+          brewing_level?: Database["public"]["Enums"]["brewing_level"] | null
           coffee_tribe?: Database["public"]["Enums"]["coffee_tribe"] | null
           created_at?: string
           display_name?: string | null
@@ -44,6 +82,40 @@ export type Database = {
           is_onboarded?: boolean | null
           onboarded_at?: string | null
           updated_at?: string
+          weekly_goal_target?: number | null
+        }
+        Relationships: []
+      }
+      user_favorites: {
+        Row: {
+          added_at: string | null
+          brew_method: string | null
+          coffee_name: string
+          id: string
+          image_url: string | null
+          rating: number | null
+          roaster_name: string | null
+          user_id: string
+        }
+        Insert: {
+          added_at?: string | null
+          brew_method?: string | null
+          coffee_name: string
+          id?: string
+          image_url?: string | null
+          rating?: number | null
+          roaster_name?: string | null
+          user_id: string
+        }
+        Update: {
+          added_at?: string | null
+          brew_method?: string | null
+          coffee_name?: string
+          id?: string
+          image_url?: string | null
+          rating?: number | null
+          roaster_name?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -80,6 +152,7 @@ export type Database = {
     }
     Enums: {
       app_role: "user" | "roaster" | "admin"
+      brewing_level: "beginner" | "intermediate" | "expert"
       coffee_tribe: "fox" | "owl" | "hummingbird" | "bee"
     }
     CompositeTypes: {
@@ -209,6 +282,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["user", "roaster", "admin"],
+      brewing_level: ["beginner", "intermediate", "expert"],
       coffee_tribe: ["fox", "owl", "hummingbird", "bee"],
     },
   },

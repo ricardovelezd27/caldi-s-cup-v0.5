@@ -6,6 +6,9 @@ import { errorLogger } from "@/services/errorLogging";
 // Coffee tribe type
 export type CoffeeTribe = 'fox' | 'owl' | 'hummingbird' | 'bee';
 
+// Brewing level type
+export type BrewingLevel = 'beginner' | 'intermediate' | 'expert';
+
 // Profile type matching our database schema
 interface Profile {
   id: string;
@@ -14,6 +17,8 @@ interface Profile {
   coffee_tribe: CoffeeTribe | null;
   is_onboarded: boolean;
   onboarded_at: string | null;
+  weekly_goal_target: number;
+  brewing_level: BrewingLevel;
   created_at: string;
   updated_at: string;
 }

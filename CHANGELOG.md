@@ -2,6 +2,44 @@
 
 All notable changes to Caldi's Cup are documented here.
 
+## [0.7.0] - 2025-12-17 - Personalized User Dashboard
+
+### Added
+- **Database Schema**:
+  - `brewing_level` enum type (beginner, intermediate, expert)
+  - `weekly_goal_target` and `brewing_level` columns on `profiles`
+  - `brew_logs` table for tracking coffee brews (with RLS)
+  - `user_favorites` table for favorite coffees (with RLS)
+  - Indexes for user-specific queries
+
+- **Dashboard Feature** (`src/features/dashboard/`):
+  - `DashboardPage.tsx` - main protected dashboard with sidebar layout
+  - `useDashboardData` hook - fetches profile, brews, favorites, weekly count
+
+- **Dashboard Components**:
+  - `DashboardSidebar.tsx` - collapsible navigation sidebar
+  - `WelcomeHero.tsx` - personalized greeting with tribe info
+  - `UserTypeCard.tsx` - displays Coffee Tribe with emoji and description
+  - `RecentBrewsCard.tsx` - table of recent brew logs
+  - `FavoriteCoffeeCard.tsx` - highlighted favorite coffee
+  - `WeeklyGoalCard.tsx` - circular progress for weekly brew goal
+  - `BrewingLevelCard.tsx` - linear progress for brewing level
+
+- **Dashboard Types**:
+  - `BrewLog`, `FavoriteCoffee`, `DashboardProfile`, `DashboardData` interfaces
+  - `BrewingLevel` type exported from dashboard and auth
+
+### Changed
+- `AuthContext` Profile type includes `weekly_goal_target` and `brewing_level`
+- `UserMenu` now links to Dashboard (instead of Profile)
+- Added `/dashboard` route
+
+### Security
+- RLS policies on `brew_logs` and `user_favorites` tables
+- Route protection redirects unauthenticated users to `/auth`
+
+---
+
 ## [0.6.0] - 2025-12-17 - Coffee Personality Quiz
 
 ### Added

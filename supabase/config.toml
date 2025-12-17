@@ -1,1 +1,4 @@
 project_id = "bzlqjptszkctntesthep"
+
+[functions.scan-coffee]
+verify_jwt = false

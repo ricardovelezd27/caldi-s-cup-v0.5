@@ -7,7 +7,8 @@ import {
   Settings, 
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ScanLine
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import { ROUTES } from "@/constants/app";
 
 const sidebarItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: ROUTES.dashboard },
+  { label: "Scanner", icon: ScanLine, path: ROUTES.scanner },
   { label: "Profile", icon: User, path: ROUTES.dashboard + "/profile" },
   { label: "My Coffees", icon: Coffee, path: ROUTES.dashboard + "/coffees" },
   { label: "Brew Guides", icon: BookOpen, path: ROUTES.dashboard + "/guides" },

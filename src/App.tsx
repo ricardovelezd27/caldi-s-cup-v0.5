@@ -13,6 +13,7 @@ import { ProductPage, MarketplaceBrowsePage, RoasterStorefrontPage } from "./fea
 import { CartPage } from "./features/cart";
 import { QuizPage, ResultsPage } from "./features/quiz";
 import { DashboardPage } from "./features/dashboard";
+import { ScannerPage } from "./features/scanner";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
                 <Route path="/quiz" element={<QuizPage />} />
                 <Route path="/results" element={<ResultsPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/scanner" element={<ScannerPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

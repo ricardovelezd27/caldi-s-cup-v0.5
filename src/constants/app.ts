@@ -18,6 +18,7 @@ export const ROUTES = {
   quiz: "/quiz",
   results: "/results",
   dashboard: "/dashboard",
+  scanner: "/scanner",
   about: "/about",
   cart: "/cart",
   auth: "/auth",

@@ -210,6 +210,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
+    // During HMR or edge cases, provide a safe fallback instead of crashing
+    if (import.meta.env.DEV) {
+      console.warn("useAuth called outside AuthProvider - returning loading state");
+      return {
+        user: null,
+        session: null,
+        profile: null,
+        isLoading: true,
+        signIn: async () => ({ error: new Error("Auth not ready") }),
+        signUp: async () => ({ error: new Error("Auth not ready") }),
+        signOut: async () => {},
+      } as AuthContextValue;
+    }
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;

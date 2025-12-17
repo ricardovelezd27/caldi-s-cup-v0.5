@@ -86,6 +86,87 @@ export type Database = {
         }
         Relationships: []
       }
+      scanned_coffees: {
+        Row: {
+          acidity_score: number | null
+          ai_confidence: number | null
+          altitude: string | null
+          awards: string[] | null
+          body_score: number | null
+          brand: string | null
+          brand_story: string | null
+          coffee_name: string | null
+          created_at: string | null
+          cupping_score: number | null
+          flavor_notes: string[] | null
+          id: string
+          image_url: string
+          jargon_explanations: Json | null
+          match_reasons: string[] | null
+          origin: string | null
+          processing_method: string | null
+          raw_ai_response: Json | null
+          roast_level: string | null
+          scanned_at: string | null
+          sweetness_score: number | null
+          tribe_match_score: number | null
+          user_id: string
+          variety: string | null
+        }
+        Insert: {
+          acidity_score?: number | null
+          ai_confidence?: number | null
+          altitude?: string | null
+          awards?: string[] | null
+          body_score?: number | null
+          brand?: string | null
+          brand_story?: string | null
+          coffee_name?: string | null
+          created_at?: string | null
+          cupping_score?: number | null
+          flavor_notes?: string[] | null
+          id?: string
+          image_url: string
+          jargon_explanations?: Json | null
+          match_reasons?: string[] | null
+          origin?: string | null
+          processing_method?: string | null
+          raw_ai_response?: Json | null
+          roast_level?: string | null
+          scanned_at?: string | null
+          sweetness_score?: number | null
+          tribe_match_score?: number | null
+          user_id: string
+          variety?: string | null
+        }
+        Update: {
+          acidity_score?: number | null
+          ai_confidence?: number | null
+          altitude?: string | null
+          awards?: string[] | null
+          body_score?: number | null
+          brand?: string | null
+          brand_story?: string | null
+          coffee_name?: string | null
+          created_at?: string | null
+          cupping_score?: number | null
+          flavor_notes?: string[] | null
+          id?: string
+          image_url?: string
+          jargon_explanations?: Json | null
+          match_reasons?: string[] | null
+          origin?: string | null
+          processing_method?: string | null
+          raw_ai_response?: Json | null
+          roast_level?: string | null
+          scanned_at?: string | null
+          sweetness_score?: number | null
+          tribe_match_score?: number | null
+          user_id?: string
+          variety?: string | null
+        }
+        Relationships: []
+      }
       user_favorites: {
         Row: {
           added_at: string | null

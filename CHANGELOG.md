@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.8.0] - AI Coffee Scanner & Profiler
+
+### Added
+- **AI Coffee Scanner**: Upload/scan coffee bag images for AI-powered analysis
+- **Lovable AI Integration**: Uses Gemini 2.5 Flash for image analysis via edge function
+- **scanned_coffees table**: Stores extracted coffee data with RLS policies
+- **coffee-scans storage bucket**: Secure image storage for scans
+- **Scanner UI Components**: ScanUploader, ScanProgress, ScanResults (3-column layout)
+- **Tribe Match Scoring**: Personalized preference assessment based on user's coffee tribe
+- **Jargon Buster**: Expandable explanations for coffee terminology
+- **Dashboard FAB**: Floating action button to access scanner from dashboard
+- **Scanner in sidebar**: Added to dashboard navigation
+
+### Security
+- RLS policies on scanned_coffees (users can only view/insert/delete own scans)
+- Storage policies for coffee-scans bucket (authenticated upload, public read)
+- Input validation for image uploads (type, size limits)
+
+---
+
+## [0.7.0] - Personalized User Dashboard
+
 All notable changes to Caldi's Cup are documented here.
 
 ## [0.7.0] - 2025-12-17 - Personalized User Dashboard

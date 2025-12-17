@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { ScanLine } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { useDashboardData } from "./hooks/useDashboardData";
 import {
@@ -12,6 +13,7 @@ import {
   BrewingLevelCard,
 } from "./components";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/app";
 
 export function DashboardPage() {
@@ -91,6 +93,17 @@ export function DashboardPage() {
             <BrewingLevelCard level={profile?.brewing_level ?? "beginner"} />
           </div>
         </div>
+
+        {/* Floating Action Button - Scan Coffee */}
+        <Link to={ROUTES.scanner}>
+          <Button
+            size="lg"
+            className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:scale-105 transition-transform"
+          >
+            <ScanLine className="h-6 w-6" />
+            <span className="sr-only">Scan Coffee</span>
+          </Button>
+        </Link>
       </main>
     </div>
   );

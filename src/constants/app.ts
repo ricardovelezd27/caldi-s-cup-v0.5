@@ -17,6 +17,7 @@ export const ROUTES = {
   marketplace: "/marketplace",
   quiz: "/quiz",
   results: "/results",
+  dashboard: "/dashboard",
   about: "/about",
   cart: "/cart",
   auth: "/auth",

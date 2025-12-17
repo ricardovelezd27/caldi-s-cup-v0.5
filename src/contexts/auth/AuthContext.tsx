@@ -3,11 +3,17 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { errorLogger } from "@/services/errorLogging";
 
+// Coffee tribe type
+export type CoffeeTribe = 'fox' | 'owl' | 'hummingbird' | 'bee';
+
 // Profile type matching our database schema
 interface Profile {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
+  coffee_tribe: CoffeeTribe | null;
+  is_onboarded: boolean;
+  onboarded_at: string | null;
   created_at: string;
   updated_at: string;
 }

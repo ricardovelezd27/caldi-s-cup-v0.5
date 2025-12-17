@@ -17,23 +17,32 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          coffee_tribe: Database["public"]["Enums"]["coffee_tribe"] | null
           created_at: string
           display_name: string | null
           id: string
+          is_onboarded: boolean | null
+          onboarded_at: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          coffee_tribe?: Database["public"]["Enums"]["coffee_tribe"] | null
           created_at?: string
           display_name?: string | null
           id: string
+          is_onboarded?: boolean | null
+          onboarded_at?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          coffee_tribe?: Database["public"]["Enums"]["coffee_tribe"] | null
           created_at?: string
           display_name?: string | null
           id?: string
+          is_onboarded?: boolean | null
+          onboarded_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -71,6 +80,7 @@ export type Database = {
     }
     Enums: {
       app_role: "user" | "roaster" | "admin"
+      coffee_tribe: "fox" | "owl" | "hummingbird" | "bee"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -199,6 +209,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["user", "roaster", "admin"],
+      coffee_tribe: ["fox", "owl", "hummingbird", "bee"],
     },
   },
 } as const

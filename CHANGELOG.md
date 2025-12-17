@@ -2,6 +2,47 @@
 
 All notable changes to Caldi's Cup are documented here.
 
+## [0.6.0] - 2025-12-17 - Coffee Personality Quiz
+
+### Added
+- **Database Schema**:
+  - `coffee_tribe` enum type (fox, owl, hummingbird, bee)
+  - `coffee_tribe`, `is_onboarded`, `onboarded_at` columns on `profiles`
+  - Index for tribe lookups
+
+- **Quiz Feature** (`src/features/quiz/`):
+  - Complete visual card picker with 5 lifestyle scenarios
+  - 4 Coffee Tribe archetypes: Fox (Tastemaker), Owl (Optimizer), Hummingbird (Explorer), Bee (Loyalist)
+  - `QuizPage.tsx` - main quiz flow with hook intro and scenario screens
+  - `ResultsPage.tsx` - tribe reveal with personalized recommendations
+
+- **Quiz Components**:
+  - `QuizHook.tsx` - intro screen with headline and CTA
+  - `ScenarioScreen.tsx` - 2x2 visual card grid
+  - `VisualCard.tsx` - selectable card with icon and tribe styling
+  - `QuizProgress.tsx` - step indicator with progress bar
+  - `QuizNavigation.tsx` - skip/next controls
+  - `ResultsPreview.tsx` - running scores during quiz
+  - `TribeReveal.tsx` - animated tribe reveal component
+
+- **State Management**:
+  - `useQuizState` hook with localStorage persistence
+  - Score calculation and tie-breaker logic
+  - Guest flow (localStorage) and authenticated flow (profile save)
+
+- **Data & Types**:
+  - `tribe.ts` - TypeScript types for quiz system
+  - `tribes.ts` - tribe definitions with colors, keywords, recommendations
+  - `scenarios.ts` - 5 quiz scenarios with 4 options each
+
+### Changed
+- Index page CTAs now link to `/quiz`
+- `AuthContext` Profile type includes tribe fields
+- Added `/quiz` and `/results` routes
+- Added `dashboard` route constant
+
+---
+
 ## [0.5.0] - 2025-12-16 - Authentication Foundation
 
 ### Added

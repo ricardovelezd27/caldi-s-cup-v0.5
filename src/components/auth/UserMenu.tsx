@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, LayoutDashboard } from "lucide-react";
 import { ROUTES } from "@/constants/app";
 import {
   DropdownMenu,
@@ -59,7 +59,13 @@ export const UserMenu = ({ displayName, avatarUrl, email, onSignOut }: UserMenuP
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link to={ROUTES.home} className="cursor-pointer">
+          <Link to={ROUTES.dashboard} className="cursor-pointer">
+            <LayoutDashboard className="mr-2 h-4 w-4" />
+            Dashboard
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to={ROUTES.dashboard + "/profile"} className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             Profile
           </Link>

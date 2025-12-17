@@ -1,7 +1,8 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PageLayout } from "@/components/layout";
 import { Container, SectionHeading, CaldiCard } from "@/components/shared";
-import { APP_CONFIG } from "@/constants/app";
+import { APP_CONFIG, ROUTES } from "@/constants/app";
 import { ChevronDown } from "lucide-react";
 
 // Import assets
@@ -38,8 +39,8 @@ const HeroSection = () => {
               <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-4 font-inter max-w-lg mx-auto">
                 {APP_CONFIG.description}
               </p>
-              <Button size="lg" className="text-xl lg:text-2xl font-bold px-8 py-6">
-                {APP_CONFIG.cta.primary}
+              <Button size="lg" className="text-xl lg:text-2xl font-bold px-8 py-6" asChild>
+                <Link to={ROUTES.quiz}>{APP_CONFIG.cta.primary}</Link>
               </Button>
             </div>
           </div>
@@ -59,8 +60,8 @@ const HeroSection = () => {
               <br />
               <span className="text-secondary">Caldi brings it back to clarity.</span>
             </h1>
-            <Button size="lg" className="text-lg font-bold">
-              {APP_CONFIG.cta.primary}
+            <Button size="lg" className="text-lg font-bold" asChild>
+              <Link to={ROUTES.quiz}>{APP_CONFIG.cta.primary}</Link>
             </Button>
           </div>
         </div>
@@ -131,11 +132,11 @@ const SolutionSection = () => {
               <em className="text-secondary font-medium not-italic">gets</em> you.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="font-bold">
-                {APP_CONFIG.cta.primary}
+              <Button size="lg" className="font-bold" asChild>
+                <Link to={ROUTES.quiz}>{APP_CONFIG.cta.primary}</Link>
               </Button>
-              <Button variant="outline" size="lg" className="font-bold">
-                {APP_CONFIG.cta.secondary}
+              <Button variant="outline" size="lg" className="font-bold" asChild>
+                <Link to={ROUTES.marketplace}>{APP_CONFIG.cta.secondary}</Link>
               </Button>
             </div>
           </div>

@@ -3,6 +3,9 @@ import { Link, NavLink } from "react-router-dom";
 import { Menu, ShoppingCart } from "lucide-react";
 import { ROUTES, NAV_LINKS } from "@/constants/app";
 import { useCart } from "@/contexts/cart";
+import { useAuth } from "@/contexts/auth";
+import { UserMenu } from "@/components/auth";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -17,6 +20,7 @@ interface HeaderProps {
 export const Header = ({ showLogo = true }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { itemCount } = useCart();
+  const { user, profile, signOut } = useAuth();
 
   return (
     <header className="py-4 sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
@@ -67,6 +71,20 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                 </span>
               )}
             </Link>
+
+            {/* Auth: User Menu or Sign In Button */}
+            {user ? (
+              <UserMenu
+                displayName={profile?.display_name}
+                avatarUrl={profile?.avatar_url}
+                email={user.email}
+                onSignOut={signOut}
+              />
+            ) : (
+              <Button asChild variant="outline" size="sm">
+                <Link to={ROUTES.auth}>Sign In</Link>
+              </Button>
+            )}
           </div>
 
           {/* Mobile: Cart Icon + Hamburger Menu */}
@@ -141,6 +159,33 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                     <ShoppingCart className="w-5 h-5" />
                     Cart {itemCount > 0 && `(${itemCount})`}
                   </NavLink>
+
+                  {/* Auth Link in Mobile Menu */}
+                  {user ? (
+                    <button
+                      onClick={() => {
+                        signOut();
+                        setIsOpen(false);
+                      }}
+                      className="text-lg font-medium py-2 transition-colors text-left text-destructive hover:text-destructive/80"
+                    >
+                      Sign Out
+                    </button>
+                  ) : (
+                    <NavLink
+                      to={ROUTES.auth}
+                      onClick={() => setIsOpen(false)}
+                      className={({ isActive }) =>
+                        `text-lg font-medium py-2 transition-colors ${
+                          isActive
+                            ? "text-primary font-bold"
+                            : "text-foreground hover:text-primary"
+                        }`
+                      }
+                    >
+                      Sign In
+                    </NavLink>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>

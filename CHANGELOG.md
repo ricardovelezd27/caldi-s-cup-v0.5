@@ -1,6 +1,154 @@
 # Changelog
 
+## [0.8.0] - AI Coffee Scanner & Profiler
+
+### Added
+- **AI Coffee Scanner**: Upload/scan coffee bag images for AI-powered analysis
+- **Lovable AI Integration**: Uses Gemini 2.5 Flash for image analysis via edge function
+- **scanned_coffees table**: Stores extracted coffee data with RLS policies
+- **coffee-scans storage bucket**: Secure image storage for scans
+- **Scanner UI Components**: ScanUploader, ScanProgress, ScanResults (3-column layout)
+- **Tribe Match Scoring**: Personalized preference assessment based on user's coffee tribe
+- **Jargon Buster**: Expandable explanations for coffee terminology
+- **Dashboard FAB**: Floating action button to access scanner from dashboard
+- **Scanner in sidebar**: Added to dashboard navigation
+
+### Security
+- RLS policies on scanned_coffees (users can only view/insert/delete own scans)
+- Storage policies for coffee-scans bucket (authenticated upload, public read)
+- Input validation for image uploads (type, size limits)
+
+---
+
+## [0.7.0] - Personalized User Dashboard
+
 All notable changes to Caldi's Cup are documented here.
+
+## [0.7.0] - 2025-12-17 - Personalized User Dashboard
+
+### Added
+- **Database Schema**:
+  - `brewing_level` enum type (beginner, intermediate, expert)
+  - `weekly_goal_target` and `brewing_level` columns on `profiles`
+  - `brew_logs` table for tracking coffee brews (with RLS)
+  - `user_favorites` table for favorite coffees (with RLS)
+  - Indexes for user-specific queries
+
+- **Dashboard Feature** (`src/features/dashboard/`):
+  - `DashboardPage.tsx` - main protected dashboard with sidebar layout
+  - `useDashboardData` hook - fetches profile, brews, favorites, weekly count
+
+- **Dashboard Components**:
+  - `DashboardSidebar.tsx` - collapsible navigation sidebar
+  - `WelcomeHero.tsx` - personalized greeting with tribe info
+  - `UserTypeCard.tsx` - displays Coffee Tribe with emoji and description
+  - `RecentBrewsCard.tsx` - table of recent brew logs
+  - `FavoriteCoffeeCard.tsx` - highlighted favorite coffee
+  - `WeeklyGoalCard.tsx` - circular progress for weekly brew goal
+  - `BrewingLevelCard.tsx` - linear progress for brewing level
+
+- **Dashboard Types**:
+  - `BrewLog`, `FavoriteCoffee`, `DashboardProfile`, `DashboardData` interfaces
+  - `BrewingLevel` type exported from dashboard and auth
+
+### Changed
+- `AuthContext` Profile type includes `weekly_goal_target` and `brewing_level`
+- `UserMenu` now links to Dashboard (instead of Profile)
+- Added `/dashboard` route
+
+### Security
+- RLS policies on `brew_logs` and `user_favorites` tables
+- Route protection redirects unauthenticated users to `/auth`
+
+---
+
+## [0.6.0] - 2025-12-17 - Coffee Personality Quiz
+
+### Added
+- **Database Schema**:
+  - `coffee_tribe` enum type (fox, owl, hummingbird, bee)
+  - `coffee_tribe`, `is_onboarded`, `onboarded_at` columns on `profiles`
+  - Index for tribe lookups
+
+- **Quiz Feature** (`src/features/quiz/`):
+  - Complete visual card picker with 5 lifestyle scenarios
+  - 4 Coffee Tribe archetypes: Fox (Tastemaker), Owl (Optimizer), Hummingbird (Explorer), Bee (Loyalist)
+  - `QuizPage.tsx` - main quiz flow with hook intro and scenario screens
+  - `ResultsPage.tsx` - tribe reveal with personalized recommendations
+
+- **Quiz Components**:
+  - `QuizHook.tsx` - intro screen with headline and CTA
+  - `ScenarioScreen.tsx` - 2x2 visual card grid
+  - `VisualCard.tsx` - selectable card with icon and tribe styling
+  - `QuizProgress.tsx` - step indicator with progress bar
+  - `QuizNavigation.tsx` - skip/next controls
+  - `ResultsPreview.tsx` - running scores during quiz
+  - `TribeReveal.tsx` - animated tribe reveal component
+
+- **State Management**:
+  - `useQuizState` hook with localStorage persistence
+  - Score calculation and tie-breaker logic
+  - Guest flow (localStorage) and authenticated flow (profile save)
+
+- **Data & Types**:
+  - `tribe.ts` - TypeScript types for quiz system
+  - `tribes.ts` - tribe definitions with colors, keywords, recommendations
+  - `scenarios.ts` - 5 quiz scenarios with 4 options each
+
+### Changed
+- Index page CTAs now link to `/quiz`
+- `AuthContext` Profile type includes tribe fields
+- Added `/quiz` and `/results` routes
+- Added `dashboard` route constant
+
+---
+
+## [0.5.0] - 2025-12-16 - Authentication Foundation
+
+### Added
+- **Lovable Cloud Integration** (Phase 5A):
+  - Supabase backend infrastructure enabled
+  - Auto-generated client at `src/integrations/supabase/client.ts`
+  - Environment variables configured
+
+- **Database Schema** (Phase 5B):
+  - `profiles` table with RLS (view/update own profile)
+  - `user_roles` table with `app_role` enum (user, roaster, admin)
+  - `has_role()` security definer function (prevents RLS recursion)
+  - `handle_new_user()` trigger - auto-creates profile and assigns default role
+  - `update_updated_at_column()` trigger for timestamp management
+
+- **Authentication UI** (Phase 5C):
+  - `Auth.tsx` page with login/signup tabs
+  - `LoginForm.tsx` with email/password validation
+  - `SignupForm.tsx` with optional display name
+  - `AuthCard.tsx` branded wrapper (4px borders, shadows)
+  - Zod schemas in `auth.schema.ts` for input validation
+
+- **Auth Context & Integration** (Phase 5D):
+  - `AuthProvider` with session management
+  - `useAuth` hook (user, session, profile, signIn, signUp, signOut)
+  - `UserMenu` dropdown component (avatar, profile, logout)
+  - Header integration with auth state
+  - Mobile menu auth links
+
+- **System Connections** (Phase 5E):
+  - Error logger connected to auth (user context tracking)
+  - Routes updated with `/auth` path
+
+### Changed
+- App.tsx now wraps with `AuthProvider`
+- Header shows `UserMenu` when logged in, "Sign In" when logged out
+- Auth auto-confirm enabled for easier testing
+
+### Security
+- Roles stored in separate `user_roles` table (not on profiles)
+- RLS policies on all tables
+- Security definer function prevents privilege escalation
+- Zod validation on all auth inputs
+- No sensitive data logged to console
+
+---
 
 ## [0.4.0] - 2025-12-16 - Error Handling & Production Resilience
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, ShoppingCart } from "lucide-react";
+import { Menu, ShoppingCart, ScanLine } from "lucide-react";
 import { ROUTES, NAV_LINKS } from "@/constants/app";
 import { useCart } from "@/contexts/cart";
 import { useAuth } from "@/contexts/auth";
@@ -42,21 +42,33 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            {NAV_LINKS.map((link) => (
-              <NavLink
-                key={link.path}
-                to={link.path}
-                className={({ isActive }) =>
-                  `font-medium transition-colors ${
-                    isActive
-                      ? "text-primary font-bold"
-                      : "text-foreground hover:text-primary"
-                  }`
-                }
-              >
-                {link.label}
-              </NavLink>
-            ))}
+            <NavLink
+              to={ROUTES.marketplace}
+              className={({ isActive }) =>
+                `font-medium transition-colors ${
+                  isActive
+                    ? "text-primary font-bold"
+                    : "text-foreground hover:text-primary"
+                }`
+              }
+            >
+              Marketplace
+            </NavLink>
+
+            {/* Scanner Icon */}
+            <NavLink
+              to={ROUTES.scanner}
+              className={({ isActive }) =>
+                `p-2 transition-colors ${
+                  isActive
+                    ? "text-primary"
+                    : "text-foreground hover:text-primary"
+                }`
+              }
+              aria-label="Coffee Scanner"
+            >
+              <ScanLine className="w-6 h-6" />
+            </NavLink>
 
             {/* Cart Icon */}
             <Link
@@ -127,22 +139,34 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                   </Link>
                 </SheetHeader>
                 <nav className="flex flex-col gap-4">
-                  {NAV_LINKS.map((link) => (
-                    <NavLink
-                      key={link.path}
-                      to={link.path}
-                      onClick={() => setIsOpen(false)}
-                      className={({ isActive }) =>
-                        `text-lg font-medium py-2 transition-colors ${
-                          isActive
-                            ? "text-primary font-bold"
-                            : "text-foreground hover:text-primary"
-                        }`
-                      }
-                    >
-                      {link.label}
-                    </NavLink>
-                  ))}
+                  <NavLink
+                    to={ROUTES.marketplace}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      `text-lg font-medium py-2 transition-colors ${
+                        isActive
+                          ? "text-primary font-bold"
+                          : "text-foreground hover:text-primary"
+                      }`
+                    }
+                  >
+                    Marketplace
+                  </NavLink>
+                  
+                  <NavLink
+                    to={ROUTES.scanner}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
+                        isActive
+                          ? "text-primary font-bold"
+                          : "text-foreground hover:text-primary"
+                      }`
+                    }
+                  >
+                    <ScanLine className="w-5 h-5" />
+                    Scanner
+                  </NavLink>
                   
                   {/* Cart Link in Mobile Menu */}
                   <NavLink

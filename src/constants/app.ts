@@ -24,4 +24,7 @@ export const ROUTES = {
   auth: "/auth",
 } as const;
 
-export const NAV_LINKS = [{ label: "Marketplace (coming soon)", path: "/marketplace" }] as const;
+export const NAV_LINKS = [
+  { label: "Marketplace", path: "/marketplace" },
+  { label: "Scanner", path: "/scanner" },
+] as const;

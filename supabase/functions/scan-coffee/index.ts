@@ -1,9 +1,42 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+// Dynamic CORS - restrict to known origins in production
+const getAllowedOrigin = (requestOrigin: string | null): string => {
+  const allowedOrigins = [
+    Deno.env.get("APP_ORIGIN"),
+    "https://lovable.dev",
+    "https://lovableproject.com",
+  ].filter(Boolean);
+  
+  // In development, allow localhost
+  if (requestOrigin?.includes("localhost") || requestOrigin?.includes("127.0.0.1")) {
+    return requestOrigin;
+  }
+  
+  // Check if origin matches allowed list or their subdomains
+  if (requestOrigin) {
+    for (const allowed of allowedOrigins) {
+      if (allowed && (requestOrigin === allowed || requestOrigin.endsWith(`.${new URL(allowed).host}`))) {
+        return requestOrigin;
+      }
+    }
+    // Allow *.lovableproject.com subdomains
+    if (requestOrigin.endsWith(".lovableproject.com")) {
+      return requestOrigin;
+    }
+  }
+  
+  // Default to first allowed origin or restrictive fallback
+  return allowedOrigins[0] || "https://lovable.dev";
+};
+
+const getCorsHeaders = (req: Request) => {
+  const origin = req.headers.get("Origin");
+  return {
+    "Access-Control-Allow-Origin": getAllowedOrigin(origin),
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
 };
 
 // Tribe keywords for matching
@@ -19,7 +52,59 @@ interface ScanRequest {
   userTribe: string | null;
 }
 
+// Input validation constants
+const MAX_STRING_LENGTH = 500;
+const MAX_BRAND_STORY_LENGTH = 2000;
+const MAX_ARRAY_LENGTH = 20;
+const MAX_JARGON_ENTRIES = 15;
+
+// Sanitize and validate string input
+const sanitizeString = (value: unknown, maxLength: number = MAX_STRING_LENGTH): string | null => {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "string") return null;
+  // Trim and limit length
+  const sanitized = value.trim().slice(0, maxLength);
+  // Remove potential script tags and dangerous patterns
+  return sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+                  .replace(/javascript:/gi, "")
+                  .replace(/on\w+\s*=/gi, "");
+};
+
+// Sanitize and validate number input
+const sanitizeNumber = (value: unknown, min: number, max: number): number | null => {
+  if (value === null || value === undefined) return null;
+  const num = Number(value);
+  if (isNaN(num)) return null;
+  return Math.min(max, Math.max(min, num));
+};
+
+// Sanitize array of strings
+const sanitizeStringArray = (value: unknown, maxLength: number = MAX_ARRAY_LENGTH): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .slice(0, maxLength)
+    .map(item => sanitizeString(item, 100))
+    .filter((item): item is string => item !== null && item.length > 0);
+};
+
+// Sanitize jargon explanations object
+const sanitizeJargonExplanations = (value: unknown): Record<string, string> => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const result: Record<string, string> = {};
+  const entries = Object.entries(value as Record<string, unknown>).slice(0, MAX_JARGON_ENTRIES);
+  for (const [key, val] of entries) {
+    const sanitizedKey = sanitizeString(key, 50);
+    const sanitizedVal = sanitizeString(val, 300);
+    if (sanitizedKey && sanitizedVal) {
+      result[sanitizedKey] = sanitizedVal;
+    }
+  }
+  return result;
+};
+
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -47,7 +132,7 @@ serve(async (req) => {
       });
     }
 
-    // Create Supabase client with user's token
+    // Create Supabase client with service role for storage operations
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     
     // Verify user
@@ -89,12 +174,18 @@ serve(async (req) => {
       throw new Error(`Failed to upload image: ${uploadError.message}`);
     }
 
-    const { data: urlData } = supabaseClient.storage
+    // Generate signed URL (valid for 1 year) instead of public URL
+    const { data: signedUrlData, error: signedUrlError } = await supabaseClient.storage
       .from("coffee-scans")
-      .getPublicUrl(fileName);
+      .createSignedUrl(fileName, 60 * 60 * 24 * 365); // 1 year expiry
 
-    const imageUrl = urlData.publicUrl;
-    console.log("Image uploaded:", imageUrl);
+    if (signedUrlError || !signedUrlData?.signedUrl) {
+      console.error("Signed URL error:", signedUrlError);
+      throw new Error("Failed to generate image URL");
+    }
+
+    const imageUrl = signedUrlData.signedUrl;
+    console.log("Image uploaded with signed URL");
 
     // Step 2: Get tribe keywords for personalization
     const tribeKeywords = userTribe ? TRIBE_KEYWORDS[userTribe] || [] : [];
@@ -201,12 +292,32 @@ Respond ONLY with the JSON object, no additional text.`;
       throw new Error("Failed to parse AI response");
     }
 
-    // Step 4: Calculate tribe match score
+    // Step 4: Sanitize and validate ALL AI-generated content
+    const sanitizedData = {
+      coffeeName: sanitizeString(parsedResult.extractedData?.coffeeName),
+      brand: sanitizeString(parsedResult.extractedData?.brand),
+      origin: sanitizeString(parsedResult.extractedData?.origin),
+      roastLevel: sanitizeString(parsedResult.extractedData?.roastLevel, 50),
+      processingMethod: sanitizeString(parsedResult.extractedData?.processingMethod, 100),
+      variety: sanitizeString(parsedResult.extractedData?.variety, 100),
+      altitude: sanitizeString(parsedResult.extractedData?.altitude, 50),
+      acidityScore: sanitizeNumber(parsedResult.flavorProfile?.acidityScore, 1, 5),
+      bodyScore: sanitizeNumber(parsedResult.flavorProfile?.bodyScore, 1, 5),
+      sweetnessScore: sanitizeNumber(parsedResult.flavorProfile?.sweetnessScore, 1, 5),
+      flavorNotes: sanitizeStringArray(parsedResult.flavorProfile?.flavorNotes),
+      brandStory: sanitizeString(parsedResult.enrichment?.brandStory, MAX_BRAND_STORY_LENGTH),
+      awards: sanitizeStringArray(parsedResult.enrichment?.awards, 10),
+      cuppingScore: sanitizeNumber(parsedResult.enrichment?.cuppingScore, 0, 100),
+      confidence: sanitizeNumber(parsedResult.confidence, 0, 1) || 0.5,
+      jargonExplanations: sanitizeJargonExplanations(parsedResult.jargonExplanations),
+    };
+
+    // Step 5: Calculate tribe match score
     let tribeMatchScore = 50; // Default neutral score
     const matchReasons: string[] = [];
 
     if (userTribe && tribeKeywords.length > 0) {
-      const allText = JSON.stringify(parsedResult).toLowerCase();
+      const allText = JSON.stringify(sanitizedData).toLowerCase();
       let matches = 0;
       
       for (const keyword of tribeKeywords) {
@@ -228,31 +339,34 @@ Respond ONLY with the JSON object, no additional text.`;
       }
     }
 
-    // Step 5: Save to database
+    // Sanitize match reasons
+    const sanitizedMatchReasons = sanitizeStringArray(matchReasons, 10);
+
+    // Step 6: Save to database with sanitized data
     const { data: scanRecord, error: insertError } = await supabaseClient
       .from("scanned_coffees")
       .insert({
         user_id: user.id,
         image_url: imageUrl,
-        coffee_name: parsedResult.extractedData?.coffeeName,
-        brand: parsedResult.extractedData?.brand,
-        origin: parsedResult.extractedData?.origin,
-        roast_level: parsedResult.extractedData?.roastLevel,
-        processing_method: parsedResult.extractedData?.processingMethod,
-        variety: parsedResult.extractedData?.variety,
-        altitude: parsedResult.extractedData?.altitude,
-        acidity_score: parsedResult.flavorProfile?.acidityScore,
-        body_score: parsedResult.flavorProfile?.bodyScore,
-        sweetness_score: parsedResult.flavorProfile?.sweetnessScore,
-        flavor_notes: parsedResult.flavorProfile?.flavorNotes || [],
-        brand_story: parsedResult.enrichment?.brandStory,
-        awards: parsedResult.enrichment?.awards || [],
-        cupping_score: parsedResult.enrichment?.cuppingScore,
-        ai_confidence: parsedResult.confidence || 0.5,
+        coffee_name: sanitizedData.coffeeName,
+        brand: sanitizedData.brand,
+        origin: sanitizedData.origin,
+        roast_level: sanitizedData.roastLevel,
+        processing_method: sanitizedData.processingMethod,
+        variety: sanitizedData.variety,
+        altitude: sanitizedData.altitude,
+        acidity_score: sanitizedData.acidityScore,
+        body_score: sanitizedData.bodyScore,
+        sweetness_score: sanitizedData.sweetnessScore,
+        flavor_notes: sanitizedData.flavorNotes,
+        brand_story: sanitizedData.brandStory,
+        awards: sanitizedData.awards,
+        cupping_score: sanitizedData.cuppingScore,
+        ai_confidence: sanitizedData.confidence,
         tribe_match_score: tribeMatchScore,
-        match_reasons: matchReasons,
-        jargon_explanations: parsedResult.jargonExplanations || {},
-        raw_ai_response: parsedResult,
+        match_reasons: sanitizedMatchReasons,
+        jargon_explanations: sanitizedData.jargonExplanations,
+        raw_ai_response: parsedResult, // Keep raw for debugging but never display directly
       })
       .select()
       .single();
@@ -298,6 +412,7 @@ Respond ONLY with the JSON object, no additional text.`;
     );
   } catch (error) {
     console.error("Scan error:", error);
+    const corsHeaders = getCorsHeaders(req);
     return new Response(
       JSON.stringify({ 
         success: false,

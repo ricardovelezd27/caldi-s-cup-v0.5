@@ -1,8 +1,26 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
-import type { ScannedCoffee, ScanStatus, ScanProgress, ScanResponse } from "../types/scanner";
+import type { ScannedCoffee, ScanProgress, ScanResponse } from "../types/scanner";
 import { SCAN_PROGRESS_STATES } from "../types/scanner";
+
+const SCAN_TIMEOUT = 60000; // 60 seconds timeout for mobile
+
+// Fetch with timeout for mobile reliability
+const fetchWithTimeout = async (url: string, options: RequestInit, timeout: number): Promise<Response> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
 
 export function useCoffeeScanner() {
   const { user, profile } = useAuth();
@@ -39,24 +57,34 @@ export function useCoffeeScanner() {
       const accessToken = sessionData?.session?.access_token;
 
       if (!accessToken) {
-        throw new Error("No active session");
+        throw new Error("No active session. Please sign in again.");
       }
 
-      // Call the edge function
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scan-coffee`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
+      // Call the edge function with timeout
+      let response: Response;
+      try {
+        response = await fetchWithTimeout(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scan-coffee`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+              imageBase64,
+              userTribe: profile?.coffee_tribe || null,
+            }),
           },
-          body: JSON.stringify({
-            imageBase64,
-            userTribe: profile?.coffee_tribe || null,
-          }),
+          SCAN_TIMEOUT
+        );
+      } catch (fetchError) {
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          throw new Error("Scan timed out. Please try with a smaller image or check your connection.");
         }
-      );
+        // Network error
+        throw new Error("Network error. Please check your connection and try again.");
+      }
 
       // Step 3: Enriching (while waiting for response)
       setProgress(SCAN_PROGRESS_STATES.enriching);
@@ -69,6 +97,9 @@ export function useCoffeeScanner() {
         }
         if (response.status === 402) {
           throw new Error("AI credits depleted. Please add more credits to continue.");
+        }
+        if (response.status === 413) {
+          throw new Error("Image too large. Please try a smaller image.");
         }
         throw new Error(errorData.error || `Scan failed with status ${response.status}`);
       }

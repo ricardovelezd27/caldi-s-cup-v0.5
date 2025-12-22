@@ -15,7 +15,7 @@ const RESULT_STORAGE_KEY = 'caldi_quiz_result';
 export const ResultsPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
   const [result, setResult] = useState<QuizResult | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -75,6 +75,8 @@ export const ResultsPage = () => {
             });
           } else {
             setHasSaved(true);
+            // Refresh profile so other pages see the new tribe immediately
+            await refreshProfile();
             // Clear localStorage since it's saved to profile
             try {
               localStorage.removeItem(RESULT_STORAGE_KEY);

@@ -47,6 +47,29 @@ const TRIBE_KEYWORDS: Record<string, string[]> = {
   bee: ["House Blend", "Dark Roast", "Medium Roast", "Chocolate", "Nutty", "Caramel", "Bold", "Classic", "Smooth"],
 };
 
+// Roast level text to numeric mapping
+const ROAST_LEVEL_MAP: Record<string, string> = {
+  "light": "1",
+  "light roast": "1",
+  "blonde": "1",
+  "cinnamon": "1",
+  "light-medium": "2",
+  "light medium": "2",
+  "medium-light": "2",
+  "medium light": "2",
+  "medium": "3",
+  "medium roast": "3",
+  "city": "3",
+  "medium-dark": "4",
+  "medium dark": "4",
+  "full city": "4",
+  "dark": "5",
+  "dark roast": "5",
+  "french": "5",
+  "italian": "5",
+  "espresso": "4",
+};
+
 interface ScanRequest {
   imageBase64: string;
   userTribe: string | null;
@@ -100,6 +123,64 @@ const sanitizeJargonExplanations = (value: unknown): Record<string, string> => {
     }
   }
   return result;
+};
+
+// Sanitize roast level to 1-5 enum
+const sanitizeRoastLevel = (value: unknown): string | null => {
+  if (value === null || value === undefined) return null;
+  
+  // If already a number 1-5, return as string
+  if (typeof value === "number") {
+    const num = Math.round(value);
+    if (num >= 1 && num <= 5) return String(num);
+    return null;
+  }
+  
+  if (typeof value !== "string") return null;
+  
+  const cleaned = value.trim().toLowerCase();
+  
+  // Check if it's already a valid numeric string
+  if (/^[1-5]$/.test(cleaned)) return cleaned;
+  
+  // Map text descriptions to numeric values
+  return ROAST_LEVEL_MAP[cleaned] || null;
+};
+
+// Sanitize altitude to integer meters
+const sanitizeAltitude = (value: unknown): number | null => {
+  if (value === null || value === undefined) return null;
+  
+  // If already a number, validate range
+  if (typeof value === "number") {
+    const num = Math.round(value);
+    if (num >= 0 && num <= 6000) return num; // Max altitude ~6000m
+    return null;
+  }
+  
+  if (typeof value !== "string") return null;
+  
+  const cleaned = value.trim().toLowerCase();
+  
+  // Extract number from strings like "1500m", "1200-1400 MASL", "1,500 meters"
+  // Take the first number or average of a range
+  const rangeMatch = cleaned.match(/(\d[\d,]*)\s*[-–]\s*(\d[\d,]*)/);
+  if (rangeMatch) {
+    const low = parseInt(rangeMatch[1].replace(/,/g, ""), 10);
+    const high = parseInt(rangeMatch[2].replace(/,/g, ""), 10);
+    const avg = Math.round((low + high) / 2);
+    if (avg >= 0 && avg <= 6000) return avg;
+    return null;
+  }
+  
+  // Extract single number
+  const numMatch = cleaned.match(/(\d[\d,]*)/);
+  if (numMatch) {
+    const num = parseInt(numMatch[1].replace(/,/g, ""), 10);
+    if (num >= 0 && num <= 6000) return num;
+  }
+  
+  return null;
 };
 
 serve(async (req) => {
@@ -193,7 +274,7 @@ serve(async (req) => {
       ? `\n\nThe user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}. Consider these when calculating the tribe match score.`
       : "";
 
-    // Step 3: Call Gemini AI for image analysis
+    // Step 3: Call Gemini AI for image analysis with structured output
     const prompt = `You are a Coffee Sommelier AI. Analyze this coffee bag image and extract all visible information.
 
 Return a JSON object with the following structure (use null for fields you cannot determine):
@@ -202,11 +283,13 @@ Return a JSON object with the following structure (use null for fields you canno
   "extractedData": {
     "coffeeName": "string or null - the name of the coffee",
     "brand": "string or null - the roaster/brand name",
-    "origin": "string or null - country/region of origin",
-    "roastLevel": "string or null - light/medium/medium-dark/dark",
+    "originCountry": "string or null - country of origin only (e.g., 'Ethiopia', 'Colombia', 'Brazil')",
+    "originRegion": "string or null - specific region/province within the country (e.g., 'Yirgacheffe', 'Huila', 'Cerrado')",
+    "originFarm": "string or null - farm/estate/cooperative name if visible (e.g., 'Finca El Paraiso', 'Yirgacheffe Cooperative')",
+    "roastLevel": "number 1-5 only (1=light/blonde, 2=light-medium, 3=medium/city, 4=medium-dark/full city, 5=dark/french/italian)",
     "processingMethod": "string or null - washed/natural/honey/anaerobic/etc",
     "variety": "string or null - bourbon/typica/geisha/etc",
-    "altitude": "string or null - elevation if mentioned"
+    "altitudeMeters": "integer or null - altitude in meters above sea level (extract the number only, e.g., 1500 from '1500 MASL' or average of range '1200-1400m' = 1300)"
   },
   "flavorProfile": {
     "acidityScore": "number 1-5 (1=low, 5=high) based on origin and roast",
@@ -225,6 +308,13 @@ Return a JSON object with the following structure (use null for fields you canno
   },
   "confidence": "number 0.0-1.0 representing how confident you are in the extraction"
 }${tribeContext}
+
+IMPORTANT RULES:
+- roastLevel MUST be a number 1-5, not text
+- altitudeMeters MUST be an integer in meters, not a string
+- originCountry should be ONLY the country name
+- originRegion should be the sub-region/province
+- originFarm should be the specific farm/estate if mentioned
 
 Respond ONLY with the JSON object, no additional text.`;
 
@@ -293,14 +383,52 @@ Respond ONLY with the JSON object, no additional text.`;
     }
 
     // Step 4: Sanitize and validate ALL AI-generated content
+    const extractedData = parsedResult.extractedData || {};
+    
+    // Sanitize structured origin fields
+    const originCountry = sanitizeString(extractedData.originCountry, 100);
+    const originRegion = sanitizeString(extractedData.originRegion, 100);
+    const originFarm = sanitizeString(extractedData.originFarm, 200);
+    
+    // Build legacy origin string for backward compatibility
+    const originParts = [originCountry, originRegion, originFarm].filter(Boolean);
+    const legacyOrigin = originParts.length > 0 ? originParts.join(", ") : null;
+    
+    // Sanitize roast level (new numeric format)
+    const roastLevelNumeric = sanitizeRoastLevel(extractedData.roastLevel);
+    
+    // Sanitize altitude (new integer format)
+    const altitudeMeters = sanitizeAltitude(extractedData.altitudeMeters || extractedData.altitude);
+    
+    // Build legacy altitude string for backward compatibility
+    const legacyAltitude = altitudeMeters ? `${altitudeMeters}m` : sanitizeString(extractedData.altitude, 50);
+    
+    // Build legacy roast level string for backward compatibility
+    const roastLevelNames: Record<string, string> = {
+      "1": "Light",
+      "2": "Light-Medium",
+      "3": "Medium",
+      "4": "Medium-Dark",
+      "5": "Dark",
+    };
+    const legacyRoastLevel = roastLevelNumeric ? roastLevelNames[roastLevelNumeric] : sanitizeString(extractedData.roastLevel, 50);
+    
     const sanitizedData = {
-      coffeeName: sanitizeString(parsedResult.extractedData?.coffeeName),
-      brand: sanitizeString(parsedResult.extractedData?.brand),
-      origin: sanitizeString(parsedResult.extractedData?.origin),
-      roastLevel: sanitizeString(parsedResult.extractedData?.roastLevel, 50),
-      processingMethod: sanitizeString(parsedResult.extractedData?.processingMethod, 100),
-      variety: sanitizeString(parsedResult.extractedData?.variety, 100),
-      altitude: sanitizeString(parsedResult.extractedData?.altitude, 50),
+      coffeeName: sanitizeString(extractedData.coffeeName),
+      brand: sanitizeString(extractedData.brand),
+      // New structured fields
+      originCountry,
+      originRegion,
+      originFarm,
+      roastLevelNumeric,
+      altitudeMeters,
+      // Legacy fields for backward compatibility
+      origin: legacyOrigin,
+      roastLevel: legacyRoastLevel,
+      altitude: legacyAltitude,
+      // Other fields
+      processingMethod: sanitizeString(extractedData.processingMethod, 100),
+      variety: sanitizeString(extractedData.variety, 100),
       acidityScore: sanitizeNumber(parsedResult.flavorProfile?.acidityScore, 1, 5),
       bodyScore: sanitizeNumber(parsedResult.flavorProfile?.bodyScore, 1, 5),
       sweetnessScore: sanitizeNumber(parsedResult.flavorProfile?.sweetnessScore, 1, 5),
@@ -311,6 +439,14 @@ Respond ONLY with the JSON object, no additional text.`;
       confidence: sanitizeNumber(parsedResult.confidence, 0, 1) || 0.5,
       jargonExplanations: sanitizeJargonExplanations(parsedResult.jargonExplanations),
     };
+
+    console.log("Sanitized data:", {
+      roastLevelNumeric: sanitizedData.roastLevelNumeric,
+      altitudeMeters: sanitizedData.altitudeMeters,
+      originCountry: sanitizedData.originCountry,
+      originRegion: sanitizedData.originRegion,
+      originFarm: sanitizedData.originFarm,
+    });
 
     // Step 5: Calculate tribe match score
     let tribeMatchScore = 50; // Default neutral score
@@ -342,7 +478,7 @@ Respond ONLY with the JSON object, no additional text.`;
     // Sanitize match reasons
     const sanitizedMatchReasons = sanitizeStringArray(matchReasons, 10);
 
-    // Step 6: Save to database with sanitized data
+    // Step 6: Save to database with sanitized data (both new and legacy columns)
     const { data: scanRecord, error: insertError } = await supabaseClient
       .from("scanned_coffees")
       .insert({
@@ -350,11 +486,19 @@ Respond ONLY with the JSON object, no additional text.`;
         image_url: imageUrl,
         coffee_name: sanitizedData.coffeeName,
         brand: sanitizedData.brand,
+        // New structured columns
+        origin_country: sanitizedData.originCountry,
+        origin_region: sanitizedData.originRegion,
+        origin_farm: sanitizedData.originFarm,
+        roast_level_numeric: sanitizedData.roastLevelNumeric,
+        altitude_meters: sanitizedData.altitudeMeters,
+        // Legacy columns for backward compatibility
         origin: sanitizedData.origin,
         roast_level: sanitizedData.roastLevel,
+        altitude: sanitizedData.altitude,
+        // Other columns
         processing_method: sanitizedData.processingMethod,
         variety: sanitizedData.variety,
-        altitude: sanitizedData.altitude,
         acidity_score: sanitizedData.acidityScore,
         body_score: sanitizedData.bodyScore,
         sweetness_score: sanitizedData.sweetnessScore,
@@ -378,7 +522,7 @@ Respond ONLY with the JSON object, no additional text.`;
 
     console.log("Scan saved:", scanRecord.id);
 
-    // Return the complete scan result
+    // Return the complete scan result with both new and legacy fields
     return new Response(
       JSON.stringify({
         success: true,
@@ -387,11 +531,19 @@ Respond ONLY with the JSON object, no additional text.`;
           imageUrl: scanRecord.image_url,
           coffeeName: scanRecord.coffee_name,
           brand: scanRecord.brand,
+          // New structured fields
+          originCountry: scanRecord.origin_country,
+          originRegion: scanRecord.origin_region,
+          originFarm: scanRecord.origin_farm,
+          roastLevelNumeric: scanRecord.roast_level_numeric,
+          altitudeMeters: scanRecord.altitude_meters,
+          // Legacy fields
           origin: scanRecord.origin,
           roastLevel: scanRecord.roast_level,
+          altitude: scanRecord.altitude,
+          // Other fields
           processingMethod: scanRecord.processing_method,
           variety: scanRecord.variety,
-          altitude: scanRecord.altitude,
           acidityScore: scanRecord.acidity_score,
           bodyScore: scanRecord.body_score,
           sweetnessScore: scanRecord.sweetness_score,

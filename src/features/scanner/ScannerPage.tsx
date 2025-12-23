@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { useCoffeeScanner } from "./hooks/useCoffeeScanner";
-import { ScanUploader, ScanningTips, ScanProgress, ScanResults } from "./components";
+import { ScanUploader, ScanningTips, ScanProgress, ScanResults, TribeScannerPreview } from "./components";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -126,6 +126,12 @@ export function ScannerPage() {
           {/* Initial State - Upload Zone */}
           {!isScanning && !isComplete && !isError && (
             <div className="space-y-8">
+              {/* Tribe Preview (if user has tribe) */}
+              {profile?.coffee_tribe && (
+                <TribeScannerPreview tribe={profile.coffee_tribe} />
+              )}
+
+              {/* Upload Zone */}
               <div className="max-w-xl mx-auto">
                 <ScanUploader 
                   onImageSelected={handleImageSelected}
@@ -133,8 +139,8 @@ export function ScannerPage() {
                 />
               </div>
 
-              {/* Scanning Tips */}
-              <ScanningTips />
+              {/* Tribe-aware Scanning Tips */}
+              <ScanningTips tribe={profile?.coffee_tribe} />
             </div>
           )}
         </div>

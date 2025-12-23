@@ -31,6 +31,7 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -191,6 +192,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Refresh profile - allows components to manually refresh profile data
+  const refreshProfile = async () => {
+    if (user) {
+      const freshProfile = await fetchProfile(user.id);
+      if (freshProfile) {
+        setProfile(freshProfile);
+      }
+    }
+  };
+
   const value = useMemo(
     () => ({
       user,
@@ -200,6 +211,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       signIn,
       signUp,
       signOut,
+      refreshProfile,
     }),
     [user, session, profile, isLoading]
   );
@@ -221,6 +233,7 @@ export const useAuth = () => {
         signIn: async () => ({ error: new Error("Auth not ready") }),
         signUp: async () => ({ error: new Error("Auth not ready") }),
         signOut: async () => {},
+        refreshProfile: async () => {},
       } as AuthContextValue;
     }
     throw new Error("useAuth must be used within an AuthProvider");

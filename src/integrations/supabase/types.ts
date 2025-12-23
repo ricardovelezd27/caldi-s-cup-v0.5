@@ -91,6 +91,7 @@ export type Database = {
           acidity_score: number | null
           ai_confidence: number | null
           altitude: string | null
+          altitude_meters: number | null
           awards: string[] | null
           body_score: number | null
           brand: string | null
@@ -104,9 +105,15 @@ export type Database = {
           jargon_explanations: Json | null
           match_reasons: string[] | null
           origin: string | null
+          origin_country: string | null
+          origin_farm: string | null
+          origin_region: string | null
           processing_method: string | null
           raw_ai_response: Json | null
           roast_level: string | null
+          roast_level_numeric:
+            | Database["public"]["Enums"]["roast_level_enum"]
+            | null
           scanned_at: string | null
           sweetness_score: number | null
           tribe_match_score: number | null
@@ -117,6 +124,7 @@ export type Database = {
           acidity_score?: number | null
           ai_confidence?: number | null
           altitude?: string | null
+          altitude_meters?: number | null
           awards?: string[] | null
           body_score?: number | null
           brand?: string | null
@@ -130,9 +138,15 @@ export type Database = {
           jargon_explanations?: Json | null
           match_reasons?: string[] | null
           origin?: string | null
+          origin_country?: string | null
+          origin_farm?: string | null
+          origin_region?: string | null
           processing_method?: string | null
           raw_ai_response?: Json | null
           roast_level?: string | null
+          roast_level_numeric?:
+            | Database["public"]["Enums"]["roast_level_enum"]
+            | null
           scanned_at?: string | null
           sweetness_score?: number | null
           tribe_match_score?: number | null
@@ -143,6 +157,7 @@ export type Database = {
           acidity_score?: number | null
           ai_confidence?: number | null
           altitude?: string | null
+          altitude_meters?: number | null
           awards?: string[] | null
           body_score?: number | null
           brand?: string | null
@@ -156,9 +171,15 @@ export type Database = {
           jargon_explanations?: Json | null
           match_reasons?: string[] | null
           origin?: string | null
+          origin_country?: string | null
+          origin_farm?: string | null
+          origin_region?: string | null
           processing_method?: string | null
           raw_ai_response?: Json | null
           roast_level?: string | null
+          roast_level_numeric?:
+            | Database["public"]["Enums"]["roast_level_enum"]
+            | null
           scanned_at?: string | null
           sweetness_score?: number | null
           tribe_match_score?: number | null
@@ -235,6 +256,7 @@ export type Database = {
       app_role: "user" | "roaster" | "admin"
       brewing_level: "beginner" | "intermediate" | "expert"
       coffee_tribe: "fox" | "owl" | "hummingbird" | "bee"
+      roast_level_enum: "1" | "2" | "3" | "4" | "5"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -365,6 +387,7 @@ export const Constants = {
       app_role: ["user", "roaster", "admin"],
       brewing_level: ["beginner", "intermediate", "expert"],
       coffee_tribe: ["fox", "owl", "hummingbird", "bee"],
+      roast_level_enum: ["1", "2", "3", "4", "5"],
     },
   },
 } as const

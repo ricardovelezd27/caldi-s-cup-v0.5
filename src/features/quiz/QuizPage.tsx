@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageLayout } from '@/components/layout';
 import { QUIZ_SCENARIOS } from './data/scenarios';
@@ -7,11 +8,18 @@ import {
   ScenarioScreen, 
   QuizProgress, 
   QuizNavigation,
-  ResultsPreview 
+  ResultsPreview,
+  OnboardingModal
 } from './components';
 
 export const QuizPage = () => {
   const navigate = useNavigate();
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
+  
+  const handleOnboardingComplete = useCallback(() => {
+    setOnboardingComplete(true);
+  }, []);
+  
   const {
     state,
     scores,
@@ -48,6 +56,9 @@ export const QuizPage = () => {
 
   return (
     <PageLayout showHeader={true} showFooter={false}>
+      {/* Onboarding Modal - shows on first visit */}
+      <OnboardingModal onComplete={handleOnboardingComplete} />
+      
       <div className="min-h-[calc(100vh-80px)] flex flex-col py-8">
         {/* Hook Screen (Step 0) */}
         {currentStep === 0 && (

@@ -5,3 +5,5 @@ export { QuizProgress } from './QuizProgress';
 export { QuizNavigation } from './QuizNavigation';
 export { ResultsPreview } from './ResultsPreview';
 export { TribeReveal } from './TribeReveal';
+export { OnboardingModal } from './OnboardingModal';
+export { OnboardingSlide } from './OnboardingSlide';

@@ -62,7 +62,7 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleSkip()}>
       <DialogContent 
-        className="max-w-md border-4 border-border bg-background p-0 overflow-hidden"
+        className="w-[calc(100vw-2rem)] max-w-md border-4 border-border bg-background p-0 overflow-hidden [&>button]:hidden"
         style={{ boxShadow: '4px 4px 0px 0px hsl(var(--border))' }}
       >
         <VisuallyHidden>
@@ -74,7 +74,7 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
           variant="ghost"
           size="sm"
           onClick={handleSkip}
-          className="absolute right-12 top-4 text-muted-foreground hover:text-foreground z-10"
+          className="absolute right-4 top-4 text-muted-foreground hover:text-foreground z-10"
         >
           Skip
         </Button>
@@ -85,9 +85,9 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
           opts={{ loop: false }}
           className="w-full"
         >
-          <CarouselContent>
+          <CarouselContent className="ml-0">
             {/* Slide 1: Welcome */}
-            <CarouselItem>
+            <CarouselItem className="pl-0">
               <OnboardingSlide
                 icon={
                   <div className="relative">
@@ -101,7 +101,7 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
             </CarouselItem>
 
             {/* Slide 2: The Secret */}
-            <CarouselItem>
+            <CarouselItem className="pl-0">
               <OnboardingSlide
                 icon={
                   <div className="flex gap-3">
@@ -116,7 +116,7 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
             </CarouselItem>
 
             {/* Slide 3: What You'll Do */}
-            <CarouselItem>
+            <CarouselItem className="pl-0">
               <OnboardingSlide
                 icon={<LayoutGrid className="w-16 h-16" />}
                 headline="5 Quick Vibes"
@@ -136,7 +136,7 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
             </CarouselItem>
 
             {/* Slide 4: Meet Your Tribe */}
-            <CarouselItem>
+            <CarouselItem className="pl-0">
               <OnboardingSlide
                 icon={
                   <div className="grid grid-cols-2 gap-3 text-4xl">
@@ -152,7 +152,7 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
             </CarouselItem>
 
             {/* Slide 5: The Payoff */}
-            <CarouselItem>
+            <CarouselItem className="pl-0">
               <OnboardingSlide
                 icon={
                   <div className="relative">

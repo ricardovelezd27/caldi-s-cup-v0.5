@@ -9,7 +9,7 @@ interface OnboardingSlideProps {
 
 export const OnboardingSlide = ({ icon, headline, body, children }: OnboardingSlideProps) => {
   return (
-    <div className="flex flex-col items-center text-center px-4 sm:px-6 py-6 sm:py-8">
+    <div className="flex flex-col items-center text-center px-6 sm:px-8 py-8 sm:py-10 w-full">
       {/* Icon */}
       <div className="mb-6 text-primary">
         {icon}

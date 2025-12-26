@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Coffee, Sparkles, Plane, Utensils, Smartphone, LayoutGrid, Rocket, X } from 'lucide-react';
+import { Coffee, Sparkles, Plane, Utensils, Smartphone, LayoutGrid, Rocket } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
@@ -7,27 +7,34 @@ import { cn } from '@/lib/utils';
 import { OnboardingSlide } from './OnboardingSlide';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
-const STORAGE_KEY = 'caldis-onboarding-seen';
+const QUIZ_RESULT_KEY = 'caldi_quiz_result';
 const TOTAL_SLIDES = 5;
 
 interface OnboardingModalProps {
   onComplete: () => void;
+  forceShow?: boolean;
+  onClose?: () => void;
 }
 
-export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
+export const OnboardingModal = ({ onComplete, forceShow = false, onClose }: OnboardingModalProps) => {
   const [open, setOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [api, setApi] = useState<CarouselApi>();
 
-  // Check localStorage on mount
+  // Check if quiz has been completed (not just if onboarding was seen)
   useEffect(() => {
-    const hasSeen = localStorage.getItem(STORAGE_KEY);
-    if (!hasSeen) {
+    if (forceShow) {
+      setOpen(true);
+      return;
+    }
+    
+    const hasCompletedQuiz = localStorage.getItem(QUIZ_RESULT_KEY);
+    if (!hasCompletedQuiz) {
       setOpen(true);
     } else {
       onComplete();
     }
-  }, [onComplete]);
+  }, [forceShow, onComplete]);
 
   // Sync carousel state
   useEffect(() => {
@@ -48,9 +55,9 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
   }, [api, currentSlide]);
 
   const handleComplete = () => {
-    localStorage.setItem(STORAGE_KEY, 'true');
     setOpen(false);
     onComplete();
+    onClose?.();
   };
 
   const handleSkip = () => {
@@ -79,15 +86,20 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
           Skip
         </Button>
 
-        {/* Carousel */}
+        {/* Carousel with instant transitions */}
         <Carousel 
           setApi={setApi} 
-          opts={{ loop: false }}
+          opts={{ 
+            loop: false,
+            duration: 0,
+            dragFree: false,
+            watchDrag: false
+          }}
           className="w-full"
         >
-          <CarouselContent className="ml-0">
+          <CarouselContent className="!ml-0">
             {/* Slide 1: Welcome */}
-            <CarouselItem className="pl-0">
+            <CarouselItem className="!pl-0 min-w-full w-full basis-full shrink-0">
               <OnboardingSlide
                 icon={
                   <div className="relative">
@@ -101,7 +113,7 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
             </CarouselItem>
 
             {/* Slide 2: The Secret */}
-            <CarouselItem className="pl-0">
+            <CarouselItem className="!pl-0 min-w-full w-full basis-full shrink-0">
               <OnboardingSlide
                 icon={
                   <div className="flex gap-3">
@@ -116,7 +128,7 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
             </CarouselItem>
 
             {/* Slide 3: What You'll Do */}
-            <CarouselItem className="pl-0">
+            <CarouselItem className="!pl-0 min-w-full w-full basis-full shrink-0">
               <OnboardingSlide
                 icon={<LayoutGrid className="w-16 h-16" />}
                 headline="5 Quick Vibes"
@@ -136,7 +148,7 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
             </CarouselItem>
 
             {/* Slide 4: Meet Your Tribe */}
-            <CarouselItem className="pl-0">
+            <CarouselItem className="!pl-0 min-w-full w-full basis-full shrink-0">
               <OnboardingSlide
                 icon={
                   <div className="grid grid-cols-2 gap-3 text-4xl">
@@ -152,7 +164,7 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
             </CarouselItem>
 
             {/* Slide 5: The Payoff */}
-            <CarouselItem className="pl-0">
+            <CarouselItem className="!pl-0 min-w-full w-full basis-full shrink-0">
               <OnboardingSlide
                 icon={
                   <div className="relative">

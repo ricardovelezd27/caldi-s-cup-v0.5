@@ -20,7 +20,7 @@ export function ScanResultsAccordions({ data }: ScanResultsAccordionsProps) {
   const hasAwards = data.awards && data.awards.length > 0;
 
   return (
-    <Accordion type="single" collapsible className="w-full" defaultValue="specs">
+    <Accordion type="multiple" className="w-full" defaultValue={["specs", "jargon"]}>
       {/* Coffee Specs */}
       {hasSpecs && (
         <AccordionItem value="specs" className="border-b-2 border-border">

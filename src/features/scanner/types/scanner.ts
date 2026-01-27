@@ -67,9 +67,9 @@ export interface ScanProgress {
 
 export const SCAN_PROGRESS_STATES: Record<ScanStatus, ScanProgress> = {
   idle: { status: "idle", message: "Ready to scan", progress: 0 },
-  uploading: { status: "uploading", message: "Uploading image...", progress: 20 },
-  analyzing: { status: "analyzing", message: "AI is reading your coffee bag...", progress: 50 },
-  enriching: { status: "enriching", message: "Searching for additional insights...", progress: 80 },
+  uploading: { status: "uploading", message: "Uploading image...", progress: 15 },
+  analyzing: { status: "analyzing", message: "AI is analyzing your coffee bag (this may take 20-30 seconds)...", progress: 40 },
+  enriching: { status: "enriching", message: "Almost done! Saving results...", progress: 85 },
   complete: { status: "complete", message: "Scan complete!", progress: 100 },
   error: { status: "error", message: "Something went wrong", progress: 0 },
 };

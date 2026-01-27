@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, Heart, Share2 } from "lucide-react";
+import { RotateCcw, Heart, Share2, Loader2 } from "lucide-react";
 import { ExtractedDataCard } from "./ExtractedDataCard";
 import { EnrichedDataCard } from "./EnrichedDataCard";
 import { PreferenceMatchCard } from "./PreferenceMatchCard";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/auth";
 import type { ScannedCoffee } from "../types/scanner";
 
 interface ScanResultsProps {
@@ -12,11 +15,38 @@ interface ScanResultsProps {
 }
 
 export function ScanResults({ data, onScanAgain }: ScanResultsProps) {
-  const handleAddToFavorites = () => {
-    // TODO: Implement add to favorites
-    toast.success("Added to favorites!", {
-      description: `${data.coffeeName || "This coffee"} has been saved.`,
-    });
+  const { user } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const handleAddToFavorites = async () => {
+    if (!user || isSaved || isSaving) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_favorites")
+        .insert({
+          user_id: user.id,
+          coffee_name: data.coffeeName || "Unknown Coffee",
+          roaster_name: data.brand,
+          image_url: data.imageUrl,
+        });
+
+      if (error) throw error;
+
+      setIsSaved(true);
+      toast.success("Added to favorites!", {
+        description: `${data.coffeeName || "This coffee"} has been saved.`,
+      });
+    } catch (err) {
+      console.error("Failed to save favorite:", err);
+      toast.error("Failed to save favorite", {
+        description: "Please try again later.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleShare = async () => {
@@ -49,10 +79,15 @@ export function ScanResults({ data, onScanAgain }: ScanResultsProps) {
         <Button
           variant="default"
           onClick={handleAddToFavorites}
+          disabled={isSaving || isSaved || !user}
           className="gap-2"
         >
-          <Heart className="w-4 h-4" />
-          Add to Favorites
+          {isSaving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Heart className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />
+          )}
+          {isSaved ? "Saved!" : isSaving ? "Saving..." : "Add to Favorites"}
         </Button>
         <Button
           variant="outline"

@@ -1,4 +1,5 @@
-import { CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CheckCircle2, Loader2, AlertCircle, Clock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import type { ScanProgress as ScanProgressType } from "../types/scanner";
 
@@ -14,7 +15,25 @@ const steps = [
 ];
 
 export function ScanProgress({ progress }: ScanProgressProps) {
+  const [elapsedTime, setElapsedTime] = useState(0);
   const currentStepIndex = steps.findIndex((s) => s.key === progress.status);
+
+  // Track elapsed time during analyzing and enriching phases
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (progress.status === "analyzing" || progress.status === "enriching") {
+      interval = setInterval(() => {
+        setElapsedTime((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setElapsedTime(0);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [progress.status]);
   const isError = progress.status === "error";
 
   return (
@@ -79,13 +98,23 @@ export function ScanProgress({ progress }: ScanProgressProps) {
         })}
       </div>
 
-      {/* Animated Message */}
-      {!isError && progress.status !== "complete" && (
-        <div className="flex items-center justify-center gap-2 text-primary">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span className="text-sm font-medium animate-pulse">
-            {progress.message}
-          </span>
+      {/* Animated Message with Elapsed Time */}
+      {!isError && progress.status !== "complete" && progress.status !== "idle" && (
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center justify-center gap-2 text-primary">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm font-medium animate-pulse">
+              {progress.message}
+            </span>
+          </div>
+          {(progress.status === "analyzing" || progress.status === "enriching") && (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Clock className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium">
+                Time elapsed: {elapsedTime}s
+              </span>
+            </div>
+          )}
         </div>
       )}
     </div>

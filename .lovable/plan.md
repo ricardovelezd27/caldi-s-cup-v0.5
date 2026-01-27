@@ -1,155 +1,175 @@
 
-# Plan: Fix Add to Favorites & Optimize Scanner Feedback
+# Plan: Align Scanner Results Page with Product Page Layout
 
-## Issue 1: Add to Favorites Not Working
+## Overview
+Refactor the Scanner Results page to follow the same 12-column grid layout pattern as the Product Page, ensuring visual consistency across the application.
 
-### Current Problem
-The `handleAddToFavorites` function in `ScanResults.tsx` shows a success toast but does NOT actually save to the database - it's just a placeholder.
+## Current State Analysis
 
-### Solution
-Implement the actual database insert to the `user_favorites` table:
+### Product Page Layout (Target Pattern)
+- Uses a **12-column grid** (`grid-cols-12`)
+- **Left column** (5 cols): Image → Attribute Sliders → Flavor Chart → Roaster Info
+- **Right column** (7 cols): Product Info → Actions → Accordions
+- **Responsive behavior**: Mobile stacks with specific ordering via `order-*` classes
+- Wrapped in `PageLayout` + `Container` for consistent header/footer
 
-**File: `src/features/scanner/components/ScanResults.tsx`**
+### Scanner Results Page (Current)
+- Uses a simple **3-column equal grid** (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3`)
+- No `PageLayout` wrapper - has its own inline header
+- Action buttons at top, followed by 3 equal cards
+- Cards: ExtractedDataCard | EnrichedDataCard | PreferenceMatchCard
 
+## Proposed Changes
+
+### 1. Layout Structure Alignment
+
+Restructure `ScanResults.tsx` to match Product Page's grid pattern:
+
+```text
+Desktop (lg and up):
+┌─────────────────────────────────────────────────────────┐
+│ [Action Buttons: Saved | Share | Scan Another]          │
+├─────────────────────┬───────────────────────────────────┤
+│  (5 cols)           │  (7 cols)                         │
+│  ┌───────────────┐  │  ┌─────────────────────────────┐  │
+│  │ Coffee Image  │  │  │ Coffee Name & Brand         │  │
+│  │ + Name/Brand  │  │  │ (larger heading style)      │  │
+│  │ + Origin Info │  │  │ Roast Badge, AI Confidence  │  │
+│  └───────────────┘  │  └─────────────────────────────┘  │
+│                     │                                   │
+│  ┌───────────────┐  │  ┌─────────────────────────────┐  │
+│  │ Coffee        │  │  │ Your Match Card             │  │
+│  │ Attributes    │  │  │ (Gauge + Match Reasons)     │  │
+│  │ (Body/Acid/   │  │  └─────────────────────────────┘  │
+│  │ Sweetness)    │  │                                   │
+│  └───────────────┘  │  ┌─────────────────────────────┐  │
+│                     │  │ Accordions:                 │  │
+│  ┌───────────────┐  │  │ - Tasting Notes             │  │
+│  │ Flavor Notes  │  │  │ - Jargon Buster             │  │
+│  │ (chips/tags)  │  │  │ - Brand Story               │  │
+│  └───────────────┘  │  └─────────────────────────────┘  │
+└─────────────────────┴───────────────────────────────────┘
+
+Mobile:
+[Action Buttons]
+[Image + Name + Origin]
+[Coffee Attributes]
+[Your Match Card]
+[Flavor Notes]
+[Accordions]
+```
+
+### 2. Component Restructuring
+
+**New/Modified Components:**
+
+| Component | Purpose |
+|-----------|---------|
+| `ScanResultsImage.tsx` | Reuse ProductImage pattern with scanned coffee image |
+| `ScanResultsInfo.tsx` | Coffee name, brand, origin, roast level badge (mirroring ProductInfo) |
+| `ScanResultsAttributes.tsx` | Acidity/Body/Sweetness sliders (reuse AttributeSlider component) |
+| `ScanResultsMatch.tsx` | Refactored PreferenceMatchCard without Card wrapper |
+| `ScanResultsAccordions.tsx` | New accordion component for Tasting Notes, Jargon Buster, Brand Story |
+
+### 3. File Changes
+
+#### A. `src/features/scanner/components/ScanResults.tsx`
+**Complete rewrite** to match Product Page grid structure:
+- Use `grid-cols-1 lg:grid-cols-12` layout
+- Left column (`lg:col-span-5`): Image, Attributes, Flavor Notes  
+- Right column (`lg:col-span-7`): Info, Match Score, Accordions
+- Apply responsive `order-*` classes for mobile stacking
+- Move action buttons into a dedicated action bar
+
+#### B. `src/features/scanner/components/ScanResultsInfo.tsx` (New)
+- Extract coffee name, brand, roast level badge into standalone component
+- Mirror `ProductInfo.tsx` styling (Bangers font, secondary link for roaster)
+
+#### C. `src/features/scanner/components/ScanResultsAttributes.tsx` (New)
+- Wrap the AttributeSlider components in a card matching Product Page style
+- Use existing `AttributeSlider` from marketplace
+
+#### D. `src/features/scanner/components/ScanResultsAccordions.tsx` (New)
+- Create accordion for: Tasting Notes, Jargon Buster, About the Roaster
+- Mirror `ProductAccordions.tsx` structure and styling
+
+#### E. Update `ExtractedDataCard.tsx`
+- Simplify to only show the image portion
+- Move name/brand/origin info to `ScanResultsInfo.tsx`
+
+#### F. Deprecate standalone cards
+- `EnrichedDataCard.tsx` - content distributed across new components
+- `PreferenceMatchCard.tsx` - becomes `ScanResultsMatch.tsx` for consistency
+
+#### G. Update `src/features/scanner/components/index.ts`
+- Export new components
+- Keep legacy exports for backward compatibility
+
+### 4. Styling Consistency
+
+All components will use the brand design system:
+- **Borders**: `border-4 border-border rounded-lg`
+- **Shadows**: `shadow-[4px_4px_0px_0px_hsl(var(--border))]`
+- **Typography**: `font-bangers` for headings, `font-inter` for body
+- **Padding**: `p-4` or `p-5` consistent with Product Page cards
+
+### 5. Mobile Responsive Ordering
+
+Following Product Page pattern:
 ```typescript
-// Add imports
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/auth";
-import { useState } from "react";
-
-// Inside component:
-const { user } = useAuth();
-const [isSaving, setIsSaving] = useState(false);
-const [isSaved, setIsSaved] = useState(false);
-
-const handleAddToFavorites = async () => {
-  if (!user || isSaved) return;
-  
-  setIsSaving(true);
-  try {
-    const { error } = await supabase
-      .from("user_favorites")
-      .insert({
-        user_id: user.id,
-        coffee_name: data.coffeeName || "Unknown Coffee",
-        roaster_name: data.brand,
-        image_url: data.imageUrl,
-        // brew_method and rating can be added later
-      });
-
-    if (error) throw error;
-
-    setIsSaved(true);
-    toast.success("Added to favorites!", {
-      description: `${data.coffeeName || "This coffee"} has been saved.`,
-    });
-  } catch (err) {
-    toast.error("Failed to save favorite", {
-      description: "Please try again later.",
-    });
-  } finally {
-    setIsSaving(false);
-  }
-};
-
-// Update button to show state
-<Button
-  variant="default"
-  onClick={handleAddToFavorites}
-  disabled={isSaving || isSaved}
-  className="gap-2"
->
-  <Heart className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />
-  {isSaved ? "Saved!" : isSaving ? "Saving..." : "Add to Favorites"}
-</Button>
+// Mobile order (stacked)
+<div className="order-1">Image + Basic Info</div>
+<div className="order-2 lg:hidden">Coffee Name/Brand (mobile)</div>
+<div className="order-3">Attributes Card</div>
+<div className="order-4">Match Score Card</div>
+<div className="order-5">Flavor Notes</div>
+<div className="order-6 lg:hidden">Accordions (mobile)</div>
 ```
 
 ---
 
-## Issue 2: Scanner Appears Slow
+## Technical Considerations
 
-### Analysis
-From the edge function logs, the actual timing is:
-- Image upload: ~1 second
-- **AI processing: ~30 seconds** (Gemini vision model analyzing the image)
-- Database save: ~7 seconds
-- **Total: ~38 seconds**
+### Reusing Existing Components
+- `AttributeSlider` from marketplace can be reused directly
+- `Accordion` component from shadcn/ui for collapsible sections
+- `Badge` for flavor notes and roast level display
 
-This is normal for vision AI processing. The perceived slowness can be improved with better progress feedback.
+### Data Mapping
+Map `ScannedCoffee` fields to UI sections:
+- `imageUrl` → Image component
+- `coffeeName`, `brand`, `roastLevelNumeric` → Info component
+- `originCountry`, `originRegion`, `originFarm` → Info component (origin line)
+- `acidityScore`, `bodyScore`, `sweetnessScore` → Attributes component
+- `flavorNotes` → Flavor Notes section
+- `tribeMatchScore`, `matchReasons` → Match component
+- `jargonExplanations` → Accordion (Jargon Buster)
+- `brandStory` → Accordion (About the Roaster)
 
-### Solution: More Accurate Progress Messaging
+### Files to Create/Modify
 
-**File: `src/features/scanner/hooks/useCoffeeScanner.ts`**
+| File | Action |
+|------|--------|
+| `src/features/scanner/components/ScanResults.tsx` | Major refactor |
+| `src/features/scanner/components/ScanResultsInfo.tsx` | Create new |
+| `src/features/scanner/components/ScanResultsAttributes.tsx` | Create new |
+| `src/features/scanner/components/ScanResultsMatch.tsx` | Create new |
+| `src/features/scanner/components/ScanResultsAccordions.tsx` | Create new |
+| `src/features/scanner/components/ScanResultsImage.tsx` | Create new |
+| `src/features/scanner/components/index.ts` | Update exports |
 
-Update the progress states to set more realistic expectations:
-
-```typescript
-// Current message: "AI is reading your coffee bag..." at 50%
-// Users see this for 30 seconds which feels stuck
-
-// Better approach: Add time estimates
-SCAN_PROGRESS_STATES = {
-  idle: { status: "idle", message: "Ready to scan", progress: 0 },
-  uploading: { status: "uploading", message: "Uploading image...", progress: 15 },
-  analyzing: { 
-    status: "analyzing", 
-    message: "AI is analyzing your coffee bag (this may take 20-30 seconds)...", 
-    progress: 40 
-  },
-  enriching: { 
-    status: "enriching", 
-    message: "Almost done! Saving results...", 
-    progress: 85 
-  },
-  complete: { status: "complete", message: "Scan complete!", progress: 100 },
-  error: { status: "error", message: "Something went wrong", progress: 0 },
-};
-```
-
-**File: `src/features/scanner/components/ScanProgress.tsx`**
-
-Add an animated countdown or elapsed time display during the analyzing phase to show the user something is happening:
-
-```typescript
-// Add elapsed time display during analyzing phase
-const [elapsedTime, setElapsedTime] = useState(0);
-
-useEffect(() => {
-  let interval: NodeJS.Timeout;
-  if (progress.status === "analyzing" || progress.status === "enriching") {
-    interval = setInterval(() => {
-      setElapsedTime(prev => prev + 1);
-    }, 1000);
-  }
-  return () => clearInterval(interval);
-}, [progress.status]);
-
-// Display in UI:
-{progress.status === "analyzing" && (
-  <p className="text-sm text-muted-foreground">
-    Time elapsed: {elapsedTime}s
-  </p>
-)}
-```
+### Legacy Component Handling
+- Keep `ExtractedDataCard`, `EnrichedDataCard`, `PreferenceMatchCard` for backward compatibility
+- Mark as deprecated in comments
+- New layout uses the new smaller, focused components
 
 ---
 
-## Files to Modify
+## Summary
 
-| File | Changes |
-|------|---------|
-| `src/features/scanner/components/ScanResults.tsx` | Implement actual database insert for favorites with loading/saved states |
-| `src/features/scanner/types/scanner.ts` | Update progress messages with time estimates |
-| `src/features/scanner/components/ScanProgress.tsx` | Add elapsed time counter during AI analysis |
-
----
-
-## Why The Scanner Takes Time
-
-The ~30 second AI processing time is **expected behavior** for vision AI models:
-1. The image must be sent to Gemini's servers
-2. The model analyzes the coffee bag image
-3. It extracts text, identifies features, and generates structured data
-4. This is already using `gemini-2.5-flash` which is the fastest option
-
-Switching to a faster model would reduce accuracy. The better UX solution is to set proper expectations with progress messaging.
+This refactor will:
+1. Align Scanner Results with Product Page's proven layout pattern
+2. Improve visual consistency across the app
+3. Enable better responsive behavior with explicit mobile ordering
+4. Promote component reuse (AttributeSlider, Accordion patterns)
+5. Follow existing brand design system (4px borders, shadows, typography)

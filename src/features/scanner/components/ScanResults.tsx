@@ -1,13 +1,11 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { RotateCcw, Heart, Share2, Loader2 } from "lucide-react";
-import { ExtractedDataCard } from "./ExtractedDataCard";
-import { EnrichedDataCard } from "./EnrichedDataCard";
-import { PreferenceMatchCard } from "./PreferenceMatchCard";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/auth";
 import type { ScannedCoffee } from "../types/scanner";
+import { ScanResultsImage } from "./ScanResultsImage";
+import { ScanResultsInfo } from "./ScanResultsInfo";
+import { ScanResultsAttributes } from "./ScanResultsAttributes";
+import { ScanResultsMatch } from "./ScanResultsMatch";
+import { ScanResultsFlavorNotes } from "./ScanResultsFlavorNotes";
+import { ScanResultsAccordions } from "./ScanResultsAccordions";
+import { ScanResultsActions } from "./ScanResultsActions";
 
 interface ScanResultsProps {
   data: ScannedCoffee;
@@ -15,108 +13,67 @@ interface ScanResultsProps {
 }
 
 export function ScanResults({ data, onScanAgain }: ScanResultsProps) {
-  const { user } = useAuth();
-  const [isSaving, setIsSaving] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
-
-  const handleAddToFavorites = async () => {
-    if (!user || isSaved || isSaving) return;
-
-    setIsSaving(true);
-    try {
-      const { error } = await supabase
-        .from("user_favorites")
-        .insert({
-          user_id: user.id,
-          coffee_name: data.coffeeName || "Unknown Coffee",
-          roaster_name: data.brand,
-          image_url: data.imageUrl,
-        });
-
-      if (error) throw error;
-
-      setIsSaved(true);
-      toast.success("Added to favorites!", {
-        description: `${data.coffeeName || "This coffee"} has been saved.`,
-      });
-    } catch (err) {
-      console.error("Failed to save favorite:", err);
-      toast.error("Failed to save favorite", {
-        description: "Please try again later.",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleShare = async () => {
-    const shareText = `Check out ${data.coffeeName || "this coffee"} from ${data.brand || "a great roaster"}! Scanned with Caldi's Cup.`;
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: data.coffeeName || "Coffee Scan",
-          text: shareText,
-          url: window.location.href,
-        });
-      } catch (err) {
-        // User cancelled or share failed
-        if ((err as Error).name !== "AbortError") {
-          toast.error("Failed to share");
-        }
-      }
-    } else {
-      // Fallback: copy to clipboard
-      await navigator.clipboard.writeText(shareText);
-      toast.success("Copied to clipboard!");
-    }
-  };
-
   return (
     <div className="space-y-6">
-      {/* Action Buttons */}
-      <div className="flex flex-wrap gap-3 justify-center">
-        <Button
-          variant="default"
-          onClick={handleAddToFavorites}
-          disabled={isSaving || isSaved || !user}
-          className="gap-2"
-        >
-          {isSaving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Heart className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />
-          )}
-          {isSaved ? "Saved!" : isSaving ? "Saving..." : "Add to Favorites"}
-        </Button>
-        <Button
-          variant="outline"
-          onClick={handleShare}
-          className="gap-2"
-        >
-          <Share2 className="w-4 h-4" />
-          Share
-        </Button>
-        <Button
-          variant="outline"
-          onClick={onScanAgain}
-          className="gap-2"
-        >
-          <RotateCcw className="w-4 h-4" />
-          Scan Another
-        </Button>
-      </div>
+      {/* Main Grid Layout - Matches Product Page structure */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Image, Attributes, Flavor Notes */}
+        <div className="lg:col-span-5 flex flex-col gap-6">
+          {/* Coffee Image - order-1 on all */}
+          <div className="order-1">
+            <ScanResultsImage 
+              src={data.imageUrl} 
+              alt={data.coffeeName || "Scanned coffee"} 
+            />
+          </div>
 
-      {/* Results Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Left: Extracted Data with Image */}
-        <ExtractedDataCard data={data} />
+          {/* Coffee Info - Mobile/Tablet only, order-2 */}
+          <div className="order-2 lg:hidden">
+            <ScanResultsInfo data={data} />
+          </div>
 
-        {/* Middle: Enriched Data & Jargon */}
-        <EnrichedDataCard data={data} />
+          {/* Actions - Mobile/Tablet only, order-3 */}
+          <div className="order-3 lg:hidden">
+            <ScanResultsActions data={data} onScanAgain={onScanAgain} />
+          </div>
 
-        {/* Right: Preference Match */}
-        <PreferenceMatchCard data={data} />
+          {/* Attribute Sliders - order-4 mobile, order-2 desktop */}
+          <div className="order-4 lg:order-2">
+            <ScanResultsAttributes data={data} />
+          </div>
+
+          {/* Match Card - Mobile/Tablet only, order-5 */}
+          <div className="order-5 lg:hidden">
+            <ScanResultsMatch data={data} />
+          </div>
+
+          {/* Flavor Notes - order-6 mobile, order-3 desktop */}
+          <div className="order-6 lg:order-3">
+            <ScanResultsFlavorNotes data={data} />
+          </div>
+
+          {/* Accordions - Mobile/Tablet only, order-7 */}
+          <div className="order-7 lg:hidden border-4 border-border rounded-lg px-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card overflow-hidden">
+            <ScanResultsAccordions data={data} />
+          </div>
+        </div>
+
+        {/* Right Column: Info, Actions, Match, Accordions - Desktop only */}
+        <div className="hidden lg:flex lg:col-span-7 flex-col gap-6">
+          {/* Coffee Info */}
+          <ScanResultsInfo data={data} />
+
+          {/* Actions */}
+          <ScanResultsActions data={data} onScanAgain={onScanAgain} />
+
+          {/* Match Score */}
+          <ScanResultsMatch data={data} />
+
+          {/* Accordions */}
+          <div className="border-4 border-border rounded-lg px-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card overflow-hidden">
+            <ScanResultsAccordions data={data} />
+          </div>
+        </div>
       </div>
     </div>
   );

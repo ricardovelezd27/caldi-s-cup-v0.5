@@ -21,8 +21,11 @@ const getAllowedOrigin = (requestOrigin: string | null): string => {
         return requestOrigin;
       }
     }
-    // Allow *.lovableproject.com subdomains
-    if (requestOrigin.endsWith(".lovableproject.com")) {
+    // Allow *.lovableproject.com and *.lovable.app subdomains
+    if (
+      requestOrigin.endsWith(".lovableproject.com") || 
+      requestOrigin.endsWith(".lovable.app")
+    ) {
       return requestOrigin;
     }
   }

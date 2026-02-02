@@ -7,3 +7,6 @@ export * from "./types/api";
 export * from "./types/roasterApi";
 export * from "./utils/productFilters";
 export * from "./hooks/useRoasterStorefront";
+export * from "./hooks/useMarketplaceData";
+export * from "./services";
+export * from "./config";

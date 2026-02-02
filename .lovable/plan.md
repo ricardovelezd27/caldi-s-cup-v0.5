@@ -320,48 +320,35 @@ Database trigger `on_profile_created_create_widgets` creates default widgets:
 
 ---
 
-### Phase F: Marketplace Integration Prep (Week 5)
+### Phase F: Marketplace Integration Prep (Week 5) ✅ COMPLETED
 
-**F1. Unified Coffee Types**
-Single TypeScript type for all coffee sources:
-```typescript
-// types/coffee.ts
-export interface Coffee {
-  id: string;
-  name: string;
-  brand: string | null;
-  roasterId: string | null;
-  originCountry: string | null;
-  originRegion: string | null;
-  originFarm: string | null;
-  roastLevel: 1 | 2 | 3 | 4 | 5 | null;
-  processingMethod: string | null;
-  variety: string | null;
-  altitudeMeters: number | null;
-  acidityScore: number | null;
-  bodyScore: number | null;
-  sweetnessScore: number | null;
-  flavorNotes: string[];
-  description: string | null;
-  imageUrl: string | null;
-  cuppingScore: number | null;
-  awards: string[];
-  isVerified: boolean;
-  source: 'scan' | 'admin' | 'roaster' | 'import';
-  createdAt: string;
-  updatedAt: string;
-}
-```
+**F1. Unified Coffee Types** ✅
+Already implemented in Phase C - `src/features/coffee/types/coffee.ts`:
+- `Coffee` interface matching database schema
+- `transformCoffeeRow()` for database → frontend conversion
+- `transformScannedCoffeeRow()` for scan results
+- `CoffeeScanMeta` and `CoffeeInventoryMeta` for context-specific data
 
-**F2. Replace Mock Data with Database**
-- Marketplace queries `coffees` table where `is_verified = true`
-- Filter by roaster, origin, roast level
-- Product page uses same `<CoffeeProfile>` component
+**F2. Replace Mock Data with Database** ✅
+Created service layer with feature flag toggle:
+- `src/features/marketplace/services/marketplaceService.ts`:
+  - `fetchMarketplaceCoffees()` with filters (search, origin, roast, roaster)
+  - `fetchCoffeeById()`, `fetchRoasterById()`, `fetchRoasterBySlug()`
+  - `fetchCoffeesByRoaster()`, `fetchAvailableOrigins()`, `fetchVerifiedRoasters()`
+  - React Query hooks for all fetchers
+- `src/features/marketplace/hooks/useMarketplaceData.ts`:
+  - `useMarketplaceProducts()` - abstracts data source selection
+  - `useProduct()` - single product fetch
+  - `useRoasterData()` - roaster + their coffees
+  - `coffeeToProduct()` - transforms Coffee to legacy Product type
+- `src/features/marketplace/config/featureFlags.ts`:
+  - `MARKETPLACE_FLAGS.USE_DATABASE_COFFEES` toggle
+  - When false (default): uses mock data
+  - When true: queries `coffees` table with `is_verified = true`
 
-**F3. Roaster Portal Foundation**
-- `/roaster/dashboard` - Roaster's own dashboard
-- `/roaster/coffees` - Manage their coffees
-- `/roaster/add-coffee` - Add new coffee (with scanner option)
+**F3. Roaster Portal Foundation** (Deferred)
+- Routes and pages for roaster management deferred to later phase
+- Database tables (roasters, coffees with roaster_id) already in place
 
 ---
 

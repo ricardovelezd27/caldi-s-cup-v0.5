@@ -682,6 +682,7 @@ Respond ONLY with the JSON object, no additional text.`;
     // Step 7: Enrich with Firecrawl if creating new coffee
     let enrichedBrandStory = sanitizedData.brandStory;
     let enrichedAwards = sanitizedData.awards;
+    let roasterId: string | null = null;
 
     if (!bestMatch) {
       // Try to enrich with web data for new coffees
@@ -691,6 +692,58 @@ Respond ONLY with the JSON object, no additional text.`;
       }
       if (firecrawlData.awards.length > 0) {
         enrichedAwards = [...new Set([...enrichedAwards, ...firecrawlData.awards])];
+      }
+
+      // Step 7b: Create or find roaster profile if brand is present
+      if (sanitizedData.brand) {
+        console.log(`Checking for existing roaster: ${sanitizedData.brand}`);
+        
+        // Generate slug from brand name
+        const roasterSlug = sanitizedData.brand
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '');
+        
+        // Check if roaster already exists by slug or business name
+        const { data: existingRoaster, error: roasterSearchError } = await supabaseClient
+          .from("roasters")
+          .select("id, business_name")
+          .or(`slug.eq.${roasterSlug},business_name.ilike.${sanitizedData.brand}`)
+          .limit(1)
+          .maybeSingle();
+
+        if (roasterSearchError) {
+          console.error("Roaster search error:", roasterSearchError);
+        }
+
+        if (existingRoaster) {
+          roasterId = existingRoaster.id;
+          console.log(`Found existing roaster: ${existingRoaster.business_name} (${roasterId})`);
+        } else {
+          // Create new roaster profile
+          console.log(`Creating new roaster profile: ${sanitizedData.brand}`);
+          
+          const { data: newRoaster, error: insertRoasterError } = await supabaseClient
+            .from("roasters")
+            .insert({
+              user_id: user.id, // Associate with the user who scanned
+              business_name: sanitizedData.brand,
+              slug: roasterSlug,
+              description: enrichedBrandStory,
+              is_verified: false, // Scanned roasters start unverified
+              location_country: sanitizedData.originCountry, // Best guess from coffee origin
+            })
+            .select("id")
+            .single();
+
+          if (insertRoasterError) {
+            console.error("Failed to create roaster:", insertRoasterError);
+            // Continue without roaster - not critical
+          } else {
+            roasterId = newRoaster.id;
+            console.log(`Created new roaster: ${sanitizedData.brand} (${roasterId})`);
+          }
+        }
       }
     }
 
@@ -730,6 +783,7 @@ Respond ONLY with the JSON object, no additional text.`;
           source: "scan",
           is_verified: false,
           created_by: user.id,
+          roaster_id: roasterId, // Link to roaster if created/found
         })
         .select("id")
         .single();
@@ -741,7 +795,7 @@ Respond ONLY with the JSON object, no additional text.`;
       
       coffeeId = newCoffee.id;
       isNewCoffee = true;
-      console.log(`Created new coffee: ${coffeeId}`);
+      console.log(`Created new coffee: ${coffeeId}${roasterId ? ` linked to roaster ${roasterId}` : ''}`);
     }
 
     // Step 8: Save scan log to coffee_scans table

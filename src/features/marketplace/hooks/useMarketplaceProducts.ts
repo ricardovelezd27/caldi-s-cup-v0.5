@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { mockProducts } from "../data/mockProducts";
-import type { Product, RoastLevel } from "@/types/coffee";
+import { mockProducts, mockRoasters } from "../data/mockProducts";
+import type { Product, RoastLevel, Roaster as LegacyRoaster } from "@/types/coffee";
 import type { Coffee } from "@/features/coffee/types";
 import type { ProductFilters, SortOption } from "../types/api";
 import {
@@ -11,7 +11,6 @@ import {
   paginateProducts,
   getUniqueOrigins,
   getUniqueGrinds,
-  getUniqueRoasters,
   getPriceRange,
 } from "../utils/productFilters";
 
@@ -119,6 +118,37 @@ async function fetchAllCoffees(): Promise<Coffee[]> {
 }
 
 /**
+ * Database roaster row type
+ */
+interface DbRoaster {
+  id: string;
+  business_name: string;
+  slug: string;
+  description: string | null;
+  logo_url: string | null;
+  location_city: string | null;
+  location_country: string | null;
+  is_verified: boolean;
+}
+
+/**
+ * Fetch ALL roasters from database (verified + unverified)
+ */
+async function fetchAllRoasters(): Promise<DbRoaster[]> {
+  const { data, error } = await supabase
+    .from("roasters")
+    .select("id, business_name, slug, description, logo_url, location_city, location_country, is_verified")
+    .order("business_name");
+
+  if (error) {
+    console.error("Error fetching roasters:", error);
+    return [];
+  }
+
+  return data ?? [];
+}
+
+/**
  * Hook to fetch and merge all products (mock + database)
  */
 export function useAllProducts() {
@@ -152,6 +182,58 @@ export function useAllProducts() {
   };
 }
 
+/**
+ * Hook to fetch all roasters (mock + database) for filters
+ */
+export function useAllRoasters() {
+  const { data: dbRoasters = [], isLoading } = useQuery({
+    queryKey: ["all-roasters-marketplace"],
+    queryFn: fetchAllRoasters,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  return { dbRoasters, isLoading };
+}
+
+/**
+ * Get unique roasters from products AND database roasters table
+ */
+function getUniqueRoastersWithDb(
+  products: Product[],
+  dbRoasters: DbRoaster[]
+): { id: string; name: string; productCount: number }[] {
+  // Start with roasters from products
+  const roasterMap = new Map<string, { name: string; count: number }>();
+  
+  products.forEach((product) => {
+    const existing = roasterMap.get(product.roasterId);
+    if (existing) {
+      existing.count++;
+    } else if (product.roasterId) {
+      roasterMap.set(product.roasterId, { name: product.roasterName, count: 1 });
+    }
+  });
+
+  // Add database roasters (they might not have products yet, but should appear in filter)
+  dbRoasters.forEach((roaster) => {
+    if (!roasterMap.has(roaster.id)) {
+      roasterMap.set(roaster.id, { name: roaster.business_name, count: 0 });
+    }
+  });
+
+  // Also add mock roasters that might not have products
+  mockRoasters.forEach((roaster) => {
+    if (!roasterMap.has(roaster.id)) {
+      roasterMap.set(roaster.id, { name: roaster.name, count: 0 });
+    }
+  });
+
+  return Array.from(roasterMap.entries())
+    .map(([id, { name, count }]) => ({ id, name, productCount: count }))
+    .filter((r) => r.name && r.name !== "Unknown Roaster") // Filter out unknowns
+    .sort((a, b) => b.productCount - a.productCount || a.name.localeCompare(b.name));
+}
+
 interface UseMarketplaceProductsOptions {
   filters: ProductFilters;
   sortBy: SortOption;
@@ -168,12 +250,16 @@ export function useMarketplaceProducts({
   currentPage,
   pageSize,
 }: UseMarketplaceProductsOptions) {
-  const { products: allProducts, isLoading, error, dbCount } = useAllProducts();
+  const { products: allProducts, isLoading: productsLoading, error, dbCount } = useAllProducts();
+  const { dbRoasters, isLoading: roastersLoading } = useAllRoasters();
 
-  // Compute available filter options from ALL products
+  // Compute available filter options from ALL products + database roasters
   const availableOrigins = useMemo(() => getUniqueOrigins(allProducts), [allProducts]);
   const availableGrinds = useMemo(() => getUniqueGrinds(allProducts), [allProducts]);
-  const availableRoasters = useMemo(() => getUniqueRoasters(allProducts), [allProducts]);
+  const availableRoasters = useMemo(
+    () => getUniqueRoastersWithDb(allProducts, dbRoasters),
+    [allProducts, dbRoasters]
+  );
   const priceRange = useMemo(() => getPriceRange(allProducts), [allProducts]);
 
   // Apply filters, sort, and pagination
@@ -193,7 +279,7 @@ export function useMarketplaceProducts({
   return {
     ...result,
     allProducts,
-    isLoading,
+    isLoading: productsLoading || roastersLoading,
     error,
     dbCount,
     availableOrigins,

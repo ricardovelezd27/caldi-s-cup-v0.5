@@ -233,31 +233,31 @@ export function RequireRole({ roles, children }) {
 
 ---
 
-### Phase C: Scanner Flow Refactor (Week 2-3)
+### Phase C: Scanner Flow Refactor (Week 2-3) ✅ COMPLETED
 
-**C1. Unified Coffee Profile Component**
-Create a single `<CoffeeProfile>` component used for:
-- Scan results display
-- Product page display
-- Coffee detail in favorites/inventory
+**C1. Unified Coffee Profile Component** ✅
+Created unified components in `src/features/coffee/`:
+- `CoffeeProfile.tsx` - Main profile layout component
+- `CoffeeImage.tsx` - Shared image display
+- `CoffeeInfo.tsx` - Name, brand, origin, badges
+- `CoffeeAttributes.tsx` - Body/acidity/sweetness sliders
+- `CoffeeFlavorNotes.tsx` - Flavor note badges
+- `CoffeeDescription.tsx` - About section
+- `CoffeeScanMatch.tsx` - Tribe match score (scan-specific)
+- `CoffeeJargonBuster.tsx` - Term explanations (scan-specific)
+- `CoffeeActions.tsx` - Add to favorites/inventory, promote
 
-```typescript
-interface CoffeeProfileProps {
-  coffee: Coffee;  // From master coffees table
-  scanData?: CoffeeScan;  // Optional scan metadata
-  actions?: React.ReactNode;  // Contextual actions
-}
-```
+**C2. Scanner "Promote to Catalog" Flow** ✅
+- Admin/Roaster can "Promote to Coffee Catalog" from scan results
+- Creates coffee record in `coffees` table with `source: 'scan'`
+- Links scan to new coffee via `coffee_id` FK
+- Service function `promoteToCatalog()` in `coffeeService.ts`
 
-**C2. Scanner "Promote to Catalog" Flow**
-After scanning:
-1. AI extracts data
-2. Match against existing coffees (fuzzy search)
-3. If match found: Link scan to existing coffee
-4. If no match:
-   - User role: Save scan, coffee stays in scans table
-   - Admin role: Option to "Promote to Catalog" (creates coffee record)
-   - Roaster role: Can create coffee if from their roastery
+**C3. Add to Inventory/Favorites From Scan** ✅
+- `useFavorites` hook for managing favorites via `user_coffee_favorites`
+- `useInventory` hook for managing inventory via `user_coffee_inventory`
+- CoffeeActions component includes both buttons
+- Both reference the master `coffee_id`
 
 **C3. Add to Inventory/Favorites From Scan**
 - "Add to Inventory" button creates inventory record

@@ -23,6 +23,7 @@ export const ROUTES = {
   about: "/about",
   cart: "/cart",
   auth: "/auth",
+  coffeeProfile: "/coffee",
 } as const;
 
 export const NAV_LINKS = [

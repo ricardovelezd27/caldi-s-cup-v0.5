@@ -15,6 +15,7 @@ import { QuizPage, ResultsPage } from "./features/quiz";
 import { DashboardPage } from "./features/dashboard";
 import { ScannerPage } from "./features/scanner";
 import { RecipesPage, CreateRecipePage, RecipeViewPage, EditRecipePage } from "./features/recipes";
+import { CoffeeProfilePage } from "./features/coffee";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
                 <Route path="/recipes/new" element={<CreateRecipePage />} />
                 <Route path="/recipes/:id" element={<RecipeViewPage />} />
                 <Route path="/recipes/:id/edit" element={<EditRecipePage />} />
+                <Route path="/coffee/:id" element={<CoffeeProfilePage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

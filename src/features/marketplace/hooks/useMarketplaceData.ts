@@ -6,6 +6,7 @@ import {
   useCoffee, 
   useRoaster, 
   useRoasterCoffees,
+  useVerifiedRoasters,
   type MarketplaceFilters 
 } from "../services/marketplaceService";
 import type { Coffee } from "@/features/coffee/types";
@@ -205,10 +206,13 @@ export function useRoasterData(id: string | undefined) {
  */
 export function useAvailableRoasters() {
   const useDatabase = usesDatabaseCoffees();
+  const dbQuery = useVerifiedRoasters();
   
   if (useDatabase) {
-    // Would use useVerifiedRoasters() here
-    return { roasters: [], isLoading: false };
+    return {
+      roasters: dbQuery.data?.map(r => ({ id: r.id, name: r.businessName })) ?? [],
+      isLoading: dbQuery.isLoading,
+    };
   }
 
   return {

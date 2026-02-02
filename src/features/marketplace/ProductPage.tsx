@@ -13,12 +13,12 @@ import {
   ProductAccordions,
   ProductDescription
 } from "./components";
-import { getProductById, getRoasterByProductId } from "./data/mockProducts";
+import { getProductById, getRoasterById } from "./data/mockProducts";
 
 const ProductPage = () => {
   const { id } = useParams<{ id: string }>();
   const product = getProductById(id || "");
-  const roaster = getRoasterByProductId(id || "");
+  const roaster = product ? getRoasterById(product.roasterId) : undefined;
 
   if (!product) {
     return (

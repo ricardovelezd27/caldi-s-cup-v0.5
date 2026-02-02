@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { usesDatabaseCoffees } from "../config/featureFlags";
 import { mockProducts, mockRoasters, getProductById, getRoasterById } from "../data/mockProducts";
 import { 
   useMarketplaceCoffees, 
@@ -29,20 +28,20 @@ function coffeeToProduct(coffee: Coffee): Product {
       notes: coffee.flavorNotes.slice(0, 3) as any[],
       acidity: coffee.acidityScore && coffee.acidityScore >= 4 ? "high" : coffee.acidityScore && coffee.acidityScore <= 2 ? "low" : "medium",
     },
-    isOrganic: false, // Not tracked in coffees table
-    isFairTrade: false, // Not tracked in coffees table
+    isOrganic: false,
+    isFairTrade: false,
     description: coffee.description ?? "",
     imageUrl: coffee.imageUrl ?? "/placeholder.svg",
     roasterId: coffee.roasterId ?? "",
     roasterName: coffee.brand ?? "Unknown Roaster",
-    slug: coffee.id, // Use ID as slug for now
+    slug: coffee.id,
     variants: [
       {
         id: `${coffee.id}-default`,
         name: "250g Whole Bean",
         size: "250g",
         grind: "whole-bean" as const,
-        price: 14.99, // Default price
+        price: 14.99,
         available: true,
         inventoryQuantity: 50,
       }
@@ -52,7 +51,7 @@ function coffeeToProduct(coffee: Coffee): Product {
     altitude: coffee.altitudeMeters ? `${coffee.altitudeMeters}m` : undefined,
     tastingNotes: coffee.flavorNotes.join(", "),
     images: coffee.imageUrl ? [coffee.imageUrl] : ["/placeholder.svg"],
-    rating: coffee.cuppingScore ? coffee.cuppingScore / 20 : undefined, // Convert 0-100 to 0-5
+    rating: coffee.cuppingScore ? coffee.cuppingScore / 20 : undefined,
     reviewCount: 0,
     attributeScores: {
       body: coffee.bodyScore ?? 3,
@@ -65,158 +64,167 @@ function coffeeToProduct(coffee: Coffee): Product {
 }
 
 /**
- * Hook to fetch marketplace products (from database or mock)
+ * Hook to fetch marketplace products - COMBINES mock data with database coffees
  */
 export function useMarketplaceProducts(filters: MarketplaceFilters = {}) {
-  const useDatabase = usesDatabaseCoffees();
-  
-  // Database query
+  // Always fetch database coffees
   const dbQuery = useMarketplaceCoffees(filters);
   
-  // Mock data fallback
-  const mockData = useMemo(() => {
-    if (useDatabase) return null;
+  // Combine mock data with database coffees
+  const combinedData = useMemo(() => {
+    // Start with mock products
+    let allProducts = [...mockProducts];
     
-    let filtered = [...mockProducts];
+    // Add database coffees (converted to Product format)
+    if (dbQuery.data?.coffees) {
+      const dbProducts = dbQuery.data.coffees.map(coffeeToProduct);
+      // Add database products, avoiding duplicates by ID
+      const mockIds = new Set(mockProducts.map(p => p.id));
+      dbProducts.forEach(dbProduct => {
+        if (!mockIds.has(dbProduct.id)) {
+          allProducts.push(dbProduct);
+        }
+      });
+    }
     
+    // Apply filters
     if (filters.search) {
       const search = filters.search.toLowerCase();
-      filtered = filtered.filter(
+      allProducts = allProducts.filter(
         p => p.name.toLowerCase().includes(search) || 
-             p.origin.toLowerCase().includes(search)
+             p.origin.toLowerCase().includes(search) ||
+             p.roasterName?.toLowerCase().includes(search)
       );
     }
     
     if (filters.origins && filters.origins.length > 0) {
-      filtered = filtered.filter(p => 
+      allProducts = allProducts.filter(p => 
         filters.origins!.some(o => p.origin.toLowerCase().includes(o.toLowerCase()))
       );
     }
     
     if (filters.roasterIds && filters.roasterIds.length > 0) {
-      filtered = filtered.filter(p => filters.roasterIds!.includes(p.roasterId));
+      allProducts = allProducts.filter(p => filters.roasterIds!.includes(p.roasterId));
     }
     
+    // Pagination
     const offset = filters.offset ?? 0;
     const limit = filters.limit ?? 10;
     
     return {
-      products: filtered.slice(offset, offset + limit),
-      total: filtered.length,
+      products: allProducts.slice(offset, offset + limit),
+      total: allProducts.length,
     };
-  }, [useDatabase, filters]);
-
-  if (useDatabase) {
-    return {
-      data: dbQuery.data 
-        ? { products: dbQuery.data.coffees.map(coffeeToProduct), total: dbQuery.data.total }
-        : undefined,
-      isLoading: dbQuery.isLoading,
-      error: dbQuery.error,
-      isFromDatabase: true,
-    };
-  }
+  }, [dbQuery.data, filters]);
 
   return {
-    data: mockData,
-    isLoading: false,
-    error: null,
-    isFromDatabase: false,
+    data: combinedData,
+    isLoading: dbQuery.isLoading,
+    error: dbQuery.error,
+    isFromDatabase: true, // Always includes database now
   };
 }
 
 /**
- * Hook to fetch a single product by ID
+ * Hook to fetch a single product by ID - checks both mock and database
  */
 export function useProduct(id: string | undefined) {
-  const useDatabase = usesDatabaseCoffees();
-  
   const dbQuery = useCoffee(id);
   
-  if (useDatabase) {
+  // Check mock data first for faster response
+  const mockProduct = id ? getProductById(id) : null;
+  
+  // If found in mock, return immediately
+  if (mockProduct) {
     return {
-      data: dbQuery.data ? coffeeToProduct(dbQuery.data) : null,
-      coffee: dbQuery.data, // Also expose the raw Coffee type
-      isLoading: dbQuery.isLoading,
-      error: dbQuery.error,
-      isFromDatabase: true,
+      data: mockProduct,
+      coffee: null,
+      isLoading: false,
+      error: null,
+      isFromDatabase: false,
     };
   }
-
-  const mockProduct = id ? getProductById(id) : null;
+  
+  // Otherwise return database result
   return {
-    data: mockProduct,
-    coffee: null,
-    isLoading: false,
-    error: null,
-    isFromDatabase: false,
+    data: dbQuery.data ? coffeeToProduct(dbQuery.data) : null,
+    coffee: dbQuery.data,
+    isLoading: dbQuery.isLoading,
+    error: dbQuery.error,
+    isFromDatabase: true,
   };
 }
 
 /**
- * Hook to fetch a roaster by ID
+ * Hook to fetch a roaster by ID - checks both mock and database
  */
 export function useRoasterData(id: string | undefined) {
-  const useDatabase = usesDatabaseCoffees();
-  
   const dbRoaster = useRoaster(id);
   const dbCoffees = useRoasterCoffees(id);
   
-  if (useDatabase) {
-    const roaster = dbRoaster.data;
+  // Check mock data first
+  const mockRoaster = id ? getRoasterById(id) : null;
+  
+  if (mockRoaster) {
+    const mockRoasterProducts = mockProducts.filter(p => p.roasterId === mockRoaster.id);
     return {
-      roaster: roaster ? {
-        id: roaster.id,
-        name: roaster.businessName,
-        slug: roaster.slug,
-        description: roaster.description ?? "",
-        logoUrl: roaster.logoUrl ?? undefined,
-        bannerUrl: roaster.bannerUrl ?? undefined,
-        location: {
-          city: roaster.locationCity ?? "Unknown",
-          country: roaster.locationCountry ?? "Unknown",
-        },
-        website: roaster.website ?? undefined,
-        certifications: roaster.certifications as any[],
-        createdAt: roaster.createdAt,
-      } as Roaster : null,
-      products: dbCoffees.data?.map(coffeeToProduct) ?? [],
-      isLoading: dbRoaster.isLoading || dbCoffees.isLoading,
-      error: dbRoaster.error || dbCoffees.error,
-      isFromDatabase: true,
+      roaster: mockRoaster,
+      products: mockRoasterProducts,
+      isLoading: false,
+      error: null,
+      isFromDatabase: false,
     };
   }
 
-  const mockRoaster = id ? getRoasterById(id) : null;
-  const mockRoasterProducts = mockRoaster 
-    ? mockProducts.filter(p => p.roasterId === mockRoaster.id)
-    : [];
-    
+  // Database result
+  const roaster = dbRoaster.data;
   return {
-    roaster: mockRoaster,
-    products: mockRoasterProducts,
-    isLoading: false,
-    error: null,
-    isFromDatabase: false,
+    roaster: roaster ? {
+      id: roaster.id,
+      name: roaster.businessName,
+      slug: roaster.slug,
+      description: roaster.description ?? "",
+      logoUrl: roaster.logoUrl ?? undefined,
+      bannerUrl: roaster.bannerUrl ?? undefined,
+      location: {
+        city: roaster.locationCity ?? "Unknown",
+        country: roaster.locationCountry ?? "Unknown",
+      },
+      website: roaster.website ?? undefined,
+      certifications: roaster.certifications as any[],
+      createdAt: roaster.createdAt,
+    } as Roaster : null,
+    products: dbCoffees.data?.map(coffeeToProduct) ?? [],
+    isLoading: dbRoaster.isLoading || dbCoffees.isLoading,
+    error: dbRoaster.error || dbCoffees.error,
+    isFromDatabase: true,
   };
 }
 
 /**
- * Get all available roasters (for filter dropdowns)
+ * Get all available roasters (for filter dropdowns) - combines mock and database
  */
 export function useAvailableRoasters() {
-  const useDatabase = usesDatabaseCoffees();
   const dbQuery = useVerifiedRoasters();
   
-  if (useDatabase) {
-    return {
-      roasters: dbQuery.data?.map(r => ({ id: r.id, name: r.businessName })) ?? [],
-      isLoading: dbQuery.isLoading,
-    };
-  }
+  const combinedRoasters = useMemo(() => {
+    const roasters = mockRoasters.map(r => ({ id: r.id, name: r.name }));
+    
+    // Add database roasters
+    if (dbQuery.data) {
+      const mockIds = new Set(roasters.map(r => r.id));
+      dbQuery.data.forEach(r => {
+        if (!mockIds.has(r.id)) {
+          roasters.push({ id: r.id, name: r.businessName });
+        }
+      });
+    }
+    
+    return roasters;
+  }, [dbQuery.data]);
 
   return {
-    roasters: mockRoasters.map(r => ({ id: r.id, name: r.name })),
-    isLoading: false,
+    roasters: combinedRoasters,
+    isLoading: dbQuery.isLoading,
   };
 }

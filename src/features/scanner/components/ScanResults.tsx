@@ -1,80 +1,87 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { 
+  CoffeeProfile, 
+  CoffeeActions,
+  transformScannedCoffeeRow,
+} from "@/features/coffee";
 import type { ScannedCoffee } from "../types/scanner";
-import { ScanResultsImage } from "./ScanResultsImage";
-import { ScanResultsInfo } from "./ScanResultsInfo";
-import { ScanResultsAttributes } from "./ScanResultsAttributes";
-import { ScanResultsMatch } from "./ScanResultsMatch";
-import { ScanResultsFlavorNotes } from "./ScanResultsFlavorNotes";
-import { ScanResultsAccordions } from "./ScanResultsAccordions";
-import { ScanResultsActions } from "./ScanResultsActions";
+import type { Database } from "@/integrations/supabase/types";
 
 interface ScanResultsProps {
   data: ScannedCoffee;
   onScanAgain: () => void;
 }
 
+/**
+ * Transform the hook's ScannedCoffee format to database row format
+ * so we can use the unified transformScannedCoffeeRow function.
+ */
+function toDbRow(data: ScannedCoffee): Database["public"]["Tables"]["scanned_coffees"]["Row"] {
+  return {
+    id: data.id,
+    user_id: "", // Not needed for display
+    image_url: data.imageUrl,
+    coffee_name: data.coffeeName,
+    brand: data.brand,
+    origin: data.origin,
+    origin_country: data.originCountry,
+    origin_region: data.originRegion,
+    origin_farm: data.originFarm,
+    roast_level: data.roastLevel,
+    roast_level_numeric: data.roastLevelNumeric,
+    altitude: data.altitude,
+    altitude_meters: data.altitudeMeters,
+    processing_method: data.processingMethod,
+    variety: data.variety,
+    acidity_score: data.acidityScore,
+    body_score: data.bodyScore,
+    sweetness_score: data.sweetnessScore,
+    flavor_notes: data.flavorNotes,
+    brand_story: data.brandStory,
+    awards: data.awards,
+    cupping_score: data.cuppingScore,
+    ai_confidence: data.aiConfidence,
+    tribe_match_score: data.tribeMatchScore,
+    match_reasons: data.matchReasons,
+    jargon_explanations: data.jargonExplanations,
+    scanned_at: data.scannedAt,
+    created_at: data.scannedAt,
+    coffee_id: null,
+    raw_ai_response: null,
+  };
+}
+
 export function ScanResults({ data, onScanAgain }: ScanResultsProps) {
+  const navigate = useNavigate();
+  const [promotedCoffeeId, setPromotedCoffeeId] = useState<string | null>(null);
+
+  // Transform to unified types
+  const dbRow = toDbRow(data);
+  const { coffee, scanMeta } = transformScannedCoffeeRow(dbRow);
+
+  // If promoted, update the coffee id
+  if (promotedCoffeeId) {
+    coffee.id = promotedCoffeeId;
+    scanMeta.coffeeId = promotedCoffeeId;
+  }
+
+  const handlePromoted = (newCoffeeId: string) => {
+    setPromotedCoffeeId(newCoffeeId);
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Main Grid Layout - Matches Product Page structure */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Image, Attributes, Flavor Notes */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
-          {/* Coffee Image - order-1 on all */}
-          <div className="order-1">
-            <ScanResultsImage 
-              src={data.imageUrl} 
-              alt={data.coffeeName || "Scanned coffee"} 
-            />
-          </div>
-
-          {/* Coffee Info - Mobile/Tablet only, order-2 */}
-          <div className="order-2 lg:hidden">
-            <ScanResultsInfo data={data} />
-          </div>
-
-          {/* Actions - Mobile/Tablet only, order-3 */}
-          <div className="order-3 lg:hidden">
-            <ScanResultsActions data={data} onScanAgain={onScanAgain} />
-          </div>
-
-          {/* Attribute Sliders - order-4 mobile, order-2 desktop */}
-          <div className="order-4 lg:order-2">
-            <ScanResultsAttributes data={data} />
-          </div>
-
-          {/* Match Card - Mobile/Tablet only, order-5 */}
-          <div className="order-5 lg:hidden">
-            <ScanResultsMatch data={data} />
-          </div>
-
-          {/* Flavor Notes - order-6 mobile, order-3 desktop */}
-          <div className="order-6 lg:order-3">
-            <ScanResultsFlavorNotes data={data} />
-          </div>
-
-          {/* Accordions - Mobile/Tablet only, order-7 */}
-          <div className="order-7 lg:hidden border-4 border-border rounded-lg px-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card overflow-hidden">
-            <ScanResultsAccordions data={data} />
-          </div>
-        </div>
-
-        {/* Right Column: Info, Actions, Match, Accordions - Desktop only */}
-        <div className="hidden lg:flex lg:col-span-7 flex-col gap-6">
-          {/* Coffee Info */}
-          <ScanResultsInfo data={data} />
-
-          {/* Actions */}
-          <ScanResultsActions data={data} onScanAgain={onScanAgain} />
-
-          {/* Match Score */}
-          <ScanResultsMatch data={data} />
-
-          {/* Accordions */}
-          <div className="border-4 border-border rounded-lg px-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card overflow-hidden">
-            <ScanResultsAccordions data={data} />
-          </div>
-        </div>
-      </div>
-    </div>
+    <CoffeeProfile
+      coffee={coffee}
+      scanMeta={scanMeta}
+      actions={
+        <CoffeeActions
+          coffee={coffee}
+          scanMeta={scanMeta}
+          onScanAgain={onScanAgain}
+          onPromoted={handlePromoted}
+        />
+      }
+    />
   );
 }

@@ -1,28 +1,65 @@
 # Changelog
 
+All notable changes to Caldi's Cup are documented here.
+
+---
+
+## [0.9.0] - 2026-02-02 - Unified Coffee Catalog & Marketplace Integration
+
+### Added
+- **Unified Coffee Catalog**:
+  - Single `coffees` table as source of truth for all coffee data
+  - `source` enum: scan, admin, roaster, import
+  - `is_verified` flag for admin-approved products
+  
+- **Auto Roaster Creation**:
+  - Edge function creates roaster profiles on new brand detection
+  - Searches existing roasters by brand/slug before creating
+  - Links coffees to roasters via `roaster_id`
+  
+- **Marketplace Database Integration**:
+  - `useMarketplaceProducts` hook fetches from coffees table
+  - Merges database coffees with mock products
+  - Roasters filter populated from database
+  - `coffeeToProduct` transformation utility
+
+- **Documentation Updates**:
+  - README.md with UML diagrams and flow charts
+  - Component diagrams for feature modules
+  - Entity relationship diagram for database
+  - Sequence diagrams for key flows
+
+### Changed
+- Marketplace now displays all coffees (verified + scanned)
+- Product page resolves roaster from database
+- Mock products reduced to 3 items (prod-1, prod-2, prod-3)
+
+### Removed
+- `scanned_coffees` table (replaced by unified `coffees` table)
+- Legacy `user_favorites` table (replaced by `user_coffee_favorites`)
+
+---
+
 ## [0.8.0] - AI Coffee Scanner & Profiler
 
 ### Added
 - **AI Coffee Scanner**: Upload/scan coffee bag images for AI-powered analysis
 - **Lovable AI Integration**: Uses Gemini 2.5 Flash for image analysis via edge function
-- **scanned_coffees table**: Stores extracted coffee data with RLS policies
+- **coffee_scans table**: Tracks scan history with references to coffees
 - **coffee-scans storage bucket**: Secure image storage for scans
-- **Scanner UI Components**: ScanUploader, ScanProgress, ScanResults (3-column layout)
+- **Scanner UI Components**: ScanUploader, ScanProgress, ScanResults
 - **Tribe Match Scoring**: Personalized preference assessment based on user's coffee tribe
 - **Jargon Buster**: Expandable explanations for coffee terminology
 - **Dashboard FAB**: Floating action button to access scanner from dashboard
 - **Scanner in sidebar**: Added to dashboard navigation
 
 ### Security
-- RLS policies on scanned_coffees (users can only view/insert/delete own scans)
-- Storage policies for coffee-scans bucket (authenticated upload, public read)
+- RLS policies on coffee_scans (users can only view/insert/delete own scans)
+- Storage policies for coffee-scans bucket
 - Input validation for image uploads (type, size limits)
+- AI output sanitization (XSS prevention)
 
 ---
-
-## [0.7.0] - Personalized User Dashboard
-
-All notable changes to Caldi's Cup are documented here.
 
 ## [0.7.0] - 2025-12-17 - Personalized User Dashboard
 
@@ -31,7 +68,7 @@ All notable changes to Caldi's Cup are documented here.
   - `brewing_level` enum type (beginner, intermediate, expert)
   - `weekly_goal_target` and `brewing_level` columns on `profiles`
   - `brew_logs` table for tracking coffee brews (with RLS)
-  - `user_favorites` table for favorite coffees (with RLS)
+  - `user_coffee_favorites` table for favorite coffees (with RLS)
   - Indexes for user-specific queries
 
 - **Dashboard Feature** (`src/features/dashboard/`):
@@ -40,16 +77,12 @@ All notable changes to Caldi's Cup are documented here.
 
 - **Dashboard Components**:
   - `DashboardSidebar.tsx` - collapsible navigation sidebar
-  - `WelcomeHero.tsx` - personalized greeting with tribe info
-  - `UserTypeCard.tsx` - displays Coffee Tribe with emoji and description
+  - `WelcomeHeroWidget.tsx` - personalized greeting with tribe info
+  - `CoffeeTribeWidget.tsx` - displays Coffee Tribe with emoji and description
   - `RecentBrewsCard.tsx` - table of recent brew logs
   - `FavoriteCoffeeCard.tsx` - highlighted favorite coffee
   - `WeeklyGoalCard.tsx` - circular progress for weekly brew goal
   - `BrewingLevelCard.tsx` - linear progress for brewing level
-
-- **Dashboard Types**:
-  - `BrewLog`, `FavoriteCoffee`, `DashboardProfile`, `DashboardData` interfaces
-  - `BrewingLevel` type exported from dashboard and auth
 
 ### Changed
 - `AuthContext` Profile type includes `weekly_goal_target` and `brewing_level`
@@ -57,7 +90,7 @@ All notable changes to Caldi's Cup are documented here.
 - Added `/dashboard` route
 
 ### Security
-- RLS policies on `brew_logs` and `user_favorites` tables
+- RLS policies on `brew_logs` and `user_coffee_favorites` tables
 - Route protection redirects unauthenticated users to `/auth`
 
 ---
@@ -90,16 +123,10 @@ All notable changes to Caldi's Cup are documented here.
   - Score calculation and tie-breaker logic
   - Guest flow (localStorage) and authenticated flow (profile save)
 
-- **Data & Types**:
-  - `tribe.ts` - TypeScript types for quiz system
-  - `tribes.ts` - tribe definitions with colors, keywords, recommendations
-  - `scenarios.ts` - 5 quiz scenarios with 4 options each
-
 ### Changed
 - Index page CTAs now link to `/quiz`
 - `AuthContext` Profile type includes tribe fields
 - Added `/quiz` and `/results` routes
-- Added `dashboard` route constant
 
 ---
 
@@ -114,7 +141,7 @@ All notable changes to Caldi's Cup are documented here.
 - **Database Schema** (Phase 5B):
   - `profiles` table with RLS (view/update own profile)
   - `user_roles` table with `app_role` enum (user, roaster, admin)
-  - `has_role()` security definer function (prevents RLS recursion)
+  - `has_role()` security definer function
   - `handle_new_user()` trigger - auto-creates profile and assigns default role
   - `update_updated_at_column()` trigger for timestamp management
 
@@ -122,31 +149,20 @@ All notable changes to Caldi's Cup are documented here.
   - `Auth.tsx` page with login/signup tabs
   - `LoginForm.tsx` with email/password validation
   - `SignupForm.tsx` with optional display name
-  - `AuthCard.tsx` branded wrapper (4px borders, shadows)
-  - Zod schemas in `auth.schema.ts` for input validation
+  - `AuthCard.tsx` branded wrapper
+  - Zod schemas in `auth.schema.ts`
 
 - **Auth Context & Integration** (Phase 5D):
   - `AuthProvider` with session management
   - `useAuth` hook (user, session, profile, signIn, signUp, signOut)
-  - `UserMenu` dropdown component (avatar, profile, logout)
+  - `UserMenu` dropdown component
   - Header integration with auth state
-  - Mobile menu auth links
-
-- **System Connections** (Phase 5E):
-  - Error logger connected to auth (user context tracking)
-  - Routes updated with `/auth` path
-
-### Changed
-- App.tsx now wraps with `AuthProvider`
-- Header shows `UserMenu` when logged in, "Sign In" when logged out
-- Auth auto-confirm enabled for easier testing
 
 ### Security
-- Roles stored in separate `user_roles` table (not on profiles)
+- Roles stored in separate `user_roles` table
 - RLS policies on all tables
 - Security definer function prevents privilege escalation
 - Zod validation on all auth inputs
-- No sensitive data logged to console
 
 ---
 
@@ -156,43 +172,27 @@ All notable changes to Caldi's Cup are documented here.
 - **Error Boundaries** (Phase 4A):
   - `ErrorBoundary` component - global React error catcher
   - `ErrorFallback` component - user-friendly error UI with recovery options
-  - App wrapped with ErrorBoundary to prevent white-screen crashes
 
 - **Error Logging Service** (Phase 4B):
   - `errorLogger` service with structured logging
   - Log levels: debug, info, warn, error, fatal
   - In-memory buffer (50 entries) for debugging
-  - User context support for error correlation
-  - Ready for external service integration (Sentry, LogRocket)
+  - Ready for external service integration
 
 - **Network Resilience** (Phase 4C):
   - `retryWithBackoff` utility - exponential backoff with jitter
   - `useNetworkStatus` hook - monitor connectivity
   - `OfflineIndicator` component - banner when offline
-  - Configurable retry options (max retries, delays, abort signal)
 
 - **Storage Fallbacks** (Phase 4D):
-  - `storageFactory` with automatic fallbacks: localStorage → sessionStorage → memory
+  - `storageFactory` with automatic fallbacks
   - User notification when storage is degraded
   - Safe JSON parse/stringify utilities
-  - CartContext integrated with storage fallbacks
 
 - **Rate Limiting** (Phase 4E):
-  - Token bucket rate limiter (`createRateLimiter`)
+  - Token bucket rate limiter
   - Cart-specific rate limiter singleton
-  - Integrated with `useOptimisticCart` hook
   - 10 ops burst, 2/sec refill rate
-
-- **Documentation** (Phase 4F):
-  - `docs/ERROR_HANDLING.md` - comprehensive error handling guide
-  - Updated README.md with Phase 4 status
-  - Updated BACKLOG.md with completed items
-
-### Changed
-- ErrorBoundary now uses `errorLogger.captureFatal()` for crash logging
-- CartContext uses `getStorage()` for storage abstraction
-- `useOptimisticCart` now includes rate limiting protection
-- App.tsx includes `OfflineIndicator` component
 
 ---
 
@@ -203,54 +203,43 @@ All notable changes to Caldi's Cup are documented here.
   - `ExtendedCartState` type replacing Shopify-specific naming
   - `CartItemOperations` for per-item loading/error states
   - `lineId` field in `CartItem` for external backend sync
+
 - **Optimistic Updates**:
-  - `useOptimisticCart` hook with debounced updates (300ms)
+  - `useOptimisticCart` hook with debounced updates
   - Automatic rollback on failure
   - Per-item loading states
+
 - **Service Factory Pattern**:
   - `createCartService()` supports local/shopify/supabase backends
   - `getDefaultDataSource()` and `isBackendAvailable()` helpers
+
 - **Backend Options Documentation**:
   - `docs/BACKEND_OPTIONS.md` with Shopify vs Supabase comparison
-  - Database schema for Supabase alternative
-  - Stripe integration examples
-  - Migration path documentation
-
-### Changed
-- Renamed `ShopifyCartState` to `ExtendedCartState` (deprecated alias kept)
-- Renamed `shopifyCartId` to `externalCartId`
-- Renamed `isShopifyConnected` to `isBackendConnected`
-- Cart context now exposes `dispatch` for advanced use cases
-- Updated all components to use backend-agnostic terminology
 
 ---
 
 ## [0.2.0] - 2025-12-15 - Marketplace Browse & Navigation
 
 ### Added
-- **Marketplace Browse Page** (`/marketplace`) with full feature set:
-  - Product grid with responsive layout (1/2/3 columns)
+- **Marketplace Browse Page** (`/marketplace`):
+  - Product grid with responsive layout
   - Filter panel (search, origin, roast level, grind, price range)
   - Sort dropdown (best match, price, newest, rating)
-  - Pagination controls with page navigation
-  - Skeleton loaders during loading states
-- **Navigation System**:
-  - Desktop navigation links in header (Marketplace)
-  - Mobile hamburger menu with Sheet slide-out drawer
-  - Centralized `NAV_LINKS` array in app constants
-- **New Components**:
-  - `ProductCard` (with React.memo optimization)
-  - `ProductCardSkeleton`, `SortDropdown`, `FilterPanel`
-  - `ProductGrid`, `MarketplacePagination`
-- **New Utilities**:
-  - `useDebouncedValue` hook for search debouncing
-  - Filter/sort/paginate utilities in `productFilters.ts`
-  - API contract types (`ProductsQueryParams`, `ProductsResponse`)
-- 9 additional mock products (total 12) for testing pagination
+  - Pagination controls
+  - Skeleton loaders
 
-### Changed
-- Desktop container uses `size="wide"` for marketplace
-- Product Page accordions have consistent `px-4` padding
+- **Navigation System**:
+  - Desktop navigation links in header
+  - Mobile hamburger menu with Sheet slide-out
+
+- **New Components**:
+  - `ProductCard`, `ProductCardSkeleton`
+  - `SortDropdown`, `FilterPanel`
+  - `ProductGrid`, `MarketplacePagination`
+
+- **Utilities**:
+  - `useDebouncedValue` hook
+  - Filter/sort/paginate utilities
 
 ---
 
@@ -258,25 +247,20 @@ All notable changes to Caldi's Cup are documented here.
 
 ### Added
 - Landing page with Hero, Problem, and Solution sections
-- Brand design system with 60/30/10 color hierarchy (Foam White/Clarity Teal/Energy Yellow)
+- Brand design system with 60/30/10 color hierarchy
 - Reusable components: `CaldiCard`, `SectionHeading`, `Container`
 - Layout components: `PageLayout`, `Header`, `Footer`
-- TypeScript types for coffee domain entities (`FlavorProfile`, `CoffeeBean`, `UserTasteProfile`)
-- Hero section with Modern Caldi mascot and Path to Clarity background
-- Two-line hero headline with dual color styling (primary + accent)
-- Centralized app configuration in `APP_CONFIG`
+- TypeScript types for coffee domain entities
+- Hero section with Modern Caldi mascot
 
 ### Changed
-- Centralized CTA text in `APP_CONFIG.cta.primary` and `APP_CONFIG.cta.secondary`
-- Moved hero background inline styles to `.hero-background` CSS class
-- Updated favicon to custom brand icon (`public/favicon.png`)
+- Centralized CTA text in `APP_CONFIG`
+- Updated favicon to custom brand icon
 
 ### Removed
-- Unused character assets: `caldi-farmer.png`, `caldi-modern.png`
-- Unused illustration assets: `coffee-bag-group.svg`, `coffee-bag-single.svg`
-- Unused logo files: `logo.svg`, `favicon.svg`, `favicon.ico`
-- Dead code: unused imports, empty rotation properties
+- Unused character assets
+- Dead code and unused imports
 
-### Fixed
-- Removed unused `logo.svg` import from `Header.tsx`
-- JSX element closing tag errors in mobile hero layout
+---
+
+*Last Updated: 2026-02-02*

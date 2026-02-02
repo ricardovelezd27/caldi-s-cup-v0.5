@@ -1,4 +1,4 @@
-import { MapPin, Award, BadgeCheck } from "lucide-react";
+import { MapPin, Award, BadgeCheck, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Coffee } from "../types";
 import { formatOrigin, getRoastLevelLabel } from "../types";
@@ -6,9 +6,10 @@ import { formatOrigin, getRoastLevelLabel } from "../types";
 interface CoffeeInfoProps {
   coffee: Coffee;
   showVerifiedBadge?: boolean;
+  isNewCoffee?: boolean;
 }
 
-export function CoffeeInfo({ coffee, showVerifiedBadge = true }: CoffeeInfoProps) {
+export function CoffeeInfo({ coffee, showVerifiedBadge = true, isNewCoffee = false }: CoffeeInfoProps) {
   const origin = formatOrigin(
     coffee.originCountry,
     coffee.originRegion,
@@ -23,6 +24,12 @@ export function CoffeeInfo({ coffee, showVerifiedBadge = true }: CoffeeInfoProps
           <h1 className="font-bangers text-3xl md:text-4xl tracking-wide text-foreground">
             {coffee.name}
           </h1>
+          {isNewCoffee && (
+            <Badge className="bg-primary text-primary-foreground animate-pulse gap-1">
+              <Sparkles className="h-3 w-3" />
+              New Coffee Detected!
+            </Badge>
+          )}
           {showVerifiedBadge && coffee.isVerified && (
             <Badge variant="secondary" className="gap-1">
               <BadgeCheck className="h-3 w-3" />

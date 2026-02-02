@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Heart, Package, ScanLine, Share2, Loader2, Plus, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Heart, Package, ScanLine, Share2, Loader2, Eye, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth";
-import { useRole } from "@/hooks/useRole";
 import { useFavorites } from "../hooks/useFavorites";
 import { useInventory } from "../hooks/useInventory";
 import type { Coffee, CoffeeScanMeta } from "../types";
@@ -13,27 +13,21 @@ interface CoffeeActionsProps {
   scanMeta?: CoffeeScanMeta;
   /** Called when user wants to scan again (scan results view) */
   onScanAgain?: () => void;
-  /** Called after coffee is promoted to catalog (admin only) */
-  onPromoted?: (coffeeId: string) => void;
 }
 
 export function CoffeeActions({
   coffee,
   scanMeta,
   onScanAgain,
-  onPromoted,
 }: CoffeeActionsProps) {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { isAdmin, isRoaster } = useRole();
   const { isFavorite, addToFavorites, removeFromFavorites, isAddingFavorite, isRemovingFavorite } = useFavorites();
   const { isInInventory, addToInventory, isAddingInventory } = useInventory();
 
-  const [isPromoting, setIsPromoting] = useState(false);
-
   const coffeeIsFavorite = isFavorite(coffee.id);
   const coffeeInInventory = isInInventory(coffee.id);
-  const canPromote = (isAdmin || isRoaster) && scanMeta && !scanMeta.coffeeId;
 
   const handleToggleFavorite = async () => {
     if (!user) {
@@ -89,24 +83,8 @@ export function CoffeeActions({
     }
   };
 
-  const handlePromoteToCatalog = async () => {
-    if (!scanMeta) return;
-    
-    setIsPromoting(true);
-    try {
-      const { promoteToCatalog } = await import("../services/coffeeService");
-      const newCoffeeId = await promoteToCatalog(coffee, scanMeta.scanId);
-      toast({ title: "Coffee added to catalog!" });
-      onPromoted?.(newCoffeeId);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to promote to catalog. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsPromoting(false);
-    }
+  const handleViewProfile = () => {
+    navigate(`/coffee/${coffee.id}`);
   };
 
   const handleShare = async () => {
@@ -162,6 +140,14 @@ export function CoffeeActions({
 
       {/* Secondary Actions */}
       <div className="flex flex-wrap gap-3">
+        {/* Show "View Full Profile" when on scan results */}
+        {scanMeta && (
+          <Button variant="default" onClick={handleViewProfile} className="flex-1">
+            <Eye className="h-4 w-4 mr-2" />
+            View Full Profile
+          </Button>
+        )}
+
         {onScanAgain && (
           <Button variant="outline" onClick={onScanAgain} className="flex-1">
             <ScanLine className="h-4 w-4 mr-2" />
@@ -173,27 +159,6 @@ export function CoffeeActions({
           <Share2 className="h-4 w-4" />
         </Button>
       </div>
-
-      {/* Admin/Roaster: Promote to Catalog */}
-      {canPromote && (
-        <div className="pt-4 border-t border-border">
-          <Button
-            onClick={handlePromoteToCatalog}
-            disabled={isPromoting}
-            className="w-full bg-accent hover:bg-accent/90"
-          >
-            {isPromoting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Plus className="h-4 w-4 mr-2" />
-            )}
-            Promote to Coffee Catalog
-          </Button>
-          <p className="text-xs text-muted-foreground mt-2 text-center">
-            Add this scanned coffee to the verified catalog
-          </p>
-        </div>
-      )}
     </div>
   );
 }

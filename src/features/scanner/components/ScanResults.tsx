@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   CoffeeProfile, 
@@ -47,39 +46,31 @@ function toDbRow(data: ScannedCoffee): Database["public"]["Tables"]["scanned_cof
     jargon_explanations: data.jargonExplanations,
     scanned_at: data.scannedAt,
     created_at: data.scannedAt,
-    coffee_id: null,
+    coffee_id: data.coffeeId, // Now populated from edge function
     raw_ai_response: null,
   };
 }
 
 export function ScanResults({ data, onScanAgain }: ScanResultsProps) {
   const navigate = useNavigate();
-  const [promotedCoffeeId, setPromotedCoffeeId] = useState<string | null>(null);
 
   // Transform to unified types
   const dbRow = toDbRow(data);
   const { coffee, scanMeta } = transformScannedCoffeeRow(dbRow);
 
-  // If promoted, update the coffee id
-  if (promotedCoffeeId) {
-    coffee.id = promotedCoffeeId;
-    scanMeta.coffeeId = promotedCoffeeId;
-  }
-
-  const handlePromoted = (newCoffeeId: string) => {
-    setPromotedCoffeeId(newCoffeeId);
-  };
+  // Flag if this is a newly discovered coffee
+  const isNewCoffee = data.isNewCoffee ?? false;
 
   return (
     <CoffeeProfile
       coffee={coffee}
       scanMeta={scanMeta}
+      isNewCoffee={isNewCoffee}
       actions={
         <CoffeeActions
           coffee={coffee}
           scanMeta={scanMeta}
           onScanAgain={onScanAgain}
-          onPromoted={handlePromoted}
         />
       }
     />

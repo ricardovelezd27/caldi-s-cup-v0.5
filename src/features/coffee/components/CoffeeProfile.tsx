@@ -14,6 +14,8 @@ interface CoffeeProfileProps {
   coffee: Coffee;
   /** Optional scan metadata (for scan results view) */
   scanMeta?: CoffeeScanMeta;
+  /** Whether this is a newly discovered coffee (shows badge) */
+  isNewCoffee?: boolean;
   /** Contextual actions (add to cart, add to inventory, etc.) */
   actions?: ReactNode;
   /** Additional content to display in accordions */
@@ -27,6 +29,7 @@ interface CoffeeProfileProps {
 export function CoffeeProfile({
   coffee,
   scanMeta,
+  isNewCoffee = false,
   actions,
   accordionContent,
 }: CoffeeProfileProps) {
@@ -48,7 +51,7 @@ export function CoffeeProfile({
 
           {/* Coffee Info - Mobile/Tablet only, order-2 */}
           <div className="order-2 lg:hidden">
-            <CoffeeInfo coffee={coffee} />
+            <CoffeeInfo coffee={coffee} isNewCoffee={isNewCoffee} />
           </div>
 
           {/* Actions - Mobile/Tablet only, order-3 */}
@@ -92,7 +95,7 @@ export function CoffeeProfile({
         {/* Right Column: Info, Actions, Match, Accordions - Desktop only */}
         <div className="hidden lg:flex lg:col-span-7 flex-col gap-6">
           {/* Coffee Info */}
-          <CoffeeInfo coffee={coffee} />
+          <CoffeeInfo coffee={coffee} isNewCoffee={isNewCoffee} />
 
           {/* Actions */}
           {actions}

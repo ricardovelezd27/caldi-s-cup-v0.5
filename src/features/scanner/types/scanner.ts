@@ -5,6 +5,8 @@ export type RoastLevelNumeric = "1" | "2" | "3" | "4" | "5";
 
 export interface ScannedCoffee {
   id: string;
+  coffeeId: string | null; // Master catalog ID - now always present after scan
+  isNewCoffee: boolean; // True if this scan created a new catalog entry
   imageUrl: string;
   coffeeName: string | null;
   brand: string | null;

@@ -186,6 +186,82 @@ const sanitizeAltitude = (value: unknown): number | null => {
   return null;
 };
 
+// Simple string similarity (Levenshtein distance based)
+const stringSimilarity = (a: string, b: string): number => {
+  if (!a || !b) return 0;
+  const aLower = a.toLowerCase().trim();
+  const bLower = b.toLowerCase().trim();
+  if (aLower === bLower) return 100;
+  
+  // Simple word-based matching
+  const aWords = aLower.split(/\s+/);
+  const bWords = bLower.split(/\s+/);
+  
+  let matches = 0;
+  for (const word of aWords) {
+    if (bWords.some(bWord => bWord.includes(word) || word.includes(bWord))) {
+      matches++;
+    }
+  }
+  
+  return Math.round((matches / Math.max(aWords.length, bWords.length)) * 100);
+};
+
+// Calculate match score between scanned coffee and existing catalog coffee
+interface ExistingCoffee {
+  id: string;
+  name: string;
+  brand: string | null;
+  origin_country: string | null;
+  origin_region: string | null;
+  roast_level: string | null;
+  processing_method: string | null;
+}
+
+const calculateMatchScore = (
+  scannedData: { coffeeName: string | null; brand: string | null; originCountry: string | null; originRegion: string | null },
+  existing: ExistingCoffee
+): number => {
+  let score = 0;
+  
+  // Exact name + brand match = 100 (highest priority)
+  if (scannedData.coffeeName && scannedData.brand) {
+    const nameMatch = scannedData.coffeeName.toLowerCase() === existing.name.toLowerCase();
+    const brandMatch = scannedData.brand.toLowerCase() === (existing.brand?.toLowerCase() || "");
+    if (nameMatch && brandMatch) return 100;
+  }
+  
+  // Name similarity (up to 50 points)
+  if (scannedData.coffeeName && existing.name) {
+    score += stringSimilarity(scannedData.coffeeName, existing.name) * 0.5;
+  }
+  
+  // Brand match (20 points)
+  if (scannedData.brand && existing.brand) {
+    if (scannedData.brand.toLowerCase() === existing.brand.toLowerCase()) {
+      score += 20;
+    } else if (stringSimilarity(scannedData.brand, existing.brand) > 70) {
+      score += 10;
+    }
+  }
+  
+  // Origin country match (15 points)
+  if (scannedData.originCountry && existing.origin_country) {
+    if (scannedData.originCountry.toLowerCase() === existing.origin_country.toLowerCase()) {
+      score += 15;
+    }
+  }
+  
+  // Origin region match (15 points)
+  if (scannedData.originRegion && existing.origin_region) {
+    if (scannedData.originRegion.toLowerCase() === existing.origin_region.toLowerCase()) {
+      score += 15;
+    }
+  }
+  
+  return Math.round(score);
+};
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   
@@ -481,12 +557,91 @@ Respond ONLY with the JSON object, no additional text.`;
     // Sanitize match reasons
     const sanitizedMatchReasons = sanitizeStringArray(matchReasons, 10);
 
-    // Step 6: Save to database with sanitized data (both new and legacy columns)
+    // Step 6: Check for existing coffee in master catalog
+    let coffeeId: string | null = null;
+    let isNewCoffee = false;
+
+    console.log("Checking for existing coffee in catalog...");
+
+    // Query for potential matches
+    const { data: existingCoffees, error: searchError } = await supabaseClient
+      .from("coffees")
+      .select("id, name, brand, origin_country, origin_region, roast_level, processing_method")
+      .or(`name.ilike.%${sanitizedData.coffeeName || ''}%,brand.ilike.%${sanitizedData.brand || ''}%`)
+      .limit(20);
+
+    if (searchError) {
+      console.error("Search error:", searchError);
+      // Continue without matching - will create new entry
+    }
+
+    // Find best match
+    let bestMatch: { id: string; score: number } | null = null;
+
+    if (existingCoffees && existingCoffees.length > 0) {
+      for (const existing of existingCoffees) {
+        const score = calculateMatchScore(sanitizedData, existing);
+        console.log(`Match score for ${existing.name}: ${score}`);
+        
+        if (score >= 80 && (!bestMatch || score > bestMatch.score)) {
+          bestMatch = { id: existing.id, score };
+        }
+      }
+    }
+
+    if (bestMatch) {
+      // Use existing coffee
+      coffeeId = bestMatch.id;
+      isNewCoffee = false;
+      console.log(`Matched existing coffee: ${coffeeId} (score: ${bestMatch.score})`);
+    } else {
+      // Create new coffee in master catalog
+      console.log("No match found, creating new coffee in catalog...");
+      
+      const { data: newCoffee, error: insertCoffeeError } = await supabaseClient
+        .from("coffees")
+        .insert({
+          name: sanitizedData.coffeeName || "Unknown Coffee",
+          brand: sanitizedData.brand,
+          image_url: imageUrl,
+          origin_country: sanitizedData.originCountry,
+          origin_region: sanitizedData.originRegion,
+          origin_farm: sanitizedData.originFarm,
+          roast_level: sanitizedData.roastLevelNumeric,
+          processing_method: sanitizedData.processingMethod,
+          variety: sanitizedData.variety,
+          altitude_meters: sanitizedData.altitudeMeters,
+          acidity_score: sanitizedData.acidityScore,
+          body_score: sanitizedData.bodyScore,
+          sweetness_score: sanitizedData.sweetnessScore,
+          flavor_notes: sanitizedData.flavorNotes,
+          description: sanitizedData.brandStory,
+          cupping_score: sanitizedData.cuppingScore,
+          awards: sanitizedData.awards,
+          source: "scan",
+          is_verified: false,
+          created_by: user.id,
+        })
+        .select("id")
+        .single();
+
+      if (insertCoffeeError) {
+        console.error("Failed to insert coffee:", insertCoffeeError);
+        // Continue without coffee_id - scan will still be saved
+      } else {
+        coffeeId = newCoffee.id;
+        isNewCoffee = true;
+        console.log(`Created new coffee: ${coffeeId}`);
+      }
+    }
+
+    // Step 7: Save to scanned_coffees with coffee_id link
     const { data: scanRecord, error: insertError } = await supabaseClient
       .from("scanned_coffees")
       .insert({
         user_id: user.id,
         image_url: imageUrl,
+        coffee_id: coffeeId, // Link to master catalog
         coffee_name: sanitizedData.coffeeName,
         brand: sanitizedData.brand,
         // New structured columns
@@ -523,7 +678,7 @@ Respond ONLY with the JSON object, no additional text.`;
       throw new Error(`Failed to save scan: ${insertError.message}`);
     }
 
-    console.log("Scan saved:", scanRecord.id);
+    console.log("Scan saved:", scanRecord.id, "linked to coffee:", coffeeId);
 
     // Return the complete scan result with both new and legacy fields
     return new Response(
@@ -531,6 +686,8 @@ Respond ONLY with the JSON object, no additional text.`;
         success: true,
         data: {
           id: scanRecord.id,
+          coffeeId: coffeeId, // NEW: Master catalog ID
+          isNewCoffee: isNewCoffee, // NEW: Whether this scan created a new catalog entry
           imageUrl: scanRecord.image_url,
           coffeeName: scanRecord.coffee_name,
           brand: scanRecord.brand,

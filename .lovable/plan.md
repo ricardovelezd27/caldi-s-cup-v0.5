@@ -301,30 +301,22 @@ Database trigger `on_profile_created_create_widgets` creates default widgets:
 
 ---
 
-### Phase E: Onboarding Flow Redesign (Week 4)
+### Phase E: Onboarding Flow Redesign (Week 4) ✅ COMPLETED
 
-**E1. New User Flow**
-```text
-Sign Up
-   |
-   v
-Welcome Screen (Explain Caldi)
-   |
-   v
-Coffee Personality Quiz (required)
-   |
-   v
-Dashboard (with default widgets)
-```
+**E1. New User Flow** ✅
+- Auth page redirects new signups to `/quiz` if not onboarded
+- `RequireOnboarding` route guard ensures authenticated users have completed quiz
+- New users: Sign Up → Quiz → Results → Dashboard
 
-**E2. Post-Quiz Dashboard Initialization**
-- After quiz completion, create default widgets
-- Tribe-specific widget recommendations
-- First-time user guidance
+**E2. Post-Quiz Dashboard Initialization** ✅
+- Results page CTA changed from "Browse Marketplace" to "Go to Dashboard"
+- Default widgets created via database trigger on profile creation
+- Dashboard protected by `RequireOnboarding` (redirects to quiz if needed)
 
-**E3. Returning User Flow**
-- Sign in goes directly to dashboard
-- No quiz prompt if already completed
+**E3. Returning User Flow** ✅
+- Sign in redirects to `/dashboard` if already onboarded
+- Sign in redirects to `/quiz` if not onboarded
+- No double prompts - flow is deterministic based on `is_onboarded` and `coffee_tribe`
 
 ---
 

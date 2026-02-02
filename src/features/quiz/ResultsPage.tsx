@@ -8,7 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { TribeReveal } from './components/TribeReveal';
 import { TRIBES } from './data/tribes';
 import { QuizResult, CoffeeTribe } from './types/tribe';
-import { Coffee, ShoppingBag, RefreshCw, UserPlus } from 'lucide-react';
+import { ROUTES } from '@/constants/app';
+import { Coffee, LayoutDashboard, RefreshCw, UserPlus } from 'lucide-react';
 
 const RESULT_STORAGE_KEY = 'caldi_quiz_result';
 
@@ -169,25 +170,23 @@ export const ResultsPage = () => {
 
           {/* CTAs */}
           <div className="space-y-4">
-            {/* Primary CTA: Marketplace */}
-            <Button 
-              size="lg" 
-              className="w-full text-lg"
-              onClick={() => navigate('/marketplace')}
-            >
-              <ShoppingBag className="w-5 h-5 mr-2" />
-              Browse Coffees For Me
-            </Button>
-
-            {/* Guest: Sign Up CTA */}
-            {!user && (
+            {/* Primary CTA: Dashboard for logged in, Sign Up for guests */}
+            {user ? (
+              <Button 
+                size="lg" 
+                className="w-full text-lg"
+                onClick={() => navigate(ROUTES.dashboard)}
+              >
+                <LayoutDashboard className="w-5 h-5 mr-2" />
+                Go to My Dashboard
+              </Button>
+            ) : (
               <Button
-                variant="outline"
                 size="lg"
-                className="w-full"
+                className="w-full text-lg"
                 asChild
               >
-                <Link to="/auth">
+                <Link to={ROUTES.auth}>
                   <UserPlus className="w-5 h-5 mr-2" />
                   Sign Up to Save My Tribe
                 </Link>

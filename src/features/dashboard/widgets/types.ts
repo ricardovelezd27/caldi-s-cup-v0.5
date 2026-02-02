@@ -55,3 +55,24 @@ export interface WidgetRegistryEntry {
   component: ComponentType<WidgetComponentProps>;
   meta: WidgetMeta;
 }
+
+/**
+ * Transform database row to DashboardWidget type
+ */
+export function transformWidget(
+  row: Database["public"]["Tables"]["dashboard_widgets"]["Row"]
+): DashboardWidget {
+  const defaultPosition: WidgetPosition = { row: 0, col: 0, width: 1, height: 1 };
+  const parsedPosition = row.position as unknown as WidgetPosition | null;
+  
+  return {
+    id: row.id,
+    userId: row.user_id,
+    widgetType: row.widget_type,
+    position: parsedPosition ?? defaultPosition,
+    config: (row.config as unknown as WidgetConfig) ?? {},
+    isVisible: row.is_visible ?? true,
+    createdAt: row.created_at ?? new Date().toISOString(),
+    updatedAt: row.updated_at ?? new Date().toISOString(),
+  };
+}

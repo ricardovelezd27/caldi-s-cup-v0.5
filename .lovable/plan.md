@@ -1,252 +1,304 @@
 
-# Codebase Cleanup & Optimization Plan
-
-This plan addresses the critical bugs, zombie code, and type duplications identified in the codebase review following the implementation of Phases A-G.
-
----
+# Implementation Plan: Smart Coffee Matching & Auto-Catalog Integration
 
 ## Executive Summary
 
-| Category | Files Affected | Impact |
-|----------|---------------|--------|
-| Critical Bug | 1 file | Dashboard favorites widget broken |
-| Zombie Code | 17 files (~2,200 lines) | Bundle bloat, confusion |
-| Type Duplication | 2 files | Maintenance risk |
-| Barrel Export Cleanup | 2 files | Cleaner imports |
+This plan addresses three critical issues:
+1. **Add to Favorites/Inventory fails** - FK constraint violations because scanned coffees aren't in the master catalog
+2. **No duplicate detection** - Every scan creates a new entry even if the coffee already exists
+3. **No product page navigation** - Scanner results don't link to a unified product view
+
+The solution leverages AI to match scanned coffees against the existing master catalog, only creating new entries when a coffee is truly new.
 
 ---
 
-## Phase 1: Critical Bug Fix (Priority: HIGH)
+## Architecture Overview
 
-### Problem
-`useDashboardData.ts` queries a non-existent table `user_favorites`. The actual table is `user_favorites` but it stores different data than expected. The `FavoritesWidget` expects coffee details but the table stores simple favorites.
-
-### Solution
-Update `useDashboardData` to query `user_favorites` correctly. The table schema already matches the `FavoriteCoffee` interface (coffee_name, roaster_name, image_url, rating).
-
-### Changes
 ```text
-File: src/features/dashboard/hooks/useDashboardData.ts
-Line 59: Change "user_favorites" query to use correct table name
-         (Note: Table is already named user_favorites - verify it exists)
-         
-Action: Verify table exists and query is correct, or update to use
-        user_coffee_favorites with a join to coffees table
-```
+Current Flow (Broken):
+  User scans → AI extracts data → Save to scanned_coffees → Display results
+  User clicks "Add to Favorites" → Try to insert coffee.id → FK ERROR (not in coffees table)
 
-### Technical Details
-- Current query at line 59 references `user_favorites`
-- Database has both `user_favorites` (text-based) and `user_coffee_favorites` (UUID references)
-- Need to decide: keep using text-based `user_favorites` OR migrate to join-based approach
-- Recommendation: Keep `user_favorites` as-is since it already has the right schema
-
----
-
-## Phase 2: Type Consolidation
-
-### 2A: Widget Types (Single Source of Truth)
-
-**Current State:**
-- `src/types/dashboard.ts` lines 3-26: Widget types + `transformWidget`
-- `src/features/dashboard/widgets/types.ts` lines 4-27: Same Widget types + extra widget-specific interfaces
-
-**Solution:** Keep `src/features/dashboard/widgets/types.ts` as the source of truth (feature-scoped), update imports.
-
-**Files to Modify:**
-```text
-1. src/types/dashboard.ts
-   - Remove: WidgetType, WidgetPosition, WidgetConfig, DashboardWidget (lines 3-26)
-   - Remove: transformWidget function (lines 45-62)
-   - Keep: Recipe-related code temporarily (removed in 2B)
-
-2. src/hooks/useDashboardWidgets.ts
-   - Update import: from "@/features/dashboard/widgets/types" instead of "@/types/dashboard"
-
-3. src/features/dashboard/widgets/types.ts
-   - Add: transformWidget function (moved from src/types/dashboard.ts)
-```
-
-### 2B: Recipe Types
-
-**Current State:**
-- `src/types/dashboard.ts` lines 28-43: Duplicate `Recipe` interface
-- `src/types/dashboard.ts` lines 64-83: Unused `transformRecipe` function
-- `src/features/recipes/types/recipe.ts`: Active Recipe types (source of truth)
-
-**Solution:** Remove Recipe-related code from `src/types/dashboard.ts`.
-
-**Files to Modify:**
-```text
-1. src/types/dashboard.ts
-   - After Phase 2A: File will be nearly empty
-   - Delete entire file OR keep only if other non-duplicate types remain
+New Flow:
+  User scans → AI extracts data → Check coffees table for match
+    ├─ Match found → Link scan to existing coffee, return coffeeId
+    └─ No match → Create new coffee in catalog, link scan, return coffeeId + isNewCoffee flag
+  User clicks "Add to Favorites" → Insert with valid coffeeId → SUCCESS
+  User can navigate to /coffee/:id to view unified profile
 ```
 
 ---
 
-## Phase 3: Zombie Code Removal
+## Phase 1: Update Edge Function for Smart Matching
 
-### 3A: Legacy Dashboard Components (6 files, ~420 lines)
+### File: `supabase/functions/scan-coffee/index.ts`
 
-These components have been replaced by the Widget system:
+**Goal**: After AI analysis, query the master catalog to find existing matches before creating a new coffee.
 
-| File to Delete | Replaced By |
-|----------------|-------------|
-| `WelcomeHero.tsx` | `WelcomeHeroWidget.tsx` |
-| `UserTypeCard.tsx` | `CoffeeTribeWidget.tsx` |
-| `RecentBrewsCard.tsx` | `RecentBrewsWidget.tsx` |
-| `FavoriteCoffeeCard.tsx` | `FavoritesWidget.tsx` |
-| `WeeklyGoalCard.tsx` | `WeeklyGoalWidget.tsx` |
-| `BrewingLevelCard.tsx` | `BrewingLevelWidget.tsx` |
+### Matching Logic
 
-**Files to Modify:**
+The edge function will use a scoring algorithm to find potential matches:
+
+1. **Exact Name + Brand Match**: If `coffee_name` AND `brand` match exactly (case-insensitive), it's the same coffee (score: 100)
+2. **Fuzzy Name Match**: If names are very similar (>85% similarity) and country matches, likely the same coffee (score: 80)
+3. **Attribute-Based Match**: Same country + region + roast level + processing method = potential match (score: 60)
+
+If best match score >= 80, link to existing coffee. Otherwise, create a new one.
+
+### New Steps in Edge Function
+
+After Step 5 (Calculate tribe match score), add:
+
 ```text
-DELETE:
-- src/features/dashboard/components/WelcomeHero.tsx
-- src/features/dashboard/components/UserTypeCard.tsx  
-- src/features/dashboard/components/RecentBrewsCard.tsx
-- src/features/dashboard/components/FavoriteCoffeeCard.tsx
-- src/features/dashboard/components/WeeklyGoalCard.tsx
-- src/features/dashboard/components/BrewingLevelCard.tsx
+Step 6: Query coffees table for potential matches
+  - SELECT id, name, brand, origin_country FROM coffees
+    WHERE (name ILIKE '%{coffeeName}%' OR brand ILIKE '%{brand}%')
+    AND origin_country = '{originCountry}'
+    LIMIT 10
 
-UPDATE:
-- src/features/dashboard/components/index.ts
-  Remove legacy exports (lines ~8-13)
+Step 7: Calculate match scores for each candidate
+  - Use simple string similarity (Levenshtein distance or exact match)
+  - Find best match
+
+Step 8: If best match >= 80%:
+  - Use existing coffee_id
+  - Set isNewCoffee = false
+  - Set matchedCoffeeName for display
+
+Step 9: If no good match:
+  - INSERT into coffees table (source: 'scan', is_verified: false, created_by: user.id)
+  - Get new coffee_id
+  - Set isNewCoffee = true
+
+Step 10: Save to scanned_coffees with coffee_id
+Step 11: Return response with coffeeId and isNewCoffee flag
 ```
 
-### 3B: Legacy Scanner Components (11 files, ~850 lines)
+### Response Schema Update
 
-These components have been replaced by the Unified Coffee Profile system:
-
-| File to Delete | Replaced By |
-|----------------|-------------|
-| `ScanResultsImage.tsx` | `CoffeeImage.tsx` |
-| `ScanResultsInfo.tsx` | `CoffeeInfo.tsx` |
-| `ScanResultsAttributes.tsx` | `CoffeeAttributes.tsx` |
-| `ScanResultsMatch.tsx` | `CoffeeScanMatch.tsx` |
-| `ScanResultsFlavorNotes.tsx` | `CoffeeFlavorNotes.tsx` |
-| `ScanResultsAccordions.tsx` | `CoffeeProfile.tsx` internals |
-| `ScanResultsActions.tsx` | `CoffeeActions.tsx` |
-| `ExtractedDataCard.tsx` | `CoffeeProfile.tsx` grid |
-| `EnrichedDataCard.tsx` | `CoffeeProfile.tsx` grid |
-| `PreferenceMatchCard.tsx` | `CoffeeScanMatch.tsx` |
-| `JargonBuster.tsx` | `CoffeeJargonBuster.tsx` |
-
-**Files to Modify:**
-```text
-DELETE:
-- src/features/scanner/components/ScanResultsImage.tsx
-- src/features/scanner/components/ScanResultsInfo.tsx
-- src/features/scanner/components/ScanResultsAttributes.tsx
-- src/features/scanner/components/ScanResultsMatch.tsx
-- src/features/scanner/components/ScanResultsFlavorNotes.tsx
-- src/features/scanner/components/ScanResultsAccordions.tsx
-- src/features/scanner/components/ScanResultsActions.tsx
-- src/features/scanner/components/ExtractedDataCard.tsx
-- src/features/scanner/components/EnrichedDataCard.tsx
-- src/features/scanner/components/PreferenceMatchCard.tsx
-- src/features/scanner/components/JargonBuster.tsx
-
-UPDATE:
-- src/features/scanner/components/index.ts
-  Keep only: ScanUploader, TribeScannerPreview, ScanningTips, ScanProgress, ScanResults
+```typescript
+{
+  success: true,
+  data: {
+    id: string,         // scan record ID
+    coffeeId: string,   // master catalog coffee ID (NEW)
+    isNewCoffee: boolean, // true if this scan created a new catalog entry (NEW)
+    // ... existing fields
+  }
+}
 ```
 
 ---
 
-## Phase 4: Barrel Export Cleanup
+## Phase 2: Update Scanner Types
 
-### 4A: Dashboard Components Index
-```text
-File: src/features/dashboard/components/index.ts
+### File: `src/features/scanner/types/scanner.ts`
 
-BEFORE (11 exports):
-- DashboardSidebar, WidgetGrid, WidgetWrapper, AddWidgetDialog (active)
-- WelcomeHero, UserTypeCard, RecentBrewsCard, FavoriteCoffeeCard, 
-  WeeklyGoalCard, BrewingLevelCard (legacy - remove)
+**Changes**:
+- Add `coffeeId: string` to `ScannedCoffee` (no longer optional - always present)
+- Add `isNewCoffee: boolean` to indicate if this scan discovered a new coffee
 
-AFTER (4 exports):
-export { DashboardSidebar } from "./DashboardSidebar";
-export { WidgetGrid } from "./WidgetGrid";
-export { WidgetWrapper } from "./WidgetWrapper";
-export { AddWidgetDialog } from "./AddWidgetDialog";
-```
-
-### 4B: Scanner Components Index
-```text
-File: src/features/scanner/components/index.ts
-
-BEFORE (18 exports):
-- 5 active components
-- 13 legacy components marked "for backward compatibility"
-
-AFTER (5 exports):
-export { ScanUploader } from "./ScanUploader";
-export { TribeScannerPreview } from "./TribeScannerPreview";
-export { ScanningTips } from "./ScanningTips";
-export { ScanProgress } from "./ScanProgress";
-export { ScanResults } from "./ScanResults";
+```typescript
+export interface ScannedCoffee {
+  id: string;
+  coffeeId: string;      // NEW: Master catalog ID (always present now)
+  isNewCoffee: boolean;  // NEW: True if this scan created the catalog entry
+  imageUrl: string;
+  // ... rest of existing fields
+}
 ```
 
 ---
 
-## Implementation Order
+## Phase 3: Update ScanResults to Show "New Coffee" Badge
 
-Recommended sequence to minimize risk:
+### File: `src/features/scanner/components/ScanResults.tsx`
+
+**Changes**:
+- Pass `isNewCoffee` flag to `CoffeeInfo` component via the coffee object
+- Update `toDbRow` to include `coffee_id` from the scan data
+
+### File: `src/features/coffee/components/CoffeeInfo.tsx`
+
+**Changes**:
+- Add optional `isNewCoffee?: boolean` prop
+- Display a "New Coffee Detected!" badge with Sparkles icon when true
+
+```typescript
+{isNewCoffee && (
+  <Badge className="bg-primary text-primary-foreground animate-pulse gap-1">
+    <Sparkles className="h-3 w-3" />
+    New Coffee Detected!
+  </Badge>
+)}
+```
+
+---
+
+## Phase 4: Fix CoffeeActions to Use Correct ID
+
+### File: `src/features/coffee/components/CoffeeActions.tsx`
+
+**Current Problem**: 
+- `coffee.id` comes from `transformScannedCoffeeRow` which uses `row.coffee_id ?? row.id`
+- Currently `coffee_id` is null, so it falls back to scan ID (which doesn't exist in coffees table)
+
+**Solution**:
+After the edge function changes, `coffee_id` will always be set, so:
+- `coffee.id` will correctly be the master catalog ID
+- Favorites/Inventory inserts will succeed
+
+**Additional Enhancement**:
+- Add "View Full Profile" button that navigates to `/coffee/:coffeeId`
+
+```typescript
+<Button
+  variant="default"
+  onClick={() => navigate(`/coffee/${coffee.id}`)}
+  className="flex-1"
+>
+  <Eye className="h-4 w-4 mr-2" />
+  View Full Profile
+</Button>
+```
+
+---
+
+## Phase 5: Create Unified Coffee Profile Page
+
+### New File: `src/features/coffee/CoffeeProfilePage.tsx`
+
+This page will serve as the canonical view for any coffee in the master catalog. It will **not duplicate** the marketplace ProductPage - instead, it will use the same `CoffeeProfile` component already in use.
+
+**Key Differences from ProductPage**:
+- `ProductPage` uses mock data and is designed for e-commerce (variants, pricing, cart)
+- `CoffeeProfilePage` fetches from database and focuses on coffee attributes (favorites, inventory, no pricing)
+
+### Implementation
+
+```typescript
+// Uses existing hooks and components - no duplication
+import { CoffeeProfile, CoffeeActions, useCoffee } from "@/features/coffee";
+
+export function CoffeeProfilePage() {
+  const { id } = useParams<{ id: string }>();
+  const { data: coffee, isLoading, error } = useCoffee(id);
+  
+  if (isLoading) return <Skeleton />;
+  if (!coffee) return <NotFound />;
+  
+  return (
+    <PageLayout>
+      <Container>
+        <BackLink to="/scanner" label="Back to Scanner" />
+        <CoffeeProfile 
+          coffee={coffee}
+          actions={<CoffeeActions coffee={coffee} />}
+        />
+      </Container>
+    </PageLayout>
+  );
+}
+```
+
+### Add Route
+
+**File: `src/App.tsx`**
+```typescript
+<Route path="/coffee/:id" element={<CoffeeProfilePage />} />
+```
+
+**File: `src/constants/app.ts`**
+```typescript
+export const ROUTES = {
+  // ... existing routes
+  coffeeProfile: "/coffee",
+} as const;
+```
+
+---
+
+## Phase 6: Add useCoffee Hook
+
+### New Function in: `src/features/coffee/services/coffeeService.ts`
+
+```typescript
+export function useCoffee(coffeeId: string | undefined) {
+  return useQuery({
+    queryKey: ["coffee", coffeeId],
+    queryFn: async () => {
+      if (!coffeeId) return null;
+      return getCoffeeById(coffeeId);
+    },
+    enabled: !!coffeeId,
+  });
+}
+```
+
+---
+
+## Technical Details
+
+### Database Flow After Implementation
 
 ```text
-Step 1: Fix useDashboardData (Phase 1)
-        - Critical bug fix, immediate impact
-        - Test: Dashboard favorites widget loads without error
+User scans Ethiopian Yirgacheffe bag:
 
-Step 2: Consolidate Widget types (Phase 2A)
-        - Move transformWidget to feature folder
-        - Update imports in useDashboardWidgets.ts
-        - Test: Dashboard still loads, widgets work
+1. Edge function analyzes image
+   → AI extracts: name="Ethiopian Yirgacheffe", brand="Blue Bottle", country="Ethiopia"
 
-Step 3: Remove Recipe duplication (Phase 2B)  
-        - Delete Recipe/transformRecipe from src/types/dashboard.ts
-        - If file becomes empty, delete it
-        - Test: Recipe CRUD still works
+2. Query coffees table:
+   SELECT * FROM coffees 
+   WHERE name ILIKE '%Ethiopian Yirgacheffe%' 
+   AND origin_country = 'Ethiopia'
 
-Step 4: Delete legacy dashboard components (Phase 3A)
-        - Delete 6 component files
-        - Update index.ts
-        - Test: Dashboard renders correctly
+3a. Match found (coffee_id = 'abc-123'):
+   → INSERT INTO scanned_coffees (..., coffee_id='abc-123')
+   → Response: { coffeeId: 'abc-123', isNewCoffee: false }
 
-Step 5: Delete legacy scanner components (Phase 3B)
-        - Delete 11 component files
-        - Update index.ts
-        - Test: Scanner flow works end-to-end
+3b. No match:
+   → INSERT INTO coffees (..., source='scan') → new id 'xyz-789'
+   → INSERT INTO scanned_coffees (..., coffee_id='xyz-789')
+   → Response: { coffeeId: 'xyz-789', isNewCoffee: true }
 
-Step 6: Final barrel cleanup (Phase 4)
-        - Already done in Steps 4-5
-        - Verify no broken imports across codebase
+4. User clicks "Add to Favorites":
+   → INSERT INTO user_coffee_favorites (coffee_id='abc-123') 
+   → SUCCESS (FK constraint satisfied)
 ```
+
+### RLS Policies (Already Configured)
+
+The existing policies support this workflow:
+- `coffees`: "Authenticated users can insert coffees" with `created_by = auth.uid()`
+- `coffees`: "Users can view own unverified coffees"
+- `user_coffee_favorites`: User can insert/view own favorites
+- `user_coffee_inventory`: User can insert/view own inventory
+
+---
+
+## Files to Create/Modify
+
+| File | Action | Description |
+|------|--------|-------------|
+| `supabase/functions/scan-coffee/index.ts` | Modify | Add matching logic, auto-insert to coffees |
+| `src/features/scanner/types/scanner.ts` | Modify | Add `coffeeId` and `isNewCoffee` fields |
+| `src/features/scanner/components/ScanResults.tsx` | Modify | Pass `isNewCoffee` flag, update coffee_id handling |
+| `src/features/coffee/components/CoffeeInfo.tsx` | Modify | Add "New Coffee Detected!" badge |
+| `src/features/coffee/components/CoffeeActions.tsx` | Modify | Add "View Full Profile" button |
+| `src/features/coffee/CoffeeProfilePage.tsx` | Create | Unified coffee profile page |
+| `src/features/coffee/index.ts` | Modify | Export new page |
+| `src/App.tsx` | Modify | Add `/coffee/:id` route |
+| `src/constants/app.ts` | Modify | Add `coffeeProfile` route constant |
 
 ---
 
 ## Validation Checklist
 
-After implementation, verify:
-
-- [ ] Dashboard loads without console errors
-- [ ] FavoritesWidget displays favorite coffee (or empty state)
-- [ ] Scanner flow: upload -> scan -> results display correctly
-- [ ] Recipe CRUD: create, view, edit, delete all work
-- [ ] Widget system: add/remove widgets works
-- [ ] No TypeScript compilation errors
-- [ ] No broken imports
-
----
-
-## Summary of Deletions
-
-| Category | Files | Lines Removed (approx) |
-|----------|-------|------------------------|
-| Legacy Dashboard | 6 | ~420 |
-| Legacy Scanner | 11 | ~850 |
-| Type Duplicates | 2 (partial) | ~60 |
-| **Total** | **17-19** | **~1,330** |
-
-This cleanup reduces bundle size, eliminates confusion between legacy and active components, and establishes clear sources of truth for shared types.
+After implementation:
+- [ ] Scan a new coffee → Creates entry in coffees table → Shows "New Coffee Detected!" badge
+- [ ] Scan same coffee again → Links to existing entry → No duplicate created
+- [ ] Click "Add to Favorites" → Succeeds (no FK error)
+- [ ] Click "Add to Inventory" → Succeeds (no FK error)
+- [ ] Click "View Full Profile" → Navigates to `/coffee/:id`
+- [ ] Coffee profile page loads and displays correctly
+- [ ] Dashboard favorites/inventory widgets show the coffee

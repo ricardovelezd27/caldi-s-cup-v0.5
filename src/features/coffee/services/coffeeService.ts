@@ -1,62 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Coffee } from "../types";
-import type { Json } from "@/integrations/supabase/types";
-
-/**
- * Promote a scanned coffee to the master catalog.
- * Creates a new coffee record and links the scan to it.
- */
-export async function promoteToCatalog(
-  coffee: Coffee,
-  scanId: string
-): Promise<string> {
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  // Insert into coffees table
-  const { data: newCoffee, error: insertError } = await supabase
-    .from("coffees")
-    .insert({
-      name: coffee.name,
-      brand: coffee.brand,
-      image_url: coffee.imageUrl,
-      origin_country: coffee.originCountry,
-      origin_region: coffee.originRegion,
-      origin_farm: coffee.originFarm,
-      roast_level: coffee.roastLevel,
-      processing_method: coffee.processingMethod,
-      variety: coffee.variety,
-      altitude_meters: coffee.altitudeMeters,
-      acidity_score: coffee.acidityScore,
-      body_score: coffee.bodyScore,
-      sweetness_score: coffee.sweetnessScore,
-      flavor_notes: coffee.flavorNotes,
-      description: coffee.description,
-      cupping_score: coffee.cuppingScore,
-      awards: coffee.awards,
-      source: "scan" as const,
-      is_verified: false, // Admins can verify later
-      created_by: user.id,
-    })
-    .select("id")
-    .single();
-
-  if (insertError) throw insertError;
-
-  // Link the scan to the new coffee
-  const { error: updateError } = await supabase
-    .from("scanned_coffees")
-    .update({ coffee_id: newCoffee.id })
-    .eq("id", scanId);
-
-  if (updateError) {
-    console.error("Failed to link scan to coffee:", updateError);
-    // Don't throw - coffee was created successfully
-  }
-
-  return newCoffee.id;
-}
 
 /**
  * Fetch a coffee by ID from the master catalog.
@@ -92,6 +35,9 @@ export async function getCoffeeById(coffeeId: string): Promise<Coffee | null> {
     description: data.description,
     cuppingScore: data.cupping_score ? Number(data.cupping_score) : null,
     awards: data.awards ?? [],
+    brandStory: (data as any).brand_story ?? null,
+    jargonExplanations: (data as any).jargon_explanations ?? {},
+    aiConfidence: (data as any).ai_confidence ?? null,
     roasterId: data.roaster_id,
     isVerified: data.is_verified ?? false,
     source: data.source,
@@ -99,4 +45,91 @@ export async function getCoffeeById(coffeeId: string): Promise<Coffee | null> {
     createdAt: data.created_at ?? new Date().toISOString(),
     updatedAt: data.updated_at ?? new Date().toISOString(),
   };
+}
+
+/**
+ * Fetch all verified coffees (for marketplace)
+ */
+export async function getVerifiedCoffees(): Promise<Coffee[]> {
+  const { data, error } = await supabase
+    .from("coffees")
+    .select("*")
+    .eq("is_verified", true)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    brand: row.brand,
+    imageUrl: row.image_url,
+    originCountry: row.origin_country,
+    originRegion: row.origin_region,
+    originFarm: row.origin_farm,
+    roastLevel: row.roast_level,
+    processingMethod: row.processing_method,
+    variety: row.variety,
+    altitudeMeters: row.altitude_meters,
+    acidityScore: row.acidity_score,
+    bodyScore: row.body_score,
+    sweetnessScore: row.sweetness_score,
+    flavorNotes: row.flavor_notes ?? [],
+    description: row.description,
+    cuppingScore: row.cupping_score ? Number(row.cupping_score) : null,
+    awards: row.awards ?? [],
+    brandStory: (row as any).brand_story ?? null,
+    jargonExplanations: (row as any).jargon_explanations ?? {},
+    aiConfidence: (row as any).ai_confidence ?? null,
+    roasterId: row.roaster_id,
+    isVerified: row.is_verified ?? false,
+    source: row.source,
+    createdBy: row.created_by,
+    createdAt: row.created_at ?? new Date().toISOString(),
+    updatedAt: row.updated_at ?? new Date().toISOString(),
+  }));
+}
+
+/**
+ * Fetch all coffees (verified + user's own unverified)
+ */
+export async function getAllCoffees(userId?: string): Promise<Coffee[]> {
+  let query = supabase
+    .from("coffees")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    brand: row.brand,
+    imageUrl: row.image_url,
+    originCountry: row.origin_country,
+    originRegion: row.origin_region,
+    originFarm: row.origin_farm,
+    roastLevel: row.roast_level,
+    processingMethod: row.processing_method,
+    variety: row.variety,
+    altitudeMeters: row.altitude_meters,
+    acidityScore: row.acidity_score,
+    bodyScore: row.body_score,
+    sweetnessScore: row.sweetness_score,
+    flavorNotes: row.flavor_notes ?? [],
+    description: row.description,
+    cuppingScore: row.cupping_score ? Number(row.cupping_score) : null,
+    awards: row.awards ?? [],
+    brandStory: (row as any).brand_story ?? null,
+    jargonExplanations: (row as any).jargon_explanations ?? {},
+    aiConfidence: (row as any).ai_confidence ?? null,
+    roasterId: row.roaster_id,
+    isVerified: row.is_verified ?? false,
+    source: row.source,
+    createdBy: row.created_by,
+    createdAt: row.created_at ?? new Date().toISOString(),
+    updatedAt: row.updated_at ?? new Date().toISOString(),
+  }));
 }

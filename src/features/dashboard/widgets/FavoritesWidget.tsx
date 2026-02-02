@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Star, ScanLine } from "lucide-react";
+import { Heart, ScanLine } from "lucide-react";
 import { useDashboardData } from "../hooks/useDashboardData";
 import type { WidgetComponentProps } from "./types";
 
@@ -18,39 +18,35 @@ export function FavoritesWidget({ widget }: WidgetComponentProps) {
       </CardHeader>
       <CardContent>
         {favorite ? (
-          <div className="space-y-3">
-            {favorite.image_url && (
+          <Link 
+            to={`/coffee/${favorite.id}`}
+            className="block space-y-3 hover:opacity-90 transition-opacity"
+          >
+            {favorite.imageUrl && (
               <div className="aspect-square w-full max-w-[120px] mx-auto rounded-lg border-4 border-border overflow-hidden">
                 <img 
-                  src={favorite.image_url} 
-                  alt={favorite.coffee_name}
+                  src={favorite.imageUrl} 
+                  alt={favorite.name}
                   className="w-full h-full object-cover"
                 />
               </div>
             )}
             <div className="text-center">
               <h4 className="font-bangers text-lg tracking-wide truncate">
-                {favorite.coffee_name}
+                {favorite.name}
               </h4>
-              {favorite.roaster_name && (
+              {favorite.brand && (
                 <p className="text-sm text-muted-foreground">
-                  by {favorite.roaster_name}
+                  by {favorite.brand}
                 </p>
               )}
-              {favorite.rating && (
-                <div className="flex items-center justify-center gap-1 mt-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 ${
-                        i < favorite.rating! ? "text-primary fill-primary" : "text-muted"
-                      }`}
-                    />
-                  ))}
-                </div>
+              {favorite.originCountry && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {favorite.originCountry}
+                </p>
               )}
             </div>
-          </div>
+          </Link>
         ) : (
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <Heart className="h-12 w-12 text-muted-foreground/50 mb-3" />

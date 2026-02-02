@@ -352,19 +352,30 @@ Created service layer with feature flag toggle:
 
 ---
 
-### Phase G: Recipes Feature (Week 5-6)
+### Phase G: Recipes Feature (Week 5-6) ✅ COMPLETED
 
-**G1. Recipe Data Model**
-Already covered in database schema above.
+**G1. Recipe Data Model** ✅
+- `src/features/recipes/types/recipe.ts`:
+  - `Recipe` interface with full typing
+  - `RecipeFormData` for form handling
+  - `BREW_METHODS` and `GRIND_SIZES` constants
+  - Transform and format helpers
 
-**G2. Recipe CRUD**
-- Create recipe (with optional linked coffee)
-- Edit/delete own recipes
-- Browse public recipes
+**G2. Recipe CRUD** ✅
+- `src/features/recipes/services/recipeService.ts`:
+  - `fetchMyRecipes()`, `fetchPublicRecipes()`, `fetchRecipeById()`
+  - `createRecipe()`, `updateRecipe()`, `deleteRecipe()`
+  - React Query hooks for all operations
+- Pages:
+  - `/recipes` - RecipesPage with My Recipes and Community tabs
+  - `/recipes/new` - CreateRecipePage
+  - `/recipes/:id` - RecipeViewPage with owner actions
+  - `/recipes/:id/edit` - EditRecipePage
 
-**G3. Recipe Integration**
-- "Create Recipe" button on coffee profile
-- Recipe suggestions based on coffee type
+**G3. Recipe Integration** (Partial)
+- Navigation link added to header
+- Recipe form supports linking to coffee via coffeeId
+- TODO: "Create Recipe" button on coffee profile (deferred)
 
 ---
 

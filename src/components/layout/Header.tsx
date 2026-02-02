@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, ShoppingCart, ScanLine } from "lucide-react";
+import { Menu, ShoppingCart, ScanLine, BookOpen } from "lucide-react";
 import { ROUTES, NAV_LINKS } from "@/constants/app";
 import { useCart } from "@/contexts/cart";
 import { useAuth } from "@/contexts/auth";
@@ -68,6 +68,21 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
               aria-label="Coffee Scanner"
             >
               <ScanLine className="w-6 h-6" />
+            </NavLink>
+
+            {/* Recipes */}
+            <NavLink
+              to={ROUTES.recipes}
+              className={({ isActive }) =>
+                `p-2 transition-colors ${
+                  isActive
+                    ? "text-primary"
+                    : "text-foreground hover:text-primary"
+                }`
+              }
+              aria-label="Recipes"
+            >
+              <BookOpen className="w-6 h-6" />
             </NavLink>
 
             {/* Cart Icon */}
@@ -166,6 +181,21 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                   >
                     <ScanLine className="w-5 h-5" />
                     Scanner
+                  </NavLink>
+
+                  <NavLink
+                    to={ROUTES.recipes}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
+                        isActive
+                          ? "text-primary font-bold"
+                          : "text-foreground hover:text-primary"
+                      }`
+                    }
+                  >
+                    <BookOpen className="w-5 h-5" />
+                    Recipes
                   </NavLink>
                   
                   {/* Cart Link in Mobile Menu */}

@@ -4,37 +4,169 @@ This file tracks all discussed but unimplemented features, organized by priority
 
 ---
 
-## Architectural Decision Record
+## Table of Contents
+
+1. [Architectural Decision Records](#architectural-decision-records)
+2. [System Class Diagram](#system-class-diagram)
+3. [Phased Validation Roadmap](#phased-validation-roadmap)
+4. [Feature Backlog](#feature-backlog)
+5. [Page Structure](#page-structure)
+6. [Division of Work](#division-of-work)
+7. [Development Notes](#development-notes)
+
+---
+
+## Architectural Decision Records
 
 ### ADR-001: Multi-Vendor Marketplace with Headless Shopify
 
 **Date**: 2025-01-14  
-**Status**: Accepted
+**Status**: Accepted (Future Phase)
 
 **Decision**: Use **Headless Shopify Basic + Webkul Multi-Vendor** for marketplace functionality.
 
 **Context**: Caldi's Cup requires a multi-vendor marketplace where roasters/cafes can self-list products, while maintaining full AI personalization control over the shopping experience.
 
-**Options Considered**:
-1. **Traditional Shopify**: Limited AI integration, locked into Shopify themes
-2. **Headless Shopify Basic**: Full API access, custom frontend, $39/month
-3. **Custom Clone**: Full control, 3-4 months build time, payment/PCI complexity
-
 **Justification**:
-- Multi-vendor support via Webkul ($15-60/month) without building clone
-- Roasters get their own seller portal for product uploads
+- Multi-vendor support via Webkul ($15-60/month)
 - Full AI personalization control via Shopify Storefront API
-- Low initial cost ($54/month combined) for validation phase
-- Shopify handles: PCI compliance, payment processing, inventory sync, order routing
-- Caldi's Cup handles: Custom frontend, AI personalization, user experience
+- Shopify handles: PCI compliance, payment processing, inventory sync
 
-**Architecture Flow**:
+---
+
+### ADR-002: Unified Coffee Catalog
+
+**Date**: 2026-02-02  
+**Status**: Implemented
+
+**Decision**: Use a single `coffees` table as the source of truth for all coffee data.
+
+**Context**: Previously, scanned coffees were stored separately from catalog coffees, causing data duplication and complexity.
+
+**Implementation**:
+- Single `coffees` table with `source` enum (scan/admin/roaster/import)
+- `is_verified` flag for admin-approved products
+- Separate `coffee_scans` table for scan history (links to coffees)
+
+---
+
+### ADR-003: Auto Roaster Creation on Scan
+
+**Date**: 2026-02-02  
+**Status**: Implemented
+
+**Decision**: Automatically create roaster profiles when new brands are detected during scanning.
+
+**Context**: To populate the marketplace with roaster data as coffees are scanned.
+
+**Implementation**:
+- Edge function searches for existing roaster by brand/slug
+- Creates new unverified roaster if not found
+- Links coffee to roaster via `roaster_id`
+
+---
+
+## System Class Diagram
+
 ```
-User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
-                              ↓
-                    User Preferences DB
-                              ↓
-                    Re-ranked Product Results
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        DOMAIN MODEL                                     │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              Coffee                                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│ + id: string                                                            │
+│ + name: string                                                          │
+│ + brand: string | null                                                  │
+│ + imageUrl: string | null                                               │
+│ + originCountry: string | null                                          │
+│ + originRegion: string | null                                           │
+│ + originFarm: string | null                                             │
+│ + roastLevel: RoastLevelEnum | null                                     │
+│ + processingMethod: string | null                                       │
+│ + variety: string | null                                                │
+│ + altitudeMeters: number | null                                         │
+│ + acidityScore: number | null  (1-5)                                    │
+│ + bodyScore: number | null  (1-5)                                       │
+│ + sweetnessScore: number | null  (1-5)                                  │
+│ + flavorNotes: string[]                                                 │
+│ + description: string | null                                            │
+│ + cuppingScore: number | null                                           │
+│ + awards: string[]                                                      │
+│ + brandStory: string | null                                             │
+│ + jargonExplanations: Record<string, string>                            │
+│ + aiConfidence: number | null                                           │
+│ + roasterId: string | null                                              │
+│ + isVerified: boolean                                                   │
+│ + source: CoffeeSource                                                  │
+│ + createdBy: string | null                                              │
+│ + createdAt: string                                                     │
+│ + updatedAt: string                                                     │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                    ┌───────────────┼───────────────┐
+                    │               │               │
+                    ▼               ▼               ▼
+┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────────┐
+│  CoffeeScanMeta     │ │ CoffeeInventoryMeta │ │     Product         │
+├─────────────────────┤ ├─────────────────────┤ ├─────────────────────┤
+│ + scanId: string    │ │ + inventoryId       │ │ (extends Coffee)    │
+│ + coffeeId: string  │ │ + quantityGrams     │ │ + roasterId: string │
+│ + aiConfidence      │ │ + purchaseDate      │ │ + roasterName       │
+│ + tribeMatchScore   │ │ + openedDate        │ │ + slug: string      │
+│ + matchReasons[]    │ │ + notes             │ │ + variants[]        │
+│ + jargonExplan.     │ └─────────────────────┘ │ + basePrice         │
+│ + scannedAt         │                         │ + images[]          │
+│ + rawImageUrl       │                         │ + rating            │
+└─────────────────────┘                         │ + reviewCount       │
+                                                └─────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              Roaster                                    │
+├─────────────────────────────────────────────────────────────────────────┤
+│ + id: string                                                            │
+│ + userId: string                                                        │
+│ + businessName: string                                                  │
+│ + slug: string                                                          │
+│ + description: string | null                                            │
+│ + logoUrl: string | null                                                │
+│ + bannerUrl: string | null                                              │
+│ + locationCity: string | null                                           │
+│ + locationCountry: string | null                                        │
+│ + website: string | null                                                │
+│ + contactEmail: string | null                                           │
+│ + certifications: string[]                                              │
+│ + isVerified: boolean                                                   │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           CoffeeTribe                                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│   ┌─────────────┐     ┌─────────────┐     ┌─────────────┐              │
+│   │     FOX     │     │     OWL     │     │ HUMMINGBIRD │              │
+│   │ Tastemaker  │     │  Optimizer  │     │  Explorer   │              │
+│   ├─────────────┤     ├─────────────┤     ├─────────────┤              │
+│   │ Geisha      │     │ Washed      │     │ Natural     │              │
+│   │ Rare        │     │ Light Roast │     │ Fruit       │              │
+│   │ Competition │     │ Elevation   │     │ Fermented   │              │
+│   │ Anaerobic   │     │ Precision   │     │ Experimental│              │
+│   │ Limited     │     │ Single Orig │     │ Wild        │              │
+│   └─────────────┘     └─────────────┘     └─────────────┘              │
+│                                                                         │
+│                         ┌─────────────┐                                 │
+│                         │     BEE     │                                 │
+│                         │  Loyalist   │                                 │
+│                         ├─────────────┤                                 │
+│                         │ House Blend │                                 │
+│                         │ Dark Roast  │                                 │
+│                         │ Chocolate   │                                 │
+│                         │ Nutty       │                                 │
+│                         │ Classic     │                                 │
+│                         └─────────────┘                                 │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -42,262 +174,142 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 ## Phased Validation Roadmap
 
 ### Phase 1: Foundation & Landing Page MVP ✅
+
 - Landing page with brand identity
 - Design system implementation
 - Hero section with Caldi character narrative
 
 ### Phase 2A: Marketplace UI Skeleton (Mock Data) ✅
-**Goal**: Validate marketplace UX before Shopify integration
+
 - ✅ Product page design
 - ✅ Roaster storefront design
 - ✅ Browse/search interface
 - ✅ Shopping cart UI
-- **Validation Gate**: User testing confirms marketplace UX
 
 ### Phase 4: Error Handling & Production Resilience ✅
-**Goal**: Production-ready error handling
-- ✅ Error boundaries (global crash protection)
-- ✅ Error logging service
-- ✅ Network resilience (retry, offline detection)
-- ✅ Storage fallbacks (localStorage → sessionStorage → memory)
-- ✅ Rate limiting (cart operation spam protection)
-- **Validation Gate**: No white-screen crashes, graceful degradation
 
-### Phase 2B: Shopify + Vendor Integration
-**Goal**: Enable real products and roaster onboarding
+- ✅ Error boundaries
+- ✅ Error logging service
+- ✅ Network resilience
+- ✅ Storage fallbacks
+- ✅ Rate limiting
+
+### Phase 5: Authentication Foundation ✅
+
+- ✅ Supabase Auth integration
+- ✅ Profiles table with RLS
+- ✅ Role management (user/roaster/admin)
+- ✅ Login/Signup forms
+
+### Phase 6: AI Scanner & Quiz ✅
+
+- ✅ Coffee preference quiz (5 scenarios)
+- ✅ Coffee tribe assignment
+- ✅ AI coffee scanner
+- ✅ Unified coffee catalog
+- ✅ Auto roaster creation
+- ✅ Marketplace database integration
+
+### Phase 7: Shopify Integration (Future)
+
 - Enable Shopify Basic + Webkul Multi-Vendor
 - Onboard 3-5 pilot roasters
 - Connect Shopify Storefront API to frontend
 - **Validation Gate**: First real orders processed
 
-### Phase 2C: User Onboarding & Quiz
-**Goal**: Capture user preferences for personalization
-- Onboarding flow explaining Caldi AI
-- Coffee preference quiz
-- Results page with taste profile
-- User authentication (guest vs. signed-in)
-- **Validation Gate**: 100+ quiz completions
+### Phase 8: AI Personalization (Future)
 
-### Phase 3: AI Personalization Layer
-**Goal**: Differentiate with intelligent recommendations
 - AI search ranking based on user profile
 - "You might like" recommendations
 - Personalized homepage curation
 - **Validation Gate**: Improved conversion vs. non-personalized
 
-### Phase 5: Scale & Automation
-**Goal**: Grow vendor base and automate operations
-- Self-service roaster onboarding
-- Automated product sync
-- Review/rating system
-- Advanced analytics dashboard
-
 ---
 
 ## Feature Backlog
 
-### Phase 2A: Marketplace UI (Mock Data) ✅ COMPLETE
+### Completed Features ✅
 
-| Priority | Feature | Status | Description |
-|----------|---------|--------|-------------|
-| 🔴 High | Product Page | ✅ Complete | Coffee product detail with attributes, roaster info |
-| 🔴 High | Roaster Storefront | ✅ Complete | Cafe/roaster profile with their product catalog |
-| 🔴 High | Marketplace Browse | ✅ Complete | Product listing with filters, search, sorting |
-| 🔴 High | Shopping Cart | ✅ Complete | Add to cart, quantity management, cart preview |
-| 🟡 Medium | Wishlist | Not Started | Save products for later |
+| Feature | Phase | Description |
+|---------|-------|-------------|
+| Landing Page | 1 | Hero, Problem, Solution sections |
+| Design System | 1 | 60/30/10 color hierarchy |
+| Product Page | 2A | Coffee attributes, roaster info |
+| Marketplace Browse | 2A | Filters, search, sorting, pagination |
+| Roaster Storefront | 2A | Profile with product catalog |
+| Shopping Cart | 2A | Optimistic updates, validation |
+| Error Handling | 4 | Boundaries, logging, resilience |
+| Authentication | 5 | Login, signup, profiles |
+| Role Management | 5 | User/Roaster/Admin RBAC |
+| Coffee Quiz | 6 | 5 scenarios, tribe assignment |
+| AI Scanner | 6 | Gemini 2.5 Flash integration |
+| Unified Catalog | 6 | Single coffees table |
+| Auto Roaster | 6 | Create on new brand scan |
+| DB Integration | 6 | Marketplace pulls from database |
 
-### Phase 4: Error Handling ✅ COMPLETE
+### Upcoming Features
 
-| Priority | Feature | Status | Description |
-|----------|---------|--------|-------------|
-| 🔴 High | Error Boundaries | ✅ Complete | React error catching with fallback UI |
-| 🔴 High | Error Logging | ✅ Complete | Centralized logging service |
-| 🔴 High | Network Resilience | ✅ Complete | Retry with backoff, offline detection |
-| 🔴 High | Storage Fallbacks | ✅ Complete | Graceful degradation for storage |
-| 🔴 High | Rate Limiting | ✅ Complete | Prevent cart operation spam |
-
-### Phase 2B: Shopify Integration
-
-| Priority | Feature | Status | Description |
-|----------|---------|--------|-------------|
-| 🔴 High | Shopify Enable | Not Started | Connect Shopify Basic with Webkul |
-| 🔴 High | Checkout Flow | Not Started | Shopify checkout integration |
-| 🔴 High | Vendor Onboarding | Not Started | Guide for roasters to join marketplace |
-| 🟡 Medium | Order Confirmation | Not Started | Post-purchase confirmation page |
-| 🟡 Medium | Inventory Sync | Not Started | Real-time stock updates from Shopify |
-
-### Phase 2C: User Onboarding & Quiz
-
-| Priority | Feature | Status | Description |
-|----------|---------|--------|-------------|
-| 🔴 High | Onboarding Flow | Not Started | Multi-step wizard explaining Caldi AI |
-| 🔴 High | Authentication | Not Started | Guest vs. Sign-in with Supabase |
-| 🔴 High | Dashboard | Not Started | Personal AI barista interface with Caldi |
-| 🔴 High | Coffee Quiz | Not Started | 4-6 visual card-based preference questions |
-| 🔴 High | Results Page | Not Started | Personalized taste profile visualization |
-| 🟡 Medium | Waitlist Signup | Not Started | Email capture with preference data |
-| 🟡 Medium | Header Scroll Animation | Not Started | Logo fade transition on scroll past hero |
-| 🟡 Medium | Mobile Navigation | ✅ Complete | Hamburger menu with Sheet drawer |
-
-### Phase 3: AI Personalization
-
-| Priority | Feature | Status | Description |
-|----------|---------|--------|-------------|
-| 🔴 High | AI Search Ranking | Not Started | Re-rank products based on user profile |
-| 🔴 High | AI Recommendations | Not Started | "You might like" suggestions |
-| 🟡 Medium | Personalized Home | Not Started | Curated homepage based on preferences |
-| 🟡 Medium | Taste Profile Evolution | Not Started | Update profile based on purchases |
-
-### Phase 3+: Polish & Enhancement
-
-| Priority | Feature | Status | Description |
-|----------|---------|--------|-------------|
-| 🟢 Low | Animations & Motion | Deferred | Bouncy micro-interactions |
-| 🟢 Low | Dark Mode Toggle | Not Started | UI toggle with localStorage |
-| 🟢 Low | Testing Suite | Not Started | Unit tests per TDD mandate |
-| 🟢 Low | Accessibility Audit | Not Started | ARIA, keyboard nav, screen readers |
-| 🟢 Low | SEO Optimization | Not Started | Meta tags, structured data |
-| 🟢 Low | PWA Support | Not Started | Offline capability, installable |
-
----
-
-## High-Priority Feature Specifications
-
-### 1. Product Page (Phase 2A) ✅ COMPLETE
-
-**User Story**: As a coffee enthusiast, I want to see detailed information about a coffee product so I can decide if it matches my preferences.
-
-**Route**: `/product/:id`
-
-**Acceptance Criteria**:
-- [x] Hero image gallery (3-5 images)
-- [x] Product name, roaster name (linked to storefront)
-- [x] Price and variant selection (size/grind)
-- [x] Flavor profile visualization (radar chart)
-- [x] Origin, roast level, processing method
-- [x] Ethical badges (organic, fair trade, single origin)
-- [x] Roaster description and link
-- [x] Add to cart button with quantity selector
-- [ ] "You might also like" section (mock data initially)
-
----
-
-### 2. Roaster Storefront (Phase 2A) ✅ COMPLETE
-
-**User Story**: As a visitor, I want to explore a roaster's profile and their full catalog so I can discover their brand and products.
-
-**Route**: `/roaster/:id`
-
-**Acceptance Criteria**:
-- [x] Roaster hero banner with logo
-- [x] About section with story/mission
-- [x] Location and contact info
-- [x] Product grid with all their offerings
-- [x] Filter by roast level, flavor, price
-- [x] "Featured" or "Best Sellers" highlight
-
----
-
-### 3. Marketplace Browse (Phase 2A) ✅ COMPLETE
-
-**User Story**: As a user, I want to browse and search all available coffees with filters so I can find products matching my preferences.
-
-**Route**: `/marketplace`
-
-**Acceptance Criteria**:
-- [x] Product grid with cards (image, name, roaster, price, flavor badges)
-- [x] Search bar with instant results
-- [x] Filters: roast level, origin, flavor notes, price range, roaster
-- [x] Sort: relevance, price, newest, rating
-- [x] Pagination
-- [x] Empty state for no results
-
----
-
-### 4. Shopping Cart (Phase 2A) ✅ COMPLETE
-
-**User Story**: As a shopper, I want to manage items in my cart so I can review before checkout.
-
-**Route**: `/cart`
-
-**Acceptance Criteria**:
-- [x] List of cart items with image, name, variant, quantity, price
-- [x] Quantity adjustment (+/-)
-- [x] Remove item
-- [x] Subtotal calculation
-- [x] "Continue Shopping" and "Proceed to Checkout" CTAs
-- [x] Empty cart state
-- [x] Input validation with Zod schemas
-- [x] Optimistic updates with rollback
-
----
-
-### 5. Coffee Preference Quiz (Phase 2C)
-
-**User Story**: As a user, I want to answer questions about my coffee preferences so Caldi can make personalized recommendations.
-
-**Route**: `/quiz`
-
-**Acceptance Criteria**:
-- [ ] 4-6 questions covering:
-  - Intensity preference (light to bold)
-  - Flavor profile (fruity, nutty, chocolatey, earthy)
-  - Brewing method (espresso, pour-over, French press, etc.)
-  - Ethical preferences (organic, fair trade, single origin)
-  - Optional: frequency, budget
-- [ ] Visual card-based selections (not dropdowns)
-- [ ] Progress indicator
-- [ ] Back/forward navigation
-- [ ] Results lead to Results Page
-
-**Technical Notes**:
-- Component: `src/features/quiz/`
-- State: Local first (mock), then persist to Supabase
-- Types: `UserTasteProfile` from `src/types/coffee.ts`
-
-**Dependencies**: None for UI; Authentication for persistence
+| Priority | Feature | Phase | Description |
+|----------|---------|-------|-------------|
+| 🔴 High | Shopify Enable | 7 | Connect Shopify Basic with Webkul |
+| 🔴 High | Checkout Flow | 7 | Shopify checkout integration |
+| 🔴 High | Vendor Onboarding | 7 | Guide for roasters to join |
+| 🟡 Medium | AI Recommendations | 8 | "You might like" suggestions |
+| 🟡 Medium | Search Ranking | 8 | Personalized results |
+| 🟡 Medium | Wishlist | - | Save products for later |
+| 🟡 Medium | Order Confirmation | 7 | Post-purchase page |
+| 🟢 Low | Animations | - | Bouncy micro-interactions |
+| 🟢 Low | Dark Mode Toggle | - | UI toggle with persistence |
+| 🟢 Low | Testing Suite | - | Unit tests per TDD mandate |
+| 🟢 Low | PWA Support | - | Offline capability |
 
 ---
 
 ## Page Structure
 
-| Route | Component | Phase | Description |
-|-------|-----------|-------|-------------|
-| `/` | Index | 1 ✅ | Landing page |
-| `/marketplace` | MarketplaceBrowse | 2A ✅ | Browse all products |
-| `/product/:id` | ProductPage | 2A ✅ | Product detail |
-| `/roaster/:id` | RoasterStorefront | 2A ✅ | Roaster profile + catalog |
-| `/cart` | ShoppingCart | 2A ✅ | Shopping cart |
-| `/checkout` | CheckoutRedirect | 2B | Redirect to Shopify checkout |
-| `/onboarding` | OnboardingFlow | 2C | Intro to Caldi AI |
-| `/quiz` | QuizFlow | 2C | Preference questions |
-| `/results` | ResultsPage | 2C | Taste profile display |
-| `/auth` | AuthPage | 2C | Login/signup/guest |
-| `/dashboard` | Dashboard | 2C | Personal AI barista hub |
+| Route | Component | Phase | Status |
+|-------|-----------|-------|--------|
+| `/` | Index | 1 | ✅ Complete |
+| `/marketplace` | MarketplaceBrowse | 2A | ✅ Complete |
+| `/product/:id` | ProductPage | 2A | ✅ Complete |
+| `/roaster/:slug` | RoasterStorefront | 2A | ✅ Complete |
+| `/cart` | CartPage | 2A | ✅ Complete |
+| `/auth` | Auth | 5 | ✅ Complete |
+| `/quiz` | QuizPage | 6 | ✅ Complete |
+| `/results` | ResultsPage | 6 | ✅ Complete |
+| `/dashboard` | DashboardPage | 6 | ✅ Complete |
+| `/scanner` | ScannerPage | 6 | ✅ Complete |
+| `/coffee/:id` | CoffeeProfilePage | 6 | ✅ Complete |
+| `/recipes` | RecipesPage | 6 | ✅ Complete |
+| `/checkout` | CheckoutRedirect | 7 | 🔲 Planned |
 
 ---
 
 ## Division of Work
 
-### Shopify + Webkul Handles:
+### Shopify + Webkul Handles (Future)
+
 - Product catalog management
 - Inventory tracking
 - Payment processing (PCI compliant)
 - Order management and routing
 - Vendor payouts
-- Roaster seller portal (via Webkul)
+- Roaster seller portal
 
-### Caldi's Cup (Lovable) Handles:
+### Caldi's Cup (Lovable) Handles
+
 - Custom shopping frontend
 - User authentication and profiles
 - Coffee preference quiz and results
+- AI coffee scanner
 - AI personalization layer
 - Search ranking and recommendations
 - Brand experience and design
 - Error handling and resilience
 
-### Roasters Handle:
-- Product uploads via Webkul portal
+### Roasters Handle
+
+- Product uploads via portal
 - Inventory updates
 - Product images and descriptions
 - Shipping settings
@@ -308,12 +320,22 @@ User → Lovable Frontend → AI Layer (Supabase) → Shopify Storefront API
 ## Development Notes
 
 ### Mandates from Knowledge File
+
 - **UI/UX First**: Complete visual design before backend integration
 - **TDD Workflow**: Write tests before implementation for complex logic
-- **Animations Deferred**: Keep UI static for MVP, add motion in Phase 3+
+- **Animations Deferred**: Keep UI static for MVP, add motion later
 - **Security**: Zero-trust approach when handling user input
 - **Error Handling**: Production resilience with boundaries and logging
+- **Clean Code**: SRP, DRY, meaningful names
+
+### B2B2C Platform Model
+
+The project follows a B2B2C architectural model:
+
+- **B2B**: Roasters can manage their profiles and products
+- **B2C**: Consumers discover, scan, and purchase coffee
+- **Platform**: Caldi's Cup provides AI-powered personalization
 
 ---
 
-*Last Updated: 2025-12-16*
+*Last Updated: 2026-02-02*

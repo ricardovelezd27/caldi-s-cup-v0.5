@@ -7,24 +7,44 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import type { WidgetComponentProps } from "./types";
+import type { RecentScan } from "../types/dashboard";
 
 export function RecentScansWidget({ widget }: WidgetComponentProps) {
   const { user } = useAuth();
 
   const { data: recentScans = [] } = useQuery({
     queryKey: ["recent-scans", user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<RecentScan[]> => {
       if (!user?.id) return [];
       
+      // Query from the new coffee_scans table with coffee details
       const { data, error } = await supabase
-        .from("scanned_coffees")
-        .select("id, coffee_name, brand, image_url, scanned_at")
+        .from("coffee_scans")
+        .select(`
+          id,
+          coffee_id,
+          image_url,
+          scanned_at,
+          coffees (
+            id,
+            name,
+            brand
+          )
+        `)
         .eq("user_id", user.id)
         .order("scanned_at", { ascending: false })
         .limit(3);
 
       if (error) throw error;
-      return data;
+      
+      return (data ?? []).map((scan: any) => ({
+        id: scan.id,
+        coffeeId: scan.coffee_id,
+        coffeeName: scan.coffees?.name ?? "Unknown Coffee",
+        brand: scan.coffees?.brand ?? null,
+        imageUrl: scan.image_url,
+        scannedAt: scan.scanned_at,
+      }));
     },
     enabled: !!user?.id,
   });
@@ -52,22 +72,23 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
         ) : (
           <div className="space-y-3">
             {recentScans.map((scan) => (
-              <div 
+              <Link 
                 key={scan.id}
-                className="flex items-center gap-3 p-2 rounded-lg border border-border bg-muted/30"
+                to={`/coffee/${scan.coffeeId}`}
+                className="flex items-center gap-3 p-2 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
               >
-                {scan.image_url && (
+                {scan.imageUrl && (
                   <div className="w-12 h-12 rounded border-2 border-border overflow-hidden shrink-0">
                     <img 
-                      src={scan.image_url} 
-                      alt={scan.coffee_name || "Coffee"}
+                      src={scan.imageUrl} 
+                      alt={scan.coffeeName}
                       className="w-full h-full object-cover"
                     />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate text-sm">
-                    {scan.coffee_name || "Unknown Coffee"}
+                    {scan.coffeeName}
                   </p>
                   {scan.brand && (
                     <p className="text-xs text-muted-foreground truncate">
@@ -76,11 +97,11 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
                   )}
                 </div>
                 <span className="text-xs text-muted-foreground shrink-0">
-                  {scan.scanned_at 
-                    ? format(new Date(scan.scanned_at), "MMM d")
+                  {scan.scannedAt 
+                    ? format(new Date(scan.scannedAt), "MMM d")
                     : "—"}
                 </span>
-              </div>
+              </Link>
             ))}
             <Button asChild variant="ghost" size="sm" className="w-full">
               <Link to="/scanner">Scan more →</Link>

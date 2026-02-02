@@ -35,6 +35,11 @@ export interface Coffee {
   cuppingScore: number | null;
   awards: string[];
   
+  // AI-enriched fields
+  brandStory: string | null;
+  jargonExplanations: Record<string, string>;
+  aiConfidence: number | null;
+  
   // Metadata
   roasterId: string | null;
   isVerified: boolean;
@@ -49,7 +54,7 @@ export interface Coffee {
  */
 export interface CoffeeScanMeta {
   scanId: string;
-  coffeeId: string | null;
+  coffeeId: string;
   aiConfidence: number;
   tribeMatchScore: number;
   matchReasons: string[];
@@ -124,6 +129,9 @@ export function transformCoffeeRow(
     description: row.description,
     cuppingScore: row.cupping_score ? Number(row.cupping_score) : null,
     awards: row.awards ?? [],
+    brandStory: (row as any).brand_story ?? null,
+    jargonExplanations: (row as any).jargon_explanations ?? {},
+    aiConfidence: (row as any).ai_confidence ?? null,
     roasterId: row.roaster_id,
     isVerified: row.is_verified ?? false,
     source: row.source,
@@ -134,47 +142,39 @@ export function transformCoffeeRow(
 }
 
 /**
- * Transform scanned_coffees row to unified Coffee type + scan meta
+ * Coffee scan row from the new coffee_scans table
  */
-export function transformScannedCoffeeRow(
-  row: Database["public"]["Tables"]["scanned_coffees"]["Row"]
+export interface CoffeeScanRow {
+  id: string;
+  user_id: string;
+  coffee_id: string;
+  image_url: string;
+  tribe_match_score: number | null;
+  match_reasons: string[] | null;
+  ai_confidence: number | null;
+  raw_ai_response: any;
+  scanned_at: string | null;
+  created_at: string | null;
+}
+
+/**
+ * Transform coffee_scans row + coffee data to unified types
+ */
+export function transformCoffeeScanWithCoffee(
+  scanRow: CoffeeScanRow,
+  coffeeRow: Database["public"]["Tables"]["coffees"]["Row"]
 ): { coffee: Coffee; scanMeta: CoffeeScanMeta } {
-  const coffee: Coffee = {
-    id: row.coffee_id ?? row.id, // Use linked coffee_id if available
-    name: row.coffee_name ?? "Unknown Coffee",
-    brand: row.brand,
-    imageUrl: row.image_url,
-    originCountry: row.origin_country,
-    originRegion: row.origin_region,
-    originFarm: row.origin_farm,
-    roastLevel: row.roast_level_numeric,
-    processingMethod: row.processing_method,
-    variety: row.variety,
-    altitudeMeters: row.altitude_meters,
-    acidityScore: row.acidity_score,
-    bodyScore: row.body_score,
-    sweetnessScore: row.sweetness_score,
-    flavorNotes: row.flavor_notes ?? [],
-    description: row.brand_story, // Use brand_story as description for scans
-    cuppingScore: row.cupping_score ? Number(row.cupping_score) : null,
-    awards: row.awards ?? [],
-    roasterId: null,
-    isVerified: false,
-    source: "scan",
-    createdBy: row.user_id,
-    createdAt: row.created_at ?? new Date().toISOString(),
-    updatedAt: row.created_at ?? new Date().toISOString(),
-  };
+  const coffee = transformCoffeeRow(coffeeRow);
 
   const scanMeta: CoffeeScanMeta = {
-    scanId: row.id,
-    coffeeId: row.coffee_id,
-    aiConfidence: row.ai_confidence ?? 0,
-    tribeMatchScore: row.tribe_match_score ?? 0,
-    matchReasons: row.match_reasons ?? [],
-    jargonExplanations: (row.jargon_explanations as Record<string, string>) ?? {},
-    scannedAt: row.scanned_at ?? new Date().toISOString(),
-    rawImageUrl: row.image_url,
+    scanId: scanRow.id,
+    coffeeId: scanRow.coffee_id,
+    aiConfidence: scanRow.ai_confidence ?? 0,
+    tribeMatchScore: scanRow.tribe_match_score ?? 0,
+    matchReasons: scanRow.match_reasons ?? [],
+    jargonExplanations: coffee.jargonExplanations,
+    scannedAt: scanRow.scanned_at ?? new Date().toISOString(),
+    rawImageUrl: scanRow.image_url,
   };
 
   return { coffee, scanMeta };

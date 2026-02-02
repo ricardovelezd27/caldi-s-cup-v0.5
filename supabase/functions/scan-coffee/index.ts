@@ -262,6 +262,106 @@ const calculateMatchScore = (
   return Math.round(score);
 };
 
+// Firecrawl web enrichment
+async function enrichWithFirecrawl(
+  coffeeName: string | null,
+  brand: string | null
+): Promise<{ brandStory: string | null; awards: string[]; website: string | null }> {
+  const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
+  
+  if (!FIRECRAWL_API_KEY || !brand) {
+    return { brandStory: null, awards: [], website: null };
+  }
+
+  try {
+    console.log(`Enriching with Firecrawl: ${brand}`);
+    
+    // Search for roaster website
+    const searchResponse = await fetch("https://api.firecrawl.dev/v1/search", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${FIRECRAWL_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: `${brand} coffee roaster official website`,
+        limit: 3,
+        scrapeOptions: {
+          formats: ["markdown"],
+        },
+      }),
+    });
+
+    if (!searchResponse.ok) {
+      console.error("Firecrawl search failed:", await searchResponse.text());
+      return { brandStory: null, awards: [], website: null };
+    }
+
+    const searchData = await searchResponse.json();
+    const firstResult = searchData.data?.[0];
+
+    if (!firstResult) {
+      return { brandStory: null, awards: [], website: null };
+    }
+
+    // Extract useful info from the scraped content
+    const markdown = firstResult.markdown || "";
+    const website = firstResult.url || null;
+
+    // Use AI to extract brand story from the scraped content
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY || !markdown) {
+      return { brandStory: null, awards: [], website };
+    }
+
+    const extractPrompt = `Extract a brief brand story (2-3 sentences max) and any coffee awards/certifications from this roaster's website content. Return JSON:
+{
+  "brandStory": "Brief compelling description of the roaster",
+  "awards": ["Award 1", "Award 2"]
+}
+
+Content:
+${markdown.slice(0, 3000)}`;
+
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: extractPrompt }],
+      }),
+    });
+
+    if (!aiResponse.ok) {
+      return { brandStory: null, awards: [], website };
+    }
+
+    const aiData = await aiResponse.json();
+    const aiContent = aiData.choices?.[0]?.message?.content;
+
+    try {
+      const jsonMatch = aiContent.match(/```json\n?([\s\S]*?)\n?```/) || 
+                       aiContent.match(/```\n?([\s\S]*?)\n?```/);
+      const jsonString = jsonMatch ? jsonMatch[1] : aiContent;
+      const extracted = JSON.parse(jsonString.trim());
+      
+      return {
+        brandStory: sanitizeString(extracted.brandStory, MAX_BRAND_STORY_LENGTH),
+        awards: sanitizeStringArray(extracted.awards, 10),
+        website,
+      };
+    } catch {
+      return { brandStory: null, awards: [], website };
+    }
+  } catch (error) {
+    console.error("Firecrawl enrichment error:", error);
+    return { brandStory: null, awards: [], website: null };
+  }
+}
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   
@@ -469,18 +569,11 @@ Respond ONLY with the JSON object, no additional text.`;
     const originRegion = sanitizeString(extractedData.originRegion, 100);
     const originFarm = sanitizeString(extractedData.originFarm, 200);
     
-    // Build legacy origin string for backward compatibility
-    const originParts = [originCountry, originRegion, originFarm].filter(Boolean);
-    const legacyOrigin = originParts.length > 0 ? originParts.join(", ") : null;
-    
     // Sanitize roast level (new numeric format)
     const roastLevelNumeric = sanitizeRoastLevel(extractedData.roastLevel);
     
     // Sanitize altitude (new integer format)
     const altitudeMeters = sanitizeAltitude(extractedData.altitudeMeters || extractedData.altitude);
-    
-    // Build legacy altitude string for backward compatibility
-    const legacyAltitude = altitudeMeters ? `${altitudeMeters}m` : sanitizeString(extractedData.altitude, 50);
     
     // Build legacy roast level string for backward compatibility
     const roastLevelNames: Record<string, string> = {
@@ -490,7 +583,7 @@ Respond ONLY with the JSON object, no additional text.`;
       "4": "Medium-Dark",
       "5": "Dark",
     };
-    const legacyRoastLevel = roastLevelNumeric ? roastLevelNames[roastLevelNumeric] : sanitizeString(extractedData.roastLevel, 50);
+    const legacyRoastLevel = roastLevelNumeric ? roastLevelNames[roastLevelNumeric] : null;
     
     const sanitizedData = {
       coffeeName: sanitizeString(extractedData.coffeeName),
@@ -501,10 +594,7 @@ Respond ONLY with the JSON object, no additional text.`;
       originFarm,
       roastLevelNumeric,
       altitudeMeters,
-      // Legacy fields for backward compatibility
-      origin: legacyOrigin,
-      roastLevel: legacyRoastLevel,
-      altitude: legacyAltitude,
+      legacyRoastLevel,
       // Other fields
       processingMethod: sanitizeString(extractedData.processingMethod, 100),
       variety: sanitizeString(extractedData.variety, 100),
@@ -589,6 +679,21 @@ Respond ONLY with the JSON object, no additional text.`;
       }
     }
 
+    // Step 7: Enrich with Firecrawl if creating new coffee
+    let enrichedBrandStory = sanitizedData.brandStory;
+    let enrichedAwards = sanitizedData.awards;
+
+    if (!bestMatch) {
+      // Try to enrich with web data for new coffees
+      const firecrawlData = await enrichWithFirecrawl(sanitizedData.coffeeName, sanitizedData.brand);
+      if (firecrawlData.brandStory && !enrichedBrandStory) {
+        enrichedBrandStory = firecrawlData.brandStory;
+      }
+      if (firecrawlData.awards.length > 0) {
+        enrichedAwards = [...new Set([...enrichedAwards, ...firecrawlData.awards])];
+      }
+    }
+
     if (bestMatch) {
       // Use existing coffee
       coffeeId = bestMatch.id;
@@ -615,9 +720,13 @@ Respond ONLY with the JSON object, no additional text.`;
           body_score: sanitizedData.bodyScore,
           sweetness_score: sanitizedData.sweetnessScore,
           flavor_notes: sanitizedData.flavorNotes,
-          description: sanitizedData.brandStory,
+          description: enrichedBrandStory,
           cupping_score: sanitizedData.cuppingScore,
-          awards: sanitizedData.awards,
+          awards: enrichedAwards,
+          brand_story: enrichedBrandStory,
+          jargon_explanations: sanitizedData.jargonExplanations,
+          ai_confidence: sanitizedData.confidence,
+          scanned_image_url: imageUrl,
           source: "scan",
           is_verified: false,
           created_by: user.id,
@@ -627,48 +736,25 @@ Respond ONLY with the JSON object, no additional text.`;
 
       if (insertCoffeeError) {
         console.error("Failed to insert coffee:", insertCoffeeError);
-        // Continue without coffee_id - scan will still be saved
-      } else {
-        coffeeId = newCoffee.id;
-        isNewCoffee = true;
-        console.log(`Created new coffee: ${coffeeId}`);
+        throw new Error(`Failed to save coffee: ${insertCoffeeError.message}`);
       }
+      
+      coffeeId = newCoffee.id;
+      isNewCoffee = true;
+      console.log(`Created new coffee: ${coffeeId}`);
     }
 
-    // Step 7: Save to scanned_coffees with coffee_id link
+    // Step 8: Save scan log to coffee_scans table
     const { data: scanRecord, error: insertError } = await supabaseClient
-      .from("scanned_coffees")
+      .from("coffee_scans")
       .insert({
         user_id: user.id,
+        coffee_id: coffeeId,
         image_url: imageUrl,
-        coffee_id: coffeeId, // Link to master catalog
-        coffee_name: sanitizedData.coffeeName,
-        brand: sanitizedData.brand,
-        // New structured columns
-        origin_country: sanitizedData.originCountry,
-        origin_region: sanitizedData.originRegion,
-        origin_farm: sanitizedData.originFarm,
-        roast_level_numeric: sanitizedData.roastLevelNumeric,
-        altitude_meters: sanitizedData.altitudeMeters,
-        // Legacy columns for backward compatibility
-        origin: sanitizedData.origin,
-        roast_level: sanitizedData.roastLevel,
-        altitude: sanitizedData.altitude,
-        // Other columns
-        processing_method: sanitizedData.processingMethod,
-        variety: sanitizedData.variety,
-        acidity_score: sanitizedData.acidityScore,
-        body_score: sanitizedData.bodyScore,
-        sweetness_score: sanitizedData.sweetnessScore,
-        flavor_notes: sanitizedData.flavorNotes,
-        brand_story: sanitizedData.brandStory,
-        awards: sanitizedData.awards,
-        cupping_score: sanitizedData.cuppingScore,
-        ai_confidence: sanitizedData.confidence,
         tribe_match_score: tribeMatchScore,
         match_reasons: sanitizedMatchReasons,
-        jargon_explanations: sanitizedData.jargonExplanations,
-        raw_ai_response: parsedResult, // Keep raw for debugging but never display directly
+        ai_confidence: sanitizedData.confidence,
+        raw_ai_response: parsedResult,
       })
       .select()
       .single();
@@ -680,41 +766,48 @@ Respond ONLY with the JSON object, no additional text.`;
 
     console.log("Scan saved:", scanRecord.id, "linked to coffee:", coffeeId);
 
-    // Return the complete scan result with both new and legacy fields
+    // Fetch the coffee data for the response
+    const { data: coffeeData } = await supabaseClient
+      .from("coffees")
+      .select("*")
+      .eq("id", coffeeId)
+      .single();
+
+    // Return the complete scan result
     return new Response(
       JSON.stringify({
         success: true,
         data: {
           id: scanRecord.id,
-          coffeeId: coffeeId, // NEW: Master catalog ID
-          isNewCoffee: isNewCoffee, // NEW: Whether this scan created a new catalog entry
-          imageUrl: scanRecord.image_url,
-          coffeeName: scanRecord.coffee_name,
-          brand: scanRecord.brand,
-          // New structured fields
-          originCountry: scanRecord.origin_country,
-          originRegion: scanRecord.origin_region,
-          originFarm: scanRecord.origin_farm,
-          roastLevelNumeric: scanRecord.roast_level_numeric,
-          altitudeMeters: scanRecord.altitude_meters,
-          // Legacy fields
-          origin: scanRecord.origin,
-          roastLevel: scanRecord.roast_level,
-          altitude: scanRecord.altitude,
+          coffeeId: coffeeId,
+          isNewCoffee: isNewCoffee,
+          imageUrl: imageUrl,
+          coffeeName: coffeeData?.name ?? sanitizedData.coffeeName,
+          brand: coffeeData?.brand ?? sanitizedData.brand,
+          // Structured fields
+          originCountry: coffeeData?.origin_country ?? sanitizedData.originCountry,
+          originRegion: coffeeData?.origin_region ?? sanitizedData.originRegion,
+          originFarm: coffeeData?.origin_farm ?? sanitizedData.originFarm,
+          roastLevelNumeric: coffeeData?.roast_level ?? sanitizedData.roastLevelNumeric,
+          altitudeMeters: coffeeData?.altitude_meters ?? sanitizedData.altitudeMeters,
+          // Legacy fields for backward compatibility
+          origin: [sanitizedData.originCountry, sanitizedData.originRegion, sanitizedData.originFarm].filter(Boolean).join(", "),
+          roastLevel: sanitizedData.legacyRoastLevel,
+          altitude: sanitizedData.altitudeMeters ? `${sanitizedData.altitudeMeters}m` : null,
           // Other fields
-          processingMethod: scanRecord.processing_method,
-          variety: scanRecord.variety,
-          acidityScore: scanRecord.acidity_score,
-          bodyScore: scanRecord.body_score,
-          sweetnessScore: scanRecord.sweetness_score,
-          flavorNotes: scanRecord.flavor_notes,
-          brandStory: scanRecord.brand_story,
-          awards: scanRecord.awards,
-          cuppingScore: scanRecord.cupping_score,
-          aiConfidence: scanRecord.ai_confidence,
-          tribeMatchScore: scanRecord.tribe_match_score,
-          matchReasons: scanRecord.match_reasons,
-          jargonExplanations: scanRecord.jargon_explanations,
+          processingMethod: coffeeData?.processing_method ?? sanitizedData.processingMethod,
+          variety: coffeeData?.variety ?? sanitizedData.variety,
+          acidityScore: coffeeData?.acidity_score ?? sanitizedData.acidityScore,
+          bodyScore: coffeeData?.body_score ?? sanitizedData.bodyScore,
+          sweetnessScore: coffeeData?.sweetness_score ?? sanitizedData.sweetnessScore,
+          flavorNotes: coffeeData?.flavor_notes ?? sanitizedData.flavorNotes,
+          brandStory: (coffeeData as any)?.brand_story ?? enrichedBrandStory,
+          awards: coffeeData?.awards ?? enrichedAwards,
+          cuppingScore: coffeeData?.cupping_score ?? sanitizedData.cuppingScore,
+          aiConfidence: sanitizedData.confidence,
+          tribeMatchScore: tribeMatchScore,
+          matchReasons: sanitizedMatchReasons,
+          jargonExplanations: sanitizedData.jargonExplanations,
           scannedAt: scanRecord.scanned_at,
         },
       }),

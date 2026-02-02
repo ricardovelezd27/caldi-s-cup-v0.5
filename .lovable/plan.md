@@ -259,61 +259,45 @@ Created unified components in `src/features/coffee/`:
 - CoffeeActions component includes both buttons
 - Both reference the master `coffee_id`
 
-**C3. Add to Inventory/Favorites From Scan**
-- "Add to Inventory" button creates inventory record
-- "Add to Favorites" button creates favorite record
-- Both reference the coffee_id (created or matched)
-
 ---
 
-### Phase D: Widget-Based Dashboard (Week 3-4)
+### Phase D: Widget-Based Dashboard (Week 3-4) ✅ COMPLETED
 
-**D1. Widget Framework**
-```typescript
-// Widget type definitions
-type WidgetType = 
-  | 'welcome_hero'
-  | 'coffee_tribe'
-  | 'recent_scans'
-  | 'favorites'
-  | 'inventory'
-  | 'weekly_goal'
-  | 'brewing_level'
-  | 'quick_scan'
-  | 'recent_brews'
-  | 'recommendations';
+**D1. Widget Framework** ✅
+Created widget type system in `src/features/dashboard/widgets/types.ts`:
+- `WidgetType` enum from database
+- `WidgetPosition`, `WidgetConfig`, `DashboardWidget` interfaces
+- `WidgetComponentProps` for standardized widget component props
+- `WidgetMeta` for registry metadata
 
-interface WidgetConfig {
-  type: WidgetType;
-  title?: string;
-  size: 'small' | 'medium' | 'large';
-}
-```
+**D2. Widget Registry** ✅
+Created `widgetRegistry.ts` with all 10 widget components:
+- `WelcomeHeroWidget` - Personalized greeting
+- `CoffeeTribeWidget` - Coffee personality display
+- `QuickScanWidget` - Start scanning CTA
+- `WeeklyGoalWidget` - Circular progress for brew goal
+- `BrewingLevelWidget` - Expertise level progress
+- `RecentBrewsWidget` - Table of recent brews
+- `RecentScansWidget` - Recent scanned coffees
+- `FavoritesWidget` - Favorite coffee display
+- `InventoryWidget` - Coffee inventory preview
+- `RecommendationsWidget` - AI recommendations placeholder
 
-**D2. Widget Registry**
-Map widget types to components:
-```typescript
-const WIDGET_REGISTRY: Record<WidgetType, React.ComponentType> = {
-  welcome_hero: WelcomeHeroWidget,
-  coffee_tribe: TribeWidget,
-  recent_scans: RecentScansWidget,
-  // ...
-};
-```
+**D3. Dashboard Layout Engine** ✅
+- `WidgetGrid` component with responsive grid layout
+- `WidgetWrapper` for edit mode controls (remove button)
+- `AddWidgetDialog` for adding new widgets
+- Edit mode toggle to show/hide controls
+- `useDashboardWidgets` hook for CRUD operations
+- Persists to `dashboard_widgets` table
 
-**D3. Dashboard Layout Engine**
-- Responsive grid layout
-- Drag-and-drop reordering (using existing @dnd-kit or similar)
-- Add/remove widgets
-- Persist layout to `dashboard_widgets` table
-
-**D4. Default Widget Set**
-On user creation, populate default widgets:
-- Welcome Hero
-- Coffee Tribe (if completed quiz)
-- Quick Scan button
-- Weekly Goal
-- Recent Brews
+**D4. Default Widget Set** ✅
+Database trigger `on_profile_created_create_widgets` creates default widgets:
+- Welcome Hero (row 0, spans 2 cols)
+- Coffee Tribe (row 1, col 0)
+- Quick Scan (row 1, col 1)
+- Weekly Goal (row 2, col 0)
+- Recent Brews (row 2, col 1)
 
 ---
 

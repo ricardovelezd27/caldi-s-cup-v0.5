@@ -4,3 +4,4 @@ export { SignupForm } from "./SignupForm";
 export { UserMenu } from "./UserMenu";
 export { RequireRole, ShowForRole } from "./RequireRole";
 export { RequireAuth } from "./RequireAuth";
+export { RequireOnboarding } from "./RequireOnboarding";

@@ -136,6 +136,39 @@ export type Database = {
           },
         ]
       }
+      dashboard_widgets: {
+        Row: {
+          config: Json | null
+          created_at: string | null
+          id: string
+          is_visible: boolean | null
+          position: Json | null
+          updated_at: string | null
+          user_id: string
+          widget_type: Database["public"]["Enums"]["widget_type"]
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_visible?: boolean | null
+          position?: Json | null
+          updated_at?: string | null
+          user_id: string
+          widget_type: Database["public"]["Enums"]["widget_type"]
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_visible?: boolean | null
+          position?: Json | null
+          updated_at?: string | null
+          user_id?: string
+          widget_type?: Database["public"]["Enums"]["widget_type"]
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -174,6 +207,65 @@ export type Database = {
           weekly_goal_target?: number | null
         }
         Relationships: []
+      }
+      recipes: {
+        Row: {
+          brew_method: string
+          brew_time_seconds: number | null
+          coffee_id: string | null
+          created_at: string | null
+          description: string | null
+          grind_size: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          ratio: string | null
+          steps: string[] | null
+          updated_at: string | null
+          user_id: string
+          water_temp_celsius: number | null
+        }
+        Insert: {
+          brew_method: string
+          brew_time_seconds?: number | null
+          coffee_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          grind_size?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          ratio?: string | null
+          steps?: string[] | null
+          updated_at?: string | null
+          user_id: string
+          water_temp_celsius?: number | null
+        }
+        Update: {
+          brew_method?: string
+          brew_time_seconds?: number | null
+          coffee_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          grind_size?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          ratio?: string | null
+          steps?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+          water_temp_celsius?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_coffee_id_fkey"
+            columns: ["coffee_id"]
+            isOneToOne: false
+            referencedRelation: "coffees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       roasters: {
         Row: {
@@ -485,6 +577,17 @@ export type Database = {
       coffee_source: "scan" | "admin" | "roaster" | "import"
       coffee_tribe: "fox" | "owl" | "hummingbird" | "bee"
       roast_level_enum: "1" | "2" | "3" | "4" | "5"
+      widget_type:
+        | "welcome_hero"
+        | "coffee_tribe"
+        | "recent_scans"
+        | "favorites"
+        | "inventory"
+        | "weekly_goal"
+        | "brewing_level"
+        | "quick_scan"
+        | "recent_brews"
+        | "recommendations"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -617,6 +720,18 @@ export const Constants = {
       coffee_source: ["scan", "admin", "roaster", "import"],
       coffee_tribe: ["fox", "owl", "hummingbird", "bee"],
       roast_level_enum: ["1", "2", "3", "4", "5"],
+      widget_type: [
+        "welcome_hero",
+        "coffee_tribe",
+        "recent_scans",
+        "favorites",
+        "inventory",
+        "weekly_goal",
+        "brewing_level",
+        "quick_scan",
+        "recent_brews",
+        "recommendations",
+      ],
     },
   },
 } as const

@@ -168,20 +168,39 @@ This plan addresses the core architectural issues and prepares the platform for 
 - `user_coffee_inventory` for tracking owned coffees
 - Migration to move existing favorites data
 
-**A4. Create Dashboard Widgets Table**
+**A4. Create Dashboard Widgets Table** ✅
 - `dashboard_widgets` with widget_type enum
 - Position/config stored as JSONB for flexibility
-- Default widget set created on user signup
+- Default widget set created on user signup via trigger
 
-**A5. Create Recipes Table**
+**A5. Create Recipes Table** ✅
 - `recipes` with optional coffee_id foreign key
 - Public/private visibility flag
 - Structured brew parameters
 
-**A6. Refactor Scans Table**
-- Rename to `coffee_scans` (scan history)
-- Add `coffee_id` FK to link scan to promoted coffee
+**A6. Refactor Scans Table** ✅
+- Added `coffee_id` FK to link scan to promoted coffee
 - Keep as audit trail, not primary coffee storage
+
+---
+
+### Phase B: Authentication & Authorization (Week 2) ✅ COMPLETED
+
+**B1. Role Checking Utilities** ✅
+Created frontend hooks and utilities:
+- `src/hooks/useRole.ts` - Hook returning { role, isAdmin, isRoaster, isUser, isLoading }
+- `src/components/auth/RequireRole.tsx` - Route guard for role-based access
+- `src/components/auth/RequireAuth.tsx` - Route guard for authentication
+- `src/components/auth/ShowForRole` - Conditional rendering based on role
+
+**B2. Role-Based Route Guards** ✅
+- RequireRole component with roles prop for route protection
+- RequireAuth component for authentication-only routes
+- Support for redirect paths and loading states
+
+**B3. Admin Assignment Flow**
+- TODO: Create admin panel for role management
+- Secure way to assign roles via database
 
 ---
 

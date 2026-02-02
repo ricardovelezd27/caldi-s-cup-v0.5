@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
-import { transformWidget, type DashboardWidget, type WidgetPosition, type WidgetConfig } from "@/types/dashboard";
+import { transformWidget, type DashboardWidget, type WidgetPosition, type WidgetConfig } from "@/features/dashboard/widgets/types";
 import type { Database, Json } from "@/integrations/supabase/types";
 
 type WidgetType = Database["public"]["Enums"]["widget_type"];

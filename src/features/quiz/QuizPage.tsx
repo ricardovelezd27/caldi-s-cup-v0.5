@@ -1,5 +1,8 @@
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { HelpCircle } from 'lucide-react';
 import { PageLayout } from '@/components/layout';
+import { Button } from '@/components/ui/button';
 import { QUIZ_SCENARIOS } from './data/scenarios';
 import { useQuizState } from './hooks/useQuizState';
 import { 
@@ -7,11 +10,23 @@ import {
   ScenarioScreen, 
   QuizProgress, 
   QuizNavigation,
-  ResultsPreview 
+  ResultsPreview,
+  OnboardingModal
 } from './components';
 
 export const QuizPage = () => {
   const navigate = useNavigate();
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [forceShowOnboarding, setForceShowOnboarding] = useState(false);
+  
+  const handleOnboardingComplete = useCallback(() => {
+    setOnboardingComplete(true);
+  }, []);
+
+  const handleOnboardingClose = useCallback(() => {
+    setForceShowOnboarding(false);
+  }, []);
+  
   const {
     state,
     scores,
@@ -48,10 +63,31 @@ export const QuizPage = () => {
 
   return (
     <PageLayout showHeader={true} showFooter={false}>
+      {/* Onboarding Modal - shows if quiz not completed or force triggered */}
+      <OnboardingModal 
+        onComplete={handleOnboardingComplete} 
+        forceShow={forceShowOnboarding}
+        onClose={handleOnboardingClose}
+      />
+      
       <div className="min-h-[calc(100vh-80px)] flex flex-col py-8">
         {/* Hook Screen (Step 0) */}
         {currentStep === 0 && (
-          <QuizHook onStart={startQuiz} />
+          <div className="flex flex-col">
+            {/* What is this? button */}
+            <div className="flex justify-end px-4 mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setForceShowOnboarding(true)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <HelpCircle className="w-4 h-4 mr-2" />
+                What is this?
+              </Button>
+            </div>
+            <QuizHook onStart={startQuiz} />
+          </div>
         )}
 
         {/* Scenario Screens (Steps 1-5) */}

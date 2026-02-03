@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Filter } from "lucide-react";
 import { PageLayout } from "@/components/layout";
 import { Container, SectionHeading } from "@/components/shared";
@@ -11,17 +11,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { mockProducts } from "./data/mockProducts";
 import { ProductFilters, DEFAULT_FILTERS, SortOption } from "./types/api";
-import {
-  filterProducts,
-  sortProducts,
-  paginateProducts,
-  getUniqueOrigins,
-  getUniqueGrinds,
-  getUniqueRoasters,
-  getPriceRange,
-} from "./utils/productFilters";
+import { useMarketplaceProducts } from "./hooks/useMarketplaceProducts";
 import { FilterPanel } from "./components/FilterPanel";
 import { SortDropdown } from "./components/SortDropdown";
 import { ProductGrid } from "./components/ProductGrid";
@@ -32,87 +23,72 @@ const PAGE_SIZE = 6;
 
 /**
  * Marketplace Browse Page
- * Features: filtering, search, sorting, pagination with mock data
+ * Features: filtering, search, sorting, pagination with merged mock + database data
  */
 export default function MarketplaceBrowsePage() {
   // Filter and sort state
   const [filters, setFilters] = useState<ProductFilters>(DEFAULT_FILTERS);
   const [sortBy, setSortBy] = useState<SortOption>("best-match");
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // Debounce search input
   const debouncedSearch = useDebouncedValue(filters.search, 300);
 
-  // Compute available filter options from all products
-  const availableOrigins = useMemo(
-    () => getUniqueOrigins(mockProducts),
-    []
-  );
-  const availableGrinds = useMemo(
-    () => getUniqueGrinds(mockProducts),
-    []
-  );
-  const availableRoasters = useMemo(
-    () => getUniqueRoasters(mockProducts),
-    []
-  );
-  const priceRange = useMemo(() => getPriceRange(mockProducts), []);
+  // Create filters with debounced search
+  const filtersWithDebouncedSearch: ProductFilters = {
+    ...filters,
+    search: debouncedSearch,
+  };
 
-  // Initialize price range in filters
+  // Fetch and process all products (mock + database)
+  const {
+    displayedProducts,
+    totalPages,
+    totalItems,
+    isLoading,
+    availableOrigins,
+    availableGrinds,
+    availableRoasters,
+    priceRange,
+  } = useMarketplaceProducts({
+    filters: filtersWithDebouncedSearch,
+    sortBy,
+    currentPage,
+    pageSize: PAGE_SIZE,
+  });
+
+  // Initialize price range in filters when priceRange loads
   useEffect(() => {
-    setFilters((prev) => ({
-      ...prev,
-      priceRange: priceRange,
-    }));
+    if (priceRange[0] !== 0 || priceRange[1] !== 50) {
+      setFilters((prev) => ({
+        ...prev,
+        priceRange: priceRange,
+      }));
+    }
   }, [priceRange]);
-
-  // Apply filters, sort, and pagination
-  const { displayedProducts, totalPages, totalItems } = useMemo(() => {
-    // Create filters with debounced search
-    const filtersWithDebouncedSearch = {
-      ...filters,
-      search: debouncedSearch,
-    };
-
-    // Filter products
-    const filtered = filterProducts(mockProducts, filtersWithDebouncedSearch);
-
-    // Sort products
-    const sorted = sortProducts(filtered, sortBy);
-
-    // Paginate
-    const { items, totalPages, totalItems } = paginateProducts(
-      sorted,
-      currentPage,
-      PAGE_SIZE
-    );
-
-    return { displayedProducts: items, totalPages, totalItems };
-  }, [filters, debouncedSearch, sortBy, currentPage]);
 
   // Reset to page 1 when filters or sort change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters.origins, filters.roastLevels, filters.grinds, filters.roasterIds, filters.priceRange, debouncedSearch, sortBy]);
-
-  // Simulate loading state for UX feedback
-  useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 300);
-    return () => clearTimeout(timer);
-  }, [currentPage, debouncedSearch, sortBy]);
+  }, [
+    filters.origins,
+    filters.roastLevels,
+    filters.grinds,
+    filters.roasterIds,
+    filters.priceRange,
+    debouncedSearch,
+    sortBy,
+  ]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Scroll to top of grid
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleFiltersChange = (newFilters: ProductFilters) => {
     setFilters(newFilters);
-    setMobileFiltersOpen(false); // Close mobile sheet on filter change
+    setMobileFiltersOpen(false);
   };
 
   // Count active filters for badge
@@ -122,18 +98,15 @@ export default function MarketplaceBrowsePage() {
     filters.grinds.length +
     filters.roasterIds.length +
     (filters.search ? 1 : 0) +
-    (filters.priceRange[0] > priceRange[0] ||
-    filters.priceRange[1] < priceRange[1]
-      ? 1
-      : 0);
+    (filters.priceRange[0] > priceRange[0] || filters.priceRange[1] < priceRange[1] ? 1 : 0);
 
   return (
     <PageLayout>
       <Container size="wide" className="py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <SectionHeading 
-            title="Browse Coffees" 
+          <SectionHeading
+            title="Browse Coffees"
             subtitle="Discover exceptional coffees from artisan roasters around the world"
           />
         </div>

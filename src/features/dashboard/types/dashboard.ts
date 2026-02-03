@@ -13,15 +13,16 @@ export interface BrewLog {
   created_at: string;
 }
 
+/**
+ * Favorite coffee from the unified coffees table via user_coffee_favorites
+ */
 export interface FavoriteCoffee {
   id: string;
-  user_id: string;
-  coffee_name: string;
-  roaster_name: string | null;
-  brew_method: string | null;
-  rating: number | null;
-  image_url: string | null;
-  added_at: string;
+  name: string;
+  brand: string | null;
+  imageUrl: string | null;
+  originCountry: string | null;
+  addedAt: string;
 }
 
 export interface DashboardProfile {
@@ -47,4 +48,16 @@ export interface DashboardSidebarItem {
   icon: string;
   path: string;
   isActive?: boolean;
+}
+
+/**
+ * Recent scan from the coffee_scans table
+ */
+export interface RecentScan {
+  id: string;
+  coffeeId: string;
+  coffeeName: string;
+  brand: string | null;
+  imageUrl: string;
+  scannedAt: string;
 }

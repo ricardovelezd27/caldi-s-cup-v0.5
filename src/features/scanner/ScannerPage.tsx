@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { useCoffeeScanner } from "./hooks/useCoffeeScanner";
 import { ScanUploader, ScanningTips, ScanProgress, ScanResults, TribeScannerPreview } from "./components";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLayout } from "@/components/layout";
+import { Container } from "@/components/shared";
 import { ROUTES } from "@/constants/app";
 
 export function ScannerPage() {
@@ -33,17 +35,19 @@ export function ScannerPage() {
   // Show loading skeleton while auth is checking
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <Skeleton className="h-10 w-32" />
-          <Skeleton className="h-[400px] w-full" />
-          <div className="grid grid-cols-3 gap-4">
-            <Skeleton className="h-24" />
-            <Skeleton className="h-24" />
-            <Skeleton className="h-24" />
+      <PageLayout>
+        <Container className="py-8">
+          <div className="max-w-4xl mx-auto space-y-6">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-[400px] w-full" />
+            <div className="grid grid-cols-3 gap-4">
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+            </div>
           </div>
-        </div>
-      </div>
+        </Container>
+      </PageLayout>
     );
   }
 
@@ -56,31 +60,18 @@ export function ScannerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b-4 border-border bg-card">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(ROUTES.dashboard)}
-            className="flex-shrink-0"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="font-bangers text-2xl md:text-3xl text-foreground">
-              Coffee Scanner
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Scan a coffee bag to discover its profile
-            </p>
-          </div>
+    <PageLayout>
+      <Container className="py-8">
+        {/* Page Title */}
+        <div className="mb-8">
+          <h1 className="font-bangers text-3xl md:text-4xl text-foreground">
+            Coffee Scanner
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Scan a coffee bag to discover its profile
+          </p>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="space-y-8">
           {/* No Tribe Warning */}
           {!profile?.coffee_tribe && !isComplete && (
@@ -144,7 +135,7 @@ export function ScannerPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </Container>
+    </PageLayout>
   );
 }

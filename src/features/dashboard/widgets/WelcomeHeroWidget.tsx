@@ -1,19 +1,16 @@
+import { useAuth } from "@/contexts/auth";
 import { getTribeDefinition } from "@/features/quiz/data/tribes";
-import type { CoffeeTribe } from "@/features/quiz/types/tribe";
+import type { WidgetComponentProps } from "./types";
 
-interface WelcomeHeroProps {
-  displayName: string | null;
-  tribe: CoffeeTribe | null;
-}
-
-export function WelcomeHero({ displayName, tribe }: WelcomeHeroProps) {
-  const tribeDef = tribe ? getTribeDefinition(tribe) : null;
-  const greeting = displayName || "Coffee Explorer";
+export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
+  const { profile } = useAuth();
+  const tribeDef = profile?.coffee_tribe ? getTribeDefinition(profile.coffee_tribe) : null;
+  const greeting = profile?.display_name || "Coffee Explorer";
 
   return (
-    <div className="relative overflow-hidden rounded-lg border-4 border-border bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20 p-6 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+    <div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20 p-6 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
       {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div className="absolute top-4 right-4 text-8xl">☕</div>
         <div className="absolute bottom-4 left-4 text-6xl">✨</div>
       </div>

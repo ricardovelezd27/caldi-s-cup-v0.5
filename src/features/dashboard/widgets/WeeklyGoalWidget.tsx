@@ -1,12 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Target } from "lucide-react";
+import { useAuth } from "@/contexts/auth";
+import { useDashboardData } from "../hooks/useDashboardData";
+import type { WidgetComponentProps } from "./types";
 
-interface WeeklyGoalCardProps {
-  currentCount: number;
-  targetCount: number;
-}
-
-export function WeeklyGoalCard({ currentCount, targetCount }: WeeklyGoalCardProps) {
+export function WeeklyGoalWidget({ widget }: WidgetComponentProps) {
+  const { profile } = useAuth();
+  const { weeklyBrewCount } = useDashboardData();
+  
+  const targetCount = profile?.weekly_goal_target ?? 10;
+  const currentCount = weeklyBrewCount;
   const percentage = Math.min((currentCount / targetCount) * 100, 100);
   const isComplete = currentCount >= targetCount;
 
@@ -27,7 +30,6 @@ export function WeeklyGoalCard({ currentCount, targetCount }: WeeklyGoalCardProp
         {/* Circular Progress */}
         <div className="relative w-28 h-28">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-            {/* Background circle */}
             <circle
               cx="50"
               cy="50"
@@ -36,7 +38,6 @@ export function WeeklyGoalCard({ currentCount, targetCount }: WeeklyGoalCardProp
               stroke="hsl(var(--muted))"
               strokeWidth="8"
             />
-            {/* Progress circle */}
             <circle
               cx="50"
               cy="50"
@@ -51,7 +52,6 @@ export function WeeklyGoalCard({ currentCount, targetCount }: WeeklyGoalCardProp
             />
           </svg>
           
-          {/* Center text */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="font-bangers text-2xl text-foreground">
               {currentCount}/{targetCount}
@@ -60,7 +60,6 @@ export function WeeklyGoalCard({ currentCount, targetCount }: WeeklyGoalCardProp
           </div>
         </div>
 
-        {/* Status text */}
         <p className="text-sm text-muted-foreground mt-3 text-center">
           {isComplete ? (
             <span className="text-secondary font-medium">🎉 Goal reached!</span>

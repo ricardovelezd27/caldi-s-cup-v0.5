@@ -1,0 +1,12 @@
+export * from "./types";
+export * from "./widgetRegistry";
+export { WelcomeHeroWidget } from "./WelcomeHeroWidget";
+export { CoffeeTribeWidget } from "./CoffeeTribeWidget";
+export { QuickScanWidget } from "./QuickScanWidget";
+export { WeeklyGoalWidget } from "./WeeklyGoalWidget";
+export { BrewingLevelWidget } from "./BrewingLevelWidget";
+export { RecentBrewsWidget } from "./RecentBrewsWidget";
+export { RecentScansWidget } from "./RecentScansWidget";
+export { FavoritesWidget } from "./FavoritesWidget";
+export { InventoryWidget } from "./InventoryWidget";
+export { RecommendationsWidget } from "./RecommendationsWidget";

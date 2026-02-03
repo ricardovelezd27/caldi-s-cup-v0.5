@@ -47,6 +47,187 @@ export type Database = {
         }
         Relationships: []
       }
+      coffee_scans: {
+        Row: {
+          ai_confidence: number | null
+          coffee_id: string
+          created_at: string | null
+          id: string
+          image_url: string
+          match_reasons: string[] | null
+          raw_ai_response: Json | null
+          scanned_at: string | null
+          tribe_match_score: number | null
+          user_id: string
+        }
+        Insert: {
+          ai_confidence?: number | null
+          coffee_id: string
+          created_at?: string | null
+          id?: string
+          image_url: string
+          match_reasons?: string[] | null
+          raw_ai_response?: Json | null
+          scanned_at?: string | null
+          tribe_match_score?: number | null
+          user_id: string
+        }
+        Update: {
+          ai_confidence?: number | null
+          coffee_id?: string
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          match_reasons?: string[] | null
+          raw_ai_response?: Json | null
+          scanned_at?: string | null
+          tribe_match_score?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coffee_scans_coffee_id_fkey"
+            columns: ["coffee_id"]
+            isOneToOne: false
+            referencedRelation: "coffees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coffees: {
+        Row: {
+          acidity_score: number | null
+          ai_confidence: number | null
+          altitude_meters: number | null
+          awards: string[] | null
+          body_score: number | null
+          brand: string | null
+          brand_story: string | null
+          created_at: string | null
+          created_by: string | null
+          cupping_score: number | null
+          description: string | null
+          flavor_notes: string[] | null
+          id: string
+          image_url: string | null
+          is_verified: boolean | null
+          jargon_explanations: Json | null
+          name: string
+          origin_country: string | null
+          origin_farm: string | null
+          origin_region: string | null
+          processing_method: string | null
+          roast_level: Database["public"]["Enums"]["roast_level_enum"] | null
+          roaster_id: string | null
+          scanned_image_url: string | null
+          source: Database["public"]["Enums"]["coffee_source"]
+          sweetness_score: number | null
+          updated_at: string | null
+          variety: string | null
+        }
+        Insert: {
+          acidity_score?: number | null
+          ai_confidence?: number | null
+          altitude_meters?: number | null
+          awards?: string[] | null
+          body_score?: number | null
+          brand?: string | null
+          brand_story?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          cupping_score?: number | null
+          description?: string | null
+          flavor_notes?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_verified?: boolean | null
+          jargon_explanations?: Json | null
+          name: string
+          origin_country?: string | null
+          origin_farm?: string | null
+          origin_region?: string | null
+          processing_method?: string | null
+          roast_level?: Database["public"]["Enums"]["roast_level_enum"] | null
+          roaster_id?: string | null
+          scanned_image_url?: string | null
+          source?: Database["public"]["Enums"]["coffee_source"]
+          sweetness_score?: number | null
+          updated_at?: string | null
+          variety?: string | null
+        }
+        Update: {
+          acidity_score?: number | null
+          ai_confidence?: number | null
+          altitude_meters?: number | null
+          awards?: string[] | null
+          body_score?: number | null
+          brand?: string | null
+          brand_story?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          cupping_score?: number | null
+          description?: string | null
+          flavor_notes?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_verified?: boolean | null
+          jargon_explanations?: Json | null
+          name?: string
+          origin_country?: string | null
+          origin_farm?: string | null
+          origin_region?: string | null
+          processing_method?: string | null
+          roast_level?: Database["public"]["Enums"]["roast_level_enum"] | null
+          roaster_id?: string | null
+          scanned_image_url?: string | null
+          source?: Database["public"]["Enums"]["coffee_source"]
+          sweetness_score?: number | null
+          updated_at?: string | null
+          variety?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coffees_roaster_id_fkey"
+            columns: ["roaster_id"]
+            isOneToOne: false
+            referencedRelation: "roasters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dashboard_widgets: {
+        Row: {
+          config: Json | null
+          created_at: string | null
+          id: string
+          is_visible: boolean | null
+          position: Json | null
+          updated_at: string | null
+          user_id: string
+          widget_type: Database["public"]["Enums"]["widget_type"]
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_visible?: boolean | null
+          position?: Json | null
+          updated_at?: string | null
+          user_id: string
+          widget_type: Database["public"]["Enums"]["widget_type"]
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_visible?: boolean | null
+          position?: Json | null
+          updated_at?: string | null
+          user_id?: string
+          widget_type?: Database["public"]["Enums"]["widget_type"]
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -86,140 +267,191 @@ export type Database = {
         }
         Relationships: []
       }
-      scanned_coffees: {
+      recipes: {
         Row: {
-          acidity_score: number | null
-          ai_confidence: number | null
-          altitude: string | null
-          altitude_meters: number | null
-          awards: string[] | null
-          body_score: number | null
-          brand: string | null
-          brand_story: string | null
-          coffee_name: string | null
+          brew_method: string
+          brew_time_seconds: number | null
+          coffee_id: string | null
           created_at: string | null
-          cupping_score: number | null
-          flavor_notes: string[] | null
+          description: string | null
+          grind_size: string | null
           id: string
-          image_url: string
-          jargon_explanations: Json | null
-          match_reasons: string[] | null
-          origin: string | null
-          origin_country: string | null
-          origin_farm: string | null
-          origin_region: string | null
-          processing_method: string | null
-          raw_ai_response: Json | null
-          roast_level: string | null
-          roast_level_numeric:
-            | Database["public"]["Enums"]["roast_level_enum"]
-            | null
-          scanned_at: string | null
-          sweetness_score: number | null
-          tribe_match_score: number | null
+          is_public: boolean | null
+          name: string
+          ratio: string | null
+          steps: string[] | null
+          updated_at: string | null
           user_id: string
-          variety: string | null
+          water_temp_celsius: number | null
         }
         Insert: {
-          acidity_score?: number | null
-          ai_confidence?: number | null
-          altitude?: string | null
-          altitude_meters?: number | null
-          awards?: string[] | null
-          body_score?: number | null
-          brand?: string | null
-          brand_story?: string | null
-          coffee_name?: string | null
+          brew_method: string
+          brew_time_seconds?: number | null
+          coffee_id?: string | null
           created_at?: string | null
-          cupping_score?: number | null
-          flavor_notes?: string[] | null
+          description?: string | null
+          grind_size?: string | null
           id?: string
-          image_url: string
-          jargon_explanations?: Json | null
-          match_reasons?: string[] | null
-          origin?: string | null
-          origin_country?: string | null
-          origin_farm?: string | null
-          origin_region?: string | null
-          processing_method?: string | null
-          raw_ai_response?: Json | null
-          roast_level?: string | null
-          roast_level_numeric?:
-            | Database["public"]["Enums"]["roast_level_enum"]
-            | null
-          scanned_at?: string | null
-          sweetness_score?: number | null
-          tribe_match_score?: number | null
+          is_public?: boolean | null
+          name: string
+          ratio?: string | null
+          steps?: string[] | null
+          updated_at?: string | null
           user_id: string
-          variety?: string | null
+          water_temp_celsius?: number | null
         }
         Update: {
-          acidity_score?: number | null
-          ai_confidence?: number | null
-          altitude?: string | null
-          altitude_meters?: number | null
-          awards?: string[] | null
-          body_score?: number | null
-          brand?: string | null
-          brand_story?: string | null
-          coffee_name?: string | null
+          brew_method?: string
+          brew_time_seconds?: number | null
+          coffee_id?: string | null
           created_at?: string | null
-          cupping_score?: number | null
-          flavor_notes?: string[] | null
+          description?: string | null
+          grind_size?: string | null
           id?: string
-          image_url?: string
-          jargon_explanations?: Json | null
-          match_reasons?: string[] | null
-          origin?: string | null
-          origin_country?: string | null
-          origin_farm?: string | null
-          origin_region?: string | null
-          processing_method?: string | null
-          raw_ai_response?: Json | null
-          roast_level?: string | null
-          roast_level_numeric?:
-            | Database["public"]["Enums"]["roast_level_enum"]
-            | null
-          scanned_at?: string | null
-          sweetness_score?: number | null
-          tribe_match_score?: number | null
+          is_public?: boolean | null
+          name?: string
+          ratio?: string | null
+          steps?: string[] | null
+          updated_at?: string | null
           user_id?: string
-          variety?: string | null
+          water_temp_celsius?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_coffee_id_fkey"
+            columns: ["coffee_id"]
+            isOneToOne: false
+            referencedRelation: "coffees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roasters: {
+        Row: {
+          banner_url: string | null
+          business_name: string
+          certifications: string[] | null
+          contact_email: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_verified: boolean | null
+          location_city: string | null
+          location_country: string | null
+          logo_url: string | null
+          slug: string
+          updated_at: string | null
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          business_name: string
+          certifications?: string[] | null
+          contact_email?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_verified?: boolean | null
+          location_city?: string | null
+          location_country?: string | null
+          logo_url?: string | null
+          slug: string
+          updated_at?: string | null
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          business_name?: string
+          certifications?: string[] | null
+          contact_email?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_verified?: boolean | null
+          location_city?: string | null
+          location_country?: string | null
+          logo_url?: string | null
+          slug?: string
+          updated_at?: string | null
+          user_id?: string
+          website?: string | null
         }
         Relationships: []
       }
-      user_favorites: {
+      user_coffee_favorites: {
         Row: {
           added_at: string | null
-          brew_method: string | null
-          coffee_name: string
+          coffee_id: string
           id: string
-          image_url: string | null
-          rating: number | null
-          roaster_name: string | null
           user_id: string
         }
         Insert: {
           added_at?: string | null
-          brew_method?: string | null
-          coffee_name: string
+          coffee_id: string
           id?: string
-          image_url?: string | null
-          rating?: number | null
-          roaster_name?: string | null
           user_id: string
         }
         Update: {
           added_at?: string | null
-          brew_method?: string | null
-          coffee_name?: string
+          coffee_id?: string
           id?: string
-          image_url?: string | null
-          rating?: number | null
-          roaster_name?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_coffee_favorites_coffee_id_fkey"
+            columns: ["coffee_id"]
+            isOneToOne: false
+            referencedRelation: "coffees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_coffee_inventory: {
+        Row: {
+          coffee_id: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          opened_date: string | null
+          purchase_date: string | null
+          quantity_grams: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          coffee_id: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          opened_date?: string | null
+          purchase_date?: string | null
+          quantity_grams?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          coffee_id?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          opened_date?: string | null
+          purchase_date?: string | null
+          quantity_grams?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_coffee_inventory_coffee_id_fkey"
+            columns: ["coffee_id"]
+            isOneToOne: false
+            referencedRelation: "coffees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -255,8 +487,20 @@ export type Database = {
     Enums: {
       app_role: "user" | "roaster" | "admin"
       brewing_level: "beginner" | "intermediate" | "expert"
+      coffee_source: "scan" | "admin" | "roaster" | "import"
       coffee_tribe: "fox" | "owl" | "hummingbird" | "bee"
       roast_level_enum: "1" | "2" | "3" | "4" | "5"
+      widget_type:
+        | "welcome_hero"
+        | "coffee_tribe"
+        | "recent_scans"
+        | "favorites"
+        | "inventory"
+        | "weekly_goal"
+        | "brewing_level"
+        | "quick_scan"
+        | "recent_brews"
+        | "recommendations"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -386,8 +630,21 @@ export const Constants = {
     Enums: {
       app_role: ["user", "roaster", "admin"],
       brewing_level: ["beginner", "intermediate", "expert"],
+      coffee_source: ["scan", "admin", "roaster", "import"],
       coffee_tribe: ["fox", "owl", "hummingbird", "bee"],
       roast_level_enum: ["1", "2", "3", "4", "5"],
+      widget_type: [
+        "welcome_hero",
+        "coffee_tribe",
+        "recent_scans",
+        "favorites",
+        "inventory",
+        "weekly_goal",
+        "brewing_level",
+        "quick_scan",
+        "recent_brews",
+        "recommendations",
+      ],
     },
   },
 } as const

@@ -50,21 +50,43 @@ export function useDashboardData() {
     enabled: !!user?.id,
   });
 
+  // Fetch favorite from user_coffee_favorites joined with coffees
   const favoriteQuery = useQuery({
     queryKey: ["favorite-coffee", user?.id],
     queryFn: async (): Promise<FavoriteCoffee | null> => {
       if (!user?.id) return null;
 
       const { data, error } = await supabase
-        .from("user_favorites")
-        .select("*")
+        .from("user_coffee_favorites")
+        .select(`
+          id,
+          added_at,
+          coffee_id,
+          coffees (
+            id,
+            name,
+            brand,
+            image_url,
+            origin_country
+          )
+        `)
         .eq("user_id", user.id)
         .order("added_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (error) throw error;
-      return data as FavoriteCoffee | null;
+      if (!data || !data.coffees) return null;
+
+      const coffee = data.coffees as any;
+      return {
+        id: coffee.id,
+        name: coffee.name,
+        brand: coffee.brand,
+        imageUrl: coffee.image_url,
+        originCountry: coffee.origin_country,
+        addedAt: data.added_at ?? new Date().toISOString(),
+      };
     },
     enabled: !!user?.id,
   });

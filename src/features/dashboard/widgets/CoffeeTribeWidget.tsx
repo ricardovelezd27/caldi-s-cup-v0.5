@@ -1,15 +1,15 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getTribeDefinition } from "@/features/quiz/data/tribes";
-import type { CoffeeTribe } from "@/features/quiz/types/tribe";
 import { Link } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth";
+import { getTribeDefinition } from "@/features/quiz/data/tribes";
 import { cn } from "@/lib/utils";
+import type { WidgetComponentProps } from "./types";
 
-interface UserTypeCardProps {
-  tribe: CoffeeTribe | null;
-}
+export function CoffeeTribeWidget({ widget }: WidgetComponentProps) {
+  const { profile } = useAuth();
+  const tribe = profile?.coffee_tribe;
 
-export function UserTypeCard({ tribe }: UserTypeCardProps) {
   if (!tribe) {
     return (
       <Card className="h-full">

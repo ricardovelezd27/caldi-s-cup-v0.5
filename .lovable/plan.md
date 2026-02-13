@@ -1,63 +1,84 @@
 
 
-# Fix Sign-In Redirect and Onboarding Modal Logic
+# Merge Scanner Results into Coffee Profile Page
 
 ## Problem
-1. After sign-in, users without a completed quiz are forced to `/quiz` instead of going back to what they were doing (e.g., `/scanner`).
-2. The onboarding modal appears every time a user visits `/quiz`, even if they already completed it, because it only checks `localStorage` -- not the user's profile in the database.
+Two separate pages display coffee data: the scanner renders results inline via `ScanResults` component, and a separate `CoffeeProfilePage` exists at `/coffee/:id`. This creates redundancy, increases bundle size, and splits the user's mental model. The "View Full Profile" button in scan results navigating to a near-identical page is confusing.
+
+## Solution: Navigate to `/coffee/:id` After Scan
+After a scan completes, navigate directly to the `CoffeeProfilePage` with the scan data passed via React Router state. The profile page becomes the single rendering surface for all coffee data -- whether from a scan, favorites, inventory, or direct link.
+
+```text
+Scan completes
+  |
+  +-- Transform ScannedCoffee -> Coffee + CoffeeScanMeta (already exists)
+  +-- Navigate to /coffee/{coffeeId}
+  |     state: { coffee, scanMeta, isNewCoffee }
+  |
+  +-- CoffeeProfilePage receives data
+        |
+        +-- If route state has coffee data: render immediately (no DB fetch)
+        +-- If no state (direct URL visit): fetch from DB (existing behavior)
+        +-- scanMeta in state? Show match score, jargon buster, "Scan Again" button
+        +-- No scanMeta? Show standard profile with favorites/inventory actions
+```
+
+This approach scales well because:
+- Authenticated scan results are persisted to DB, so the `/coffee/:id` URL is shareable and bookmarkable
+- Anonymous scan results work via route state (ephemeral but functional)
+- Future marketplace products use the same page via DB fetch
+- One component to optimize, cache, and maintain
 
 ## Changes
 
-### 1. Auth.tsx -- Always redirect to scanner (or origin page)
-Remove the branching logic that sends non-onboarded users to `/quiz`. After sign-in, ALL users go to `location.state.from` (the page they came from) or `/scanner` as the default fallback. The quiz becomes optional and self-service, not a forced gate after login.
+### 1. ScannerPage.tsx -- Navigate on completion instead of inline rendering
+Remove the inline `ScanResults` rendering. When `isComplete && scanResult`, transform the data and call `navigate('/coffee/{id}', { state })`. The scanner page only handles: upload UI, progress, errors, and the redirect.
 
-**Before:** Non-onboarded users forced to `/quiz`, onboarded users to dashboard.
-**After:** All users go to their origin page or `/scanner`.
+### 2. CoffeeProfilePage.tsx -- Accept route state as primary data source
+Add `location.state` handling. If state contains `coffee` + optional `scanMeta`, use that directly (skip DB fetch). If no state, fall back to `useCoffee(id)` fetch. Pass `onScanAgain` (navigates back to `/scanner`) to `CoffeeActions` when `scanMeta` is present.
 
-### 2. OnboardingModal -- Respect profile.is_onboarded
-Currently the modal checks only `localStorage('caldi_quiz_result')`. This is unreliable across devices/browsers. Add a check for the user's profile: if `profile.is_onboarded === true` or `profile.coffee_tribe` is set, never show the modal (treat as completed). The modal will accept an optional `isOnboarded` prop from the QuizPage.
+### 3. CoffeeActions.tsx -- Remove "View Full Profile" button
+The "View Full Profile" button (`handleViewProfile` / `Eye` icon) is no longer needed since the user is already on the profile page. Remove it. Keep "Scan Another" visible when `onScanAgain` is provided.
 
-### 3. QuizPage -- Pass onboarding status to modal
-QuizPage will read `useAuth()` and pass the profile's onboarding status to the OnboardingModal so it can suppress itself for users who already completed the quiz.
+### 4. Delete ScanResults.tsx
+The `ScanResults` component is no longer used. Its transformation logic (`transformToCoffee`, `extractScanMeta`) moves to `ScannerPage` (or a small utility) for the navigate call.
+
+### 5. Update scanner barrel export
+Remove `ScanResults` from `src/features/scanner/components/index.ts`.
 
 ## Technical Details
 
-### Auth.tsx (lines 18-28)
-Replace the redirect `useEffect` with:
+### ScannerPage.tsx
+- Import `useNavigate` and the transform functions from `ScanResults` (moved inline or to a utility)
+- Replace the `{isComplete && scanResult && <ScanResults ... />}` block with a `useEffect` that triggers navigation:
 ```typescript
 useEffect(() => {
-  if (user && !isLoading) {
-    const from = (location.state as { from?: string })?.from || ROUTES.scanner;
-    navigate(from, { replace: true });
+  if (isComplete && scanResult) {
+    const coffee = transformToCoffee(scanResult);
+    const scanMeta = extractScanMeta(scanResult);
+    const isNewCoffee = scanResult.isNewCoffee ?? false;
+    const coffeeId = scanResult.coffeeId || scanResult.id;
+    navigate(`/coffee/${coffeeId}`, {
+      state: { coffee, scanMeta, isNewCoffee },
+      replace: true, // prevent back-button returning to "complete" state
+    });
   }
-}, [user, profile, isLoading, navigate, location.state]);
+}, [isComplete, scanResult, navigate]);
 ```
 
-### OnboardingModal.tsx (lines 94-107)
-Add `isOnboarded` prop. Update the effect to skip showing the modal when the user has already completed onboarding:
-```typescript
-interface OnboardingModalProps {
-  onComplete: () => void;
-  forceShow?: boolean;
-  onClose?: () => void;
-  isOnboarded?: boolean; // from profile
-}
-```
-In the effect: if `isOnboarded` is true, call `onComplete()` and don't open.
+### CoffeeProfilePage.tsx
+- Read `location.state` for `{ coffee, scanMeta, isNewCoffee }`
+- If state has `coffee`, use it directly; skip `useCoffee` fetch (or let it run in background for freshness)
+- Pass `scanMeta`, `isNewCoffee`, and `onScanAgain={() => navigate('/scanner')}` to `CoffeeProfile` and `CoffeeActions`
 
-### QuizPage.tsx
-Pass `profile?.is_onboarded` to `OnboardingModal`:
-```tsx
-<OnboardingModal 
-  onComplete={handleOnboardingComplete}
-  forceShow={forceShowOnboarding}
-  onClose={handleOnboardingClose}
-  isOnboarded={!!profile?.is_onboarded}
-/>
-```
+### CoffeeActions.tsx
+- Remove `handleViewProfile` and the "View Full Profile" `Button` (lines 86-88, 144-149)
+- Remove `Eye` import
 
 ### Files Modified
-1. `src/pages/Auth.tsx` -- simplify redirect to always go to origin or `/scanner`
-2. `src/features/quiz/components/OnboardingModal.tsx` -- add `isOnboarded` prop check
-3. `src/features/quiz/QuizPage.tsx` -- pass onboarding status to modal
+1. `src/features/scanner/ScannerPage.tsx` -- navigate on completion
+2. `src/features/coffee/CoffeeProfilePage.tsx` -- accept route state
+3. `src/features/coffee/components/CoffeeActions.tsx` -- remove "View Full Profile"
+4. `src/features/scanner/components/ScanResults.tsx` -- delete file
+5. `src/features/scanner/components/index.ts` -- remove ScanResults export
 

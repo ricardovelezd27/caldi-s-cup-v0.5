@@ -56,7 +56,7 @@ const HeroSection = () => {
           {/* Right Column: Illustration */}
           <div className="relative flex justify-center items-center">
             {/* Speech bubble */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 animate-float">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 animate-float hidden md:block">
               <div className="relative bg-background rounded-2xl border-2 border-secondary/30 px-5 py-3 shadow-md">
                 <p className="text-secondary font-bangers text-lg whitespace-nowrap">Let's find your match!</p>
                 {/* Bubble tail */}

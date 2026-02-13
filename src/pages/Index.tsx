@@ -54,11 +54,13 @@ const HeroSection = () => {
           </div>
 
           {/* Right Column: Illustration */}
-          <div className="relative flex justify-center md:justify-end">
+          <div className="relative flex justify-center items-center">
             {/* Speech bubble */}
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2 md:left-auto md:right-8 md:translate-x-0 z-10 animate-float">
-              <div className="bg-background rounded-2xl border-4 border-border caldi-shadow px-5 py-3">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 animate-float">
+              <div className="relative bg-background rounded-2xl border-2 border-secondary/30 px-5 py-3 shadow-md">
                 <p className="text-secondary font-bangers text-lg whitespace-nowrap">Let's find your match!</p>
+                {/* Bubble tail */}
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-background border-b-2 border-r-2 border-secondary/30 rotate-45" />
               </div>
             </div>
 
@@ -66,7 +68,7 @@ const HeroSection = () => {
             <img
               src={duoAndGoat}
               alt="Caldi's duo and goat mascots"
-              className="w-64 sm:w-72 md:w-80 lg:w-96 mt-10 md:mt-6 drop-shadow-lg"
+              className="w-80 sm:w-96 md:w-[28rem] lg:w-[32rem] mt-12 md:mt-8 drop-shadow-lg"
             />
           </div>
         </div>

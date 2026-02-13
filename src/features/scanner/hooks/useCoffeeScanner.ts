@@ -35,11 +35,6 @@ export function useCoffeeScanner() {
   }, []);
 
   const scanCoffee = useCallback(async (imageBase64: string) => {
-    if (!user) {
-      setError("You must be logged in to scan coffee");
-      return;
-    }
-
     try {
       setError(null);
       setScanResult(null);
@@ -53,11 +48,13 @@ export function useCoffeeScanner() {
       // Step 2: Analyzing
       setProgress(SCAN_PROGRESS_STATES.analyzing);
 
+      // Use session token if logged in, otherwise use anon key
+      let accessToken: string;
       const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData?.session?.access_token;
-
-      if (!accessToken) {
-        throw new Error("No active session. Please sign in again.");
+      if (sessionData?.session?.access_token) {
+        accessToken = sessionData.session.access_token;
+      } else {
+        accessToken = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       }
 
       // Call the edge function with timeout
@@ -124,7 +121,7 @@ export function useCoffeeScanner() {
       });
       return null;
     }
-  }, [user, profile?.coffee_tribe]);
+  }, [profile?.coffee_tribe]);
 
   return {
     scanCoffee,

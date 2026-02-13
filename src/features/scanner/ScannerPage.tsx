@@ -1,20 +1,15 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { AlertCircle, ScanLine, PenLine } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { useCoffeeScanner } from "./hooks/useCoffeeScanner";
 import { ScanUploader, ScanningTips, ScanProgress, ScanResults, TribeScannerPreview, ManualAddForm } from "./components";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared";
-import { ROUTES } from "@/constants/app";
 
 export function ScannerPage() {
-  const { user, profile, isLoading: authLoading } = useAuth();
-  const navigate = useNavigate();
+  const { user, profile } = useAuth();
   const { 
     scanCoffee, 
     scanResult, 
@@ -25,36 +20,6 @@ export function ScannerPage() {
     isComplete,
     isError,
   } = useCoffeeScanner();
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate(ROUTES.auth, { replace: true });
-    }
-  }, [user, authLoading, navigate]);
-
-  // Show loading skeleton while auth is checking
-  if (authLoading) {
-    return (
-      <PageLayout>
-        <Container className="py-8">
-          <div className="max-w-4xl mx-auto space-y-6">
-            <Skeleton className="h-10 w-32" />
-            <Skeleton className="h-[400px] w-full" />
-            <div className="grid grid-cols-3 gap-4">
-              <Skeleton className="h-24" />
-              <Skeleton className="h-24" />
-              <Skeleton className="h-24" />
-            </div>
-          </div>
-        </Container>
-      </PageLayout>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
 
   const handleImageSelected = (imageBase64: string) => {
     scanCoffee(imageBase64);
@@ -79,16 +44,18 @@ export function ScannerPage() {
               <ScanLine className="h-4 w-4" />
               Scan
             </TabsTrigger>
-            <TabsTrigger value="manual" className="flex-1 gap-1.5">
-              <PenLine className="h-4 w-4" />
-              Add Manually
-            </TabsTrigger>
+            {user && (
+              <TabsTrigger value="manual" className="flex-1 gap-1.5">
+                <PenLine className="h-4 w-4" />
+                Add Manually
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* ===== SCAN TAB ===== */}
           <TabsContent value="scan" className="space-y-8">
             {/* No Tribe Warning */}
-            {!profile?.coffee_tribe && !isComplete && (
+            {user && !profile?.coffee_tribe && !isComplete && (
               <Alert className="border-4 border-accent bg-accent/5">
                 <AlertCircle className="h-4 w-4 text-accent" />
                 <AlertTitle className="font-bangers">Take the Quiz First!</AlertTitle>
@@ -146,9 +113,11 @@ export function ScannerPage() {
           </TabsContent>
 
           {/* ===== MANUAL ADD TAB ===== */}
-          <TabsContent value="manual">
-            <ManualAddForm />
-          </TabsContent>
+          {user && (
+            <TabsContent value="manual">
+              <ManualAddForm />
+            </TabsContent>
+          )}
         </Tabs>
       </Container>
     </PageLayout>

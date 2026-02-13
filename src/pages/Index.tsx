@@ -19,9 +19,15 @@ const HeroSection = () => {
       <Container size="wide" className="relative z-10">
         <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Left Column: Typography & Action */}
-          <div className="flex flex-col items-center md:items-start text-center md:text-left bg-background/70 backdrop-blur-sm rounded-2xl p-6 md:p-8">
+          <div className="flex flex-col items-center md:items-start text-center md:text-left bg-background/70 backdrop-blur-sm rounded-2xl p-6 md:p-8 relative">
+            {/* Mobile-only mini illustration popping out above banner */}
+            <img
+              src={caldiScanning}
+              alt="Caldi scanning coffee"
+              className="block md:hidden w-40 h-auto mx-auto -mb-6 relative z-10"
+            />
             {/* Badge */}
-            <span className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-1.5 text-xs font-inter font-semibold tracking-wider mb-6">
+            <span className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-1.5 text-xs font-inter font-semibold tracking-wider mb-6 relative z-20">
               <Coffee className="w-4 h-4" />
               AI-POWERED COFFEE DISCOVERY
             </span>
@@ -53,10 +59,10 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right Column: Illustration */}
-          <div className="relative flex justify-center items-center">
+          {/* Right Column: Illustration (desktop only) */}
+          <div className="relative hidden md:flex justify-center items-center">
             {/* Speech bubble */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 animate-float hidden md:block">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 animate-float">
               <div className="relative bg-background rounded-2xl border-2 border-secondary/30 px-5 py-3 shadow-md">
                 <p className="text-secondary font-bangers text-lg whitespace-nowrap">Let's find your match!</p>
                 {/* Bubble tail */}
@@ -68,7 +74,7 @@ const HeroSection = () => {
             <img
               src={caldiScanning}
               alt="Caldi scanning coffee illustration"
-              className="w-80 sm:w-96 md:w-[28rem] lg:w-[32rem] mt-12 md:mt-8 drop-shadow-lg"
+              className="w-[28rem] lg:w-[32rem] mt-8 drop-shadow-lg"
             />
           </div>
         </div>

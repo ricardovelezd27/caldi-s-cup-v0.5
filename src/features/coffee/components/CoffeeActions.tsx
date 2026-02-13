@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth";
 import { useFavorites } from "../hooks/useFavorites";
 import { useInventory } from "../hooks/useInventory";
+import { ReportScanErrorDialog } from "./ReportScanErrorDialog";
 import type { Coffee, CoffeeScanMeta } from "../types";
 
 interface CoffeeActionsProps {
@@ -143,6 +144,8 @@ export function CoffeeActions({
             Scan Another
           </Button>
         )}
+
+        <ReportScanErrorDialog coffee={coffee} scanMeta={scanMeta} />
 
         <Button variant="ghost" onClick={handleShare} size="icon">
           <Share2 className="h-4 w-4" />

@@ -45,12 +45,10 @@ export function CoffeeInfo({ coffee, showVerifiedBadge = true, isNewCoffee = fal
       </div>
 
       {/* Origin */}
-      {origin && (
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <MapPin className="h-4 w-4 shrink-0" />
-          <span>{origin}</span>
-        </div>
-      )}
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <MapPin className="h-4 w-4 shrink-0" />
+        <span>{origin || "Origin not specified"}</span>
+      </div>
 
       {/* Meta Badges */}
       <div className="flex flex-wrap gap-2">

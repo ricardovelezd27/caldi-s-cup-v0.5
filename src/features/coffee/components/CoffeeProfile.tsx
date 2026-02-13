@@ -33,7 +33,7 @@ export function CoffeeProfile({
   actions,
   accordionContent,
 }: CoffeeProfileProps) {
-  const hasAccordionContent = scanMeta || accordionContent || coffee.description;
+  const hasAccordionContent = scanMeta || accordionContent || true;
 
   return (
     <div className="space-y-6">
@@ -82,9 +82,7 @@ export function CoffeeProfile({
           {hasAccordionContent && (
             <div className="order-7 lg:hidden border-4 border-border rounded-lg px-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card overflow-hidden">
               <Accordion type="single" collapsible className="w-full">
-                {coffee.description && (
-                  <CoffeeDescription coffee={coffee} />
-                )}
+                <CoffeeDescription coffee={coffee} />
                 {scanMeta && <CoffeeJargonBuster scanMeta={scanMeta} />}
                 {accordionContent}
               </Accordion>
@@ -107,9 +105,7 @@ export function CoffeeProfile({
           {hasAccordionContent && (
             <div className="border-4 border-border rounded-lg px-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card overflow-hidden">
               <Accordion type="single" collapsible className="w-full">
-                {coffee.description && (
-                  <CoffeeDescription coffee={coffee} />
-                )}
+                <CoffeeDescription coffee={coffee} />
                 {scanMeta && <CoffeeJargonBuster scanMeta={scanMeta} />}
                 {accordionContent}
               </Accordion>

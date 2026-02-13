@@ -9,16 +9,25 @@ interface AttributeSliderProps {
 }
 
 function AttributeSlider({ label, value, leftLabel, rightLabel }: AttributeSliderProps) {
-  const displayValue = value ?? 3; // Default to middle if null
-  
+  if (value === null) {
+    return (
+      <div className="space-y-2">
+        <div className="flex justify-between items-center text-sm">
+          <span className="font-medium text-foreground">{label}</span>
+          <span className="text-muted-foreground italic text-xs">No data available</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center text-sm">
         <span className="font-medium text-foreground">{label}</span>
-        <span className="text-muted-foreground">{displayValue}/5</span>
+        <span className="text-muted-foreground">{value}/5</span>
       </div>
       <Slider
-        value={[displayValue]}
+        value={[value]}
         min={1}
         max={5}
         step={1}
@@ -42,10 +51,6 @@ export function CoffeeAttributes({ coffee }: CoffeeAttributesProps) {
     coffee.bodyScore !== null || 
     coffee.acidityScore !== null || 
     coffee.sweetnessScore !== null;
-
-  if (!hasAttributes) {
-    return null;
-  }
 
   return (
     <div className="border-4 border-border rounded-lg p-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card space-y-4">

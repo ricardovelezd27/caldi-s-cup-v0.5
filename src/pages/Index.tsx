@@ -19,7 +19,7 @@ const HeroSection = () => {
       <Container size="wide" className="relative z-10">
         <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Left Column: Typography & Action */}
-          <div className="flex flex-col items-center md:items-start text-center md:text-left">
+          <div className="flex flex-col items-center md:items-start text-center md:text-left bg-background/70 backdrop-blur-sm rounded-2xl p-6 md:p-8">
             {/* Badge */}
             <span className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-1.5 text-xs font-inter font-semibold tracking-wider mb-6">
               <Coffee className="w-4 h-4" />
@@ -27,7 +27,7 @@ const HeroSection = () => {
             </span>
 
             {/* Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bangers leading-tight mb-4 hero-text-shadow">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bangers leading-tight mb-4">
               <span className="text-foreground">Coffee Got </span>
               <span className="text-foreground line-through decoration-accent decoration-[6px]">Complicated</span>
               <br />

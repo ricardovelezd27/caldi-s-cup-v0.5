@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { HelpCircle } from 'lucide-react';
 import { PageLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/auth';
 import { QUIZ_SCENARIOS } from './data/scenarios';
 import { useQuizState } from './hooks/useQuizState';
 import { 
@@ -16,6 +17,7 @@ import {
 
 export const QuizPage = () => {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [forceShowOnboarding, setForceShowOnboarding] = useState(false);
   
@@ -68,6 +70,7 @@ export const QuizPage = () => {
         onComplete={handleOnboardingComplete} 
         forceShow={forceShowOnboarding}
         onClose={handleOnboardingClose}
+        isOnboarded={!!profile?.is_onboarded}
       />
       
       <div className="min-h-[calc(100vh-80px)] flex flex-col py-8">

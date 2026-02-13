@@ -40,13 +40,13 @@ const HeroSection = () => {
             </p>
 
             {/* CTA row */}
-            <div className="flex items-center gap-6">
-              <Button size="lg" className="text-xl font-bangers px-8 py-6 tracking-wide" asChild>
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto">
+              <Button size="lg" className="text-xl font-bangers px-8 py-6 tracking-wide w-full md:w-auto" asChild>
                 <Link to={ROUTES.quiz}>Give Caldi AI a Try!</Link>
               </Button>
               <a
                 href="#features"
-                className="text-muted-foreground hover:text-foreground font-inter text-sm underline underline-offset-4 transition-colors"
+                className="text-foreground hover:text-secondary font-inter text-sm font-medium underline underline-offset-4 transition-colors"
               >
                 How it works
               </a>

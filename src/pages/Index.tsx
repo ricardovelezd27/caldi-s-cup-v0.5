@@ -35,7 +35,10 @@ const HeroSection = () => {
             {/* Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bangers leading-tight mb-4">
               <span className="text-foreground">Coffee Got </span>
-              <span className="text-foreground line-through decoration-accent decoration-[6px]">Complicated</span>
+              <span className="text-foreground relative inline-block">
+                Complicated
+                <span className="absolute left-0 top-1/2 h-[6px] bg-accent animate-strikethrough" />
+              </span>
               <br />
               <span className="text-secondary">Caldi Makes It Simple.</span>
             </h1>

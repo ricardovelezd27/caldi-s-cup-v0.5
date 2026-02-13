@@ -50,12 +50,12 @@ const HeroSection = () => {
               <Button size="lg" className="text-xl font-bangers px-8 py-6 tracking-wide w-full md:w-auto" asChild>
                 <Link to={ROUTES.quiz}>Give Caldi AI a Try!</Link>
               </Button>
-              <a
-                href="#features"
+              <button
+                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
                 className="text-foreground hover:text-secondary font-inter text-sm font-medium underline underline-offset-4 transition-colors"
               >
                 How it works
-              </a>
+              </button>
             </div>
           </div>
 

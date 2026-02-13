@@ -10,6 +10,7 @@ import { APP_CONFIG, ROUTES } from "@/constants/app";
 
 import duoGoatImg from "@/assets/characters/ilustration_Duo_and_Goat_NoBG_1.png";
 import ricardoImg from "@/assets/characters/ricardo-profile.png";
+import vibrantImg from "@/assets/illustrations/vibrant-coffee-overwhelm.png";
 
 const FeedbackPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -19,7 +20,7 @@ const FeedbackPage = () => {
       <Container className="py-12 space-y-20">
         {/* 1. Hero / Intro */}
         <section className="grid md:grid-cols-2 gap-8 items-center">
-          <div className="space-y-4 order-2 md:order-1">
+          <div className="space-y-4">
             <h1 className="text-4xl md:text-5xl font-bangers tracking-wide">
               The Story Behind Your Next Great Cup
             </h1>
@@ -33,10 +34,10 @@ const FeedbackPage = () => {
               way. Think of us as your AI-powered coffee companion.
             </p>
           </div>
-          <div className="flex justify-center order-1 md:order-2">
+          <div className="flex justify-center">
             <img
-              src={duoGoatImg}
-              alt="Caldi and his goat companion"
+              src={vibrantImg}
+              alt="Overwhelmed coffee lover surrounded by options"
               className="w-64 md:w-[80%]"
             />
           </div>

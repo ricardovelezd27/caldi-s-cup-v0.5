@@ -131,14 +131,9 @@ const SolutionSection = () => {
               vibe. It's like having a coffee-loving friend who just{" "}
               <em className="text-secondary font-medium not-italic">gets</em> you.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="font-bold" asChild>
-                <Link to={ROUTES.quiz}>{APP_CONFIG.cta.primary}</Link>
-              </Button>
-              <Button variant="outline" size="lg" className="font-bold" asChild>
-                <Link to={ROUTES.marketplace}>{APP_CONFIG.cta.secondary}</Link>
-              </Button>
-            </div>
+            <Button size="lg" className="font-bold" asChild>
+              <Link to={ROUTES.quiz}>{APP_CONFIG.cta.primary}</Link>
+            </Button>
           </div>
 
           {/* Right: Modern Caldi as guide */}

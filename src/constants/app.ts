@@ -27,7 +27,5 @@ export const ROUTES = {
 } as const;
 
 export const NAV_LINKS = [
-  { label: "Marketplace", path: "/marketplace" },
   { label: "Scanner", path: "/scanner" },
-  { label: "Recipes", path: "/recipes" },
 ] as const;

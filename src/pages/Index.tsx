@@ -12,10 +12,7 @@ const HeroSection = () => {
   return (
     <section className="relative flex flex-col overflow-hidden pb-8">
       {/* Path of Clarity - THE DOMINANT BACKGROUND */}
-      <div
-        className="absolute inset-0 z-0 hero-background"
-        style={{ backgroundImage: `url(${pathToClarity})` }}
-      />
+      <div className="absolute inset-0 z-0 hero-background" style={{ backgroundImage: `url(${pathToClarity})` }} />
 
       {/* Subtle gradient overlay for text readability */}
       <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/30 via-transparent to-background/50" />
@@ -75,7 +72,7 @@ const features = [
     icon: Camera,
     title: "Scan & Understand Any Coffee",
     description:
-      "Snap a photo of the bag and instantly decode what makes it special — flavor notes, origin story, and all that confusing jargon translated into plain English.",
+      "Snap a photo of the bag and instantly decode what makes it special: flavor notes, origin story, and all that confusing jargon translated into plain English.",
   },
   {
     icon: Heart,
@@ -87,7 +84,7 @@ const features = [
     icon: Sparkles,
     title: "Find Your Coffee Tribe",
     description:
-      "Skip the intimidating jargon. Answer a few fun questions about how you like your mornings, and we'll match you to your perfect coffee personality — no expertise required.",
+      "Skip the intimidating jargon. Answer a few fun questions about how you like your mornings, and we'll match you to your perfect coffee personality, no expertise required.",
   },
 ] as const;
 
@@ -98,22 +95,14 @@ const FeaturesSection = () => {
         <SectionHeading title="What Caldi Does For You" color="secondary" className="mb-12" />
         <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
           {features.map((feature, index) => (
-            <CaldiCard
-              key={feature.title}
-              className="text-center px-4"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
+            <CaldiCard key={feature.title} className="text-center px-4" style={{ animationDelay: `${index * 100}ms` }}>
               <div className="flex justify-center mb-4">
                 <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
                   <feature.icon className="w-8 h-8 text-primary" />
                 </div>
               </div>
-              <h3 className="text-2xl lg:text-3xl font-bangers text-foreground mb-3">
-                {feature.title}
-              </h3>
-              <p className="text-muted-foreground font-inter text-base lg:text-lg">
-                {feature.description}
-              </p>
+              <h3 className="text-2xl lg:text-3xl font-bangers text-foreground mb-3">{feature.title}</h3>
+              <p className="text-muted-foreground font-inter text-base lg:text-lg">{feature.description}</p>
             </CaldiCard>
           ))}
         </div>
@@ -126,11 +115,7 @@ const CTASection = () => {
   return (
     <section className="py-16 md:py-24">
       <Container className="flex justify-center">
-        <Button
-          size="lg"
-          className="text-2xl md:text-3xl font-bangers px-12 py-8 tracking-wide"
-          asChild
-        >
+        <Button size="lg" className="text-2xl md:text-3xl font-bangers px-12 py-8 tracking-wide" asChild>
           <Link to={ROUTES.quiz}>Give Caldi a Try!</Link>
         </Button>
       </Container>

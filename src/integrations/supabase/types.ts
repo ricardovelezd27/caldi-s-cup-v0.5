@@ -487,7 +487,7 @@ export type Database = {
     Enums: {
       app_role: "user" | "roaster" | "admin"
       brewing_level: "beginner" | "intermediate" | "expert"
-      coffee_source: "scan" | "admin" | "roaster" | "import"
+      coffee_source: "scan" | "admin" | "roaster" | "import" | "manual"
       coffee_tribe: "fox" | "owl" | "hummingbird" | "bee"
       roast_level_enum: "1" | "2" | "3" | "4" | "5"
       widget_type:
@@ -630,7 +630,7 @@ export const Constants = {
     Enums: {
       app_role: ["user", "roaster", "admin"],
       brewing_level: ["beginner", "intermediate", "expert"],
-      coffee_source: ["scan", "admin", "roaster", "import"],
+      coffee_source: ["scan", "admin", "roaster", "import", "manual"],
       coffee_tribe: ["fox", "owl", "hummingbird", "bee"],
       roast_level_enum: ["1", "2", "3", "4", "5"],
       widget_type: [

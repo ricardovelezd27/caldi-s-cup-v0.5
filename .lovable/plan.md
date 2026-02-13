@@ -1,69 +1,86 @@
+# Manual Add Coffee Feature
 
+## Overview
 
-## Redesign Hero Section: Split-Screen Two-Column Layout
+Add a "Manual Add" option to the Scanner page so users can add coffees to the catalog without scanning. The form inserts into the existing `coffees` table with `source = 'manual'` and auto-creates a roaster entry if the brand doesn't already exist.
 
-This plan replaces the current centered hero with a modern split-screen layout matching the provided reference design.
+## Database Change
 
-### Changes Overview
+**Migration: Add `'manual'` to the `coffee_source` enum**
 
-2 files modified, 1 asset added.
+The current `coffee_source` enum only has `scan | admin | roaster | import`. We need to add `'manual'` so manually entered coffees are properly flagged.
 
----
+```text
+ALTER TYPE coffee_source ADD VALUE 'manual';
+```
 
-### 1. Copy Illustration Asset
+No new tables are needed -- everything writes to the existing `coffees` and `roasters` tables. Existing RLS policies already allow authenticated users to insert coffees (with `created_by = auth.uid()`).
 
-Copy the uploaded illustration `ilustration_Duo_and_Goat_NoBG_1.png` into `src/assets/characters/` for use as an ES6 module import.
+## New Files
 
----
+### 1. `src/features/scanner/components/ManualAddForm.tsx`
 
-### 2. `src/pages/Index.tsx` -- Rewrite HeroSection
+The main form component with:
 
-Replace the entire `HeroSection` component with a two-column split layout:
+- **Required**: Coffee Name (text), Roaster/Brand (text)
+- **Optional**: Origin Country (text), Roast Level (1-5 slider with Light-to-Dark labels), Processing Method (select: Washed/Natural/Honey/Anaerobic/Other), Flavor Notes (tag/chip input), Description (textarea), Image upload, Altitude ( also a slider with 500mts increments starting at 500 and ending 2500+), leave an open area for comments (text area)
+- Image uploads go to the existing `coffee-scans` storage bucket, stored as URL reference in `image_url`
+- Uses Zod schema for validation
+- Styled with 4px borders, Bangers headings, shadcn components matching the app design system
 
-**Left Column (Typography and Action):**
-- Pill-shaped badge at top: "AI-POWERED COFFEE DISCOVERY" with a coffee icon (lucide `Coffee`), styled with rounded-full, dark background, white text
-- Headline using Bangers font:
-  - Line 1: "Coffee Got" then "Complicated" with an orange strikethrough (`line-through decoration-accent`) in `text-foreground`
-  - Line 2: "Caldi Makes It Simple." in `text-secondary` (teal)
-- Body text: The existing `APP_CONFIG.description` paragraph in muted-foreground
-- CTA row: The yellow primary `Button` ("Give Caldi AI a try!") linking to `/quiz`, next to a simple "How it works" text link that scrolls down to the features section (using `#features` anchor with `scroll-behavior: smooth`)
+### 2. `src/features/scanner/hooks/useManualAddCoffee.ts`
 
-**Right Column (Visual):**
-- The Duo and Goat illustration imported from `src/assets/characters/`, sized responsively
-- A floating speech bubble above the characters: white background, rounded-2xl, border-4, caldi-shadow, with teal text "Let's find your match!" -- uses `animate-float` for a gentle bobbing effect
+Custom hook handling the submission logic:
 
-**Background:**
-- `path-to-clarity.svg` as a full-bleed background (already imported), layered over the cream `--background` color
-- Subtle gradient overlay for readability
+1. Check if a roaster with the given brand name exists in `roasters` table
+2. If not, create one with `is_verified = false`, auto-generated slug, `user_id = current user`
+3. Upload image to storage bucket if provided
+4. Insert into `coffees` with `source = 'manual'`, `created_by = auth.uid()`, `is_verified = false`, linking `roaster_id`
+5. Return the new coffee ID for navigation
+6. Show toast on success/error
 
-**Mobile layout:**
-- Stacks vertically: badge, headline, body text, CTA, then illustration below with speech bubble
-- Illustration scales down appropriately
+### 3. `src/features/scanner/components/FlavorNotesInput.tsx`
 
-**Desktop layout:**
-- Two-column grid (`grid md:grid-cols-2`), left column vertically centered, right column with illustration
+A reusable tag/chip input component for entering multiple flavor notes. Users type a note and press Enter or click to add it as a chip. Chips can be removed with an X button.
 
----
+## Modified Files
 
-### 3. `src/pages/Index.tsx` -- Add anchor to FeaturesSection
+### `src/features/scanner/ScannerPage.tsx`
 
-Add `id="features"` to the FeaturesSection `<section>` element so the "How it works" link can scroll to it.
+- Add a tab-style toggle or secondary button at the top: "Scan" vs "Add Manually"
+- Use React state (`mode: 'scan' | 'manual'`) to switch between the scan uploader and the manual form
+- When in "manual" mode, render `ManualAddForm` instead of the scan uploader/tips
+- Auth check already exists -- no changes needed there
 
----
+### `src/features/scanner/components/index.ts`
 
-### 4. Remove unused imports
+- Export `ManualAddForm` and `FlavorNotesInput`
 
-- Remove `ChevronDown` import (scroll indicator removed)
-- Add `Coffee` icon import from lucide-react
-- Add the illustration asset import
+## User Flow
 
----
+```text
+Scanner Page
+  |
+  +-- [Scan] tab (default) --> existing scan flow
+  |
+  +-- [Add Manually] tab --> ManualAddForm
+        |
+        Fill required fields (name, brand)
+        Fill optional fields as desired
+        |
+        Submit --> useManualAddCoffee hook
+          |
+          +-- Find or create roaster
+          +-- Upload image (if any)
+          +-- Insert into coffees table
+          +-- Toast: "Coffee added!"
+          +-- Navigate to /coffee/:newId
+```
 
-### Technical Details
+## Technical Details
 
-- The strikethrough effect uses Tailwind's `line-through decoration-[color] decoration-[thickness]` utilities for the orange line crossing out "Complicated"
-- The speech bubble uses absolute positioning relative to the illustration container
-- Smooth scrolling to `#features` handled via `<a href="#features">` with CSS `scroll-behavior: smooth` on the html element
-- The `PageLayout` wrapper with `heroHasLogo` remains unchanged
-- `FeaturesSection` and `CTASection` remain as-is below the hero
-
+- **Roaster slug generation**: lowercase brand name, replace spaces/special chars with hyphens (e.g., "Blue Bottle Coffee" becomes "blue-bottle-coffee")
+- **Roaster lookup**: query `roasters` by `business_name` (case-insensitive) before creating a new one
+- **Image upload**: uses Supabase Storage `coffee-scans` bucket with path `manual/{userId}/{timestamp}.jpg`
+- **Form validation (Zod)**: name required (max 100 chars), brand required (max 100 chars), roast_level optional enum "1"-"5", processing_method optional string, flavor_notes optional string array, description optional (max 1000 chars)
+- **Navigation**: after successful insert, `navigate(\`/coffee/{newCoffeeId})` using existing coffee profile route

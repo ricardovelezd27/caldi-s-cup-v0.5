@@ -14,11 +14,6 @@ import ricardoImg from "@/assets/characters/ricardo-profile.png";
 const FeedbackPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setDialogOpen(true), 300);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <PageLayout>
       <Container className="py-12 space-y-20">

@@ -413,6 +413,54 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_error_reports: {
+        Row: {
+          coffee_brand: string | null
+          coffee_id: string
+          coffee_name: string | null
+          created_at: string
+          id: string
+          scan_id: string | null
+          suggested_edit: string
+          user_id: string
+        }
+        Insert: {
+          coffee_brand?: string | null
+          coffee_id: string
+          coffee_name?: string | null
+          created_at?: string
+          id?: string
+          scan_id?: string | null
+          suggested_edit: string
+          user_id: string
+        }
+        Update: {
+          coffee_brand?: string | null
+          coffee_id?: string
+          coffee_name?: string | null
+          created_at?: string
+          id?: string
+          scan_id?: string | null
+          suggested_edit?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_error_reports_coffee_id_fkey"
+            columns: ["coffee_id"]
+            isOneToOne: false
+            referencedRelation: "coffees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scan_error_reports_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_coffee_favorites: {
         Row: {
           added_at: string | null

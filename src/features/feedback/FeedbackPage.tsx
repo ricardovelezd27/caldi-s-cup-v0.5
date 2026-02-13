@@ -42,7 +42,7 @@ const FeedbackPage = () => {
             <img
               src={duoGoatImg}
               alt="Caldi and his goat companion"
-              className="w-64 md:w-80 animate-float"
+              className="w-64 md:w-[80%]"
             />
           </div>
         </section>
@@ -53,7 +53,7 @@ const FeedbackPage = () => {
             <img
               src={duoGoatImg}
               alt="The legend of Kaldi"
-              className="w-52 md:w-64 animate-float-delayed"
+              className="w-52 md:w-64"
             />
           </div>
           <CaldiCard className="space-y-4">

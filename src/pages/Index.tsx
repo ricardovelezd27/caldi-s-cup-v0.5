@@ -3,11 +3,14 @@ import { Button } from "@/components/ui/button";
 import { PageLayout } from "@/components/layout";
 import { Container, SectionHeading, CaldiCard } from "@/components/shared";
 import { APP_CONFIG, ROUTES } from "@/constants/app";
-import { Camera, Heart, Sparkles, Coffee } from "lucide-react";
+import { Coffee } from "lucide-react";
 
 // Import assets
 import pathToClarity from "@/assets/backgrounds/path-to-clarity.svg";
 import caldiScanning from "@/assets/characters/caldi-scanning.png";
+import illustrationScan from "@/assets/illustrations/illustration-scan-understand.png";
+import illustrationFavorites from "@/assets/illustrations/illustration-search-favorites.png";
+import illustrationTribe from "@/assets/illustrations/illustration-coffee-tribe.png";
 
 const HeroSection = () => {
   return (
@@ -88,19 +91,19 @@ const HeroSection = () => {
 
 const features = [
   {
-    icon: Camera,
+    image: illustrationScan,
     title: "Scan & Understand Any Coffee",
     description:
       "Snap a photo of the bag and instantly decode what makes it special: flavor notes, origin story, and all that confusing jargon translated into plain English.",
   },
   {
-    icon: Heart,
+    image: illustrationFavorites,
     title: "Never Forget a Great Coffee",
     description:
       "Trying samples at a fair or exploring cafés in your city? Save every coffee you discover so you can remember what you loved and actually find it again later.",
   },
   {
-    icon: Sparkles,
+    image: illustrationTribe,
     title: "Find Your Coffee Tribe",
     description:
       "Skip the intimidating jargon. Answer a few fun questions about how you like your mornings, and we'll match you to your perfect coffee personality, no expertise required.",
@@ -116,9 +119,7 @@ const FeaturesSection = () => {
           {features.map((feature, index) => (
             <CaldiCard key={feature.title} className="text-center px-4" style={{ animationDelay: `${index * 100}ms` }}>
               <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
-                  <feature.icon className="w-8 h-8 text-primary" />
-                </div>
+                <img src={feature.image} alt={feature.title} className="w-40 h-32 object-contain" />
               </div>
               <h3 className="text-2xl lg:text-3xl font-bangers text-foreground mb-3">{feature.title}</h3>
               <p className="text-muted-foreground font-inter text-base lg:text-lg">{feature.description}</p>

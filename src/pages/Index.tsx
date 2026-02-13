@@ -11,7 +11,7 @@ import caldiScanning from "@/assets/characters/caldi-scanning.png";
 
 const HeroSection = () => {
   return (
-    <section className="relative overflow-hidden py-12 md:py-16 lg:py-20">
+    <section className="relative overflow-hidden py-4 md:py-16 lg:py-20">
       {/* Path of Clarity background */}
       <div className="absolute inset-0 z-0 hero-background" style={{ backgroundImage: `url(${pathToClarity})` }} />
       <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/30 via-transparent to-background/50" />

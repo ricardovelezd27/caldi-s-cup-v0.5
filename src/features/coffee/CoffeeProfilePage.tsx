@@ -7,6 +7,7 @@ import { Container } from "@/components/shared";
 import { CoffeeProfile } from "./components/CoffeeProfile";
 import { CoffeeActions } from "./components/CoffeeActions";
 import { useCoffee } from "./hooks/useCoffee";
+import { useCoffeeScanMeta } from "./hooks/useCoffeeScanMeta";
 import type { Coffee, CoffeeScanMeta } from "./types";
 
 interface CoffeeRouteState {
@@ -18,6 +19,7 @@ interface CoffeeRouteState {
 /**
  * Unified Coffee Profile Page - single source of truth for all coffee display.
  * Accepts data via route state (from scanner) or fetches from DB (direct URL).
+ * Always fetches latest scan metadata so match score & jargon are shown consistently.
  */
 export function CoffeeProfilePage() {
   const { id } = useParams<{ id: string }>();
@@ -31,8 +33,11 @@ export function CoffeeProfilePage() {
   // Only fetch from DB if no route state was provided
   const { data: fetchedCoffee, isLoading, error } = useCoffee(hasScanData ? undefined : id);
 
+  // Always fetch scan meta from DB if not provided via route state
+  const { data: fetchedScanMeta } = useCoffeeScanMeta(id, !!routeState.scanMeta);
+
   const coffee = routeState.coffee ?? fetchedCoffee;
-  const scanMeta = routeState.scanMeta;
+  const scanMeta = routeState.scanMeta ?? fetchedScanMeta ?? undefined;
   const isNewCoffee = routeState.isNewCoffee ?? false;
 
   if (!hasScanData && isLoading) {

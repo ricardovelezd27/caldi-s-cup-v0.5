@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// Dynamic CORS - restrict to known origins in production
+// CORS helpers
 const getAllowedOrigin = (requestOrigin: string | null): string => {
   const allowedOrigins = [
     Deno.env.get("APP_ORIGIN"),
@@ -9,19 +9,16 @@ const getAllowedOrigin = (requestOrigin: string | null): string => {
     "https://lovableproject.com",
   ].filter(Boolean);
   
-  // In development, allow localhost
   if (requestOrigin?.includes("localhost") || requestOrigin?.includes("127.0.0.1")) {
     return requestOrigin;
   }
   
-  // Check if origin matches allowed list or their subdomains
   if (requestOrigin) {
     for (const allowed of allowedOrigins) {
       if (allowed && (requestOrigin === allowed || requestOrigin.endsWith(`.${new URL(allowed).host}`))) {
         return requestOrigin;
       }
     }
-    // Allow *.lovableproject.com and *.lovable.app subdomains
     if (
       requestOrigin.endsWith(".lovableproject.com") || 
       requestOrigin.endsWith(".lovable.app")
@@ -30,7 +27,6 @@ const getAllowedOrigin = (requestOrigin: string | null): string => {
     }
   }
   
-  // Default to first allowed origin or restrictive fallback
   return allowedOrigins[0] || "https://lovable.dev";
 };
 
@@ -42,7 +38,6 @@ const getCorsHeaders = (req: Request) => {
   };
 };
 
-// Tribe keywords for matching
 const TRIBE_KEYWORDS: Record<string, string[]> = {
   fox: ["Geisha", "Rare", "Competition", "Anaerobic", "90+", "Award", "Exclusive", "Limited", "Auction"],
   owl: ["Washed", "Light Roast", "Elevation", "MASL", "Typica", "Bourbon", "Clean", "Precision", "Single Origin"],
@@ -50,7 +45,6 @@ const TRIBE_KEYWORDS: Record<string, string[]> = {
   bee: ["House Blend", "Dark Roast", "Medium Roast", "Chocolate", "Nutty", "Caramel", "Bold", "Classic", "Smooth"],
 };
 
-// Roast level text to numeric mapping
 const ROAST_LEVEL_MAP: Record<string, string> = {
   "light": "1",
   "light roast": "1",
@@ -78,25 +72,20 @@ interface ScanRequest {
   userTribe: string | null;
 }
 
-// Input validation constants
 const MAX_STRING_LENGTH = 500;
 const MAX_BRAND_STORY_LENGTH = 2000;
 const MAX_ARRAY_LENGTH = 20;
 const MAX_JARGON_ENTRIES = 15;
 
-// Sanitize and validate string input
 const sanitizeString = (value: unknown, maxLength: number = MAX_STRING_LENGTH): string | null => {
   if (value === null || value === undefined) return null;
   if (typeof value !== "string") return null;
-  // Trim and limit length
   const sanitized = value.trim().slice(0, maxLength);
-  // Remove potential script tags and dangerous patterns
   return sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
                   .replace(/javascript:/gi, "")
                   .replace(/on\w+\s*=/gi, "");
 };
 
-// Sanitize and validate number input
 const sanitizeNumber = (value: unknown, min: number, max: number): number | null => {
   if (value === null || value === undefined) return null;
   const num = Number(value);
@@ -104,7 +93,6 @@ const sanitizeNumber = (value: unknown, min: number, max: number): number | null
   return Math.min(max, Math.max(min, num));
 };
 
-// Sanitize array of strings
 const sanitizeStringArray = (value: unknown, maxLength: number = MAX_ARRAY_LENGTH): string[] => {
   if (!Array.isArray(value)) return [];
   return value
@@ -113,7 +101,6 @@ const sanitizeStringArray = (value: unknown, maxLength: number = MAX_ARRAY_LENGT
     .filter((item): item is string => item !== null && item.length > 0);
 };
 
-// Sanitize jargon explanations object
 const sanitizeJargonExplanations = (value: unknown): Record<string, string> => {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const result: Record<string, string> = {};
@@ -128,45 +115,28 @@ const sanitizeJargonExplanations = (value: unknown): Record<string, string> => {
   return result;
 };
 
-// Sanitize roast level to 1-5 enum
 const sanitizeRoastLevel = (value: unknown): string | null => {
   if (value === null || value === undefined) return null;
-  
-  // If already a number 1-5, return as string
   if (typeof value === "number") {
     const num = Math.round(value);
     if (num >= 1 && num <= 5) return String(num);
     return null;
   }
-  
   if (typeof value !== "string") return null;
-  
   const cleaned = value.trim().toLowerCase();
-  
-  // Check if it's already a valid numeric string
   if (/^[1-5]$/.test(cleaned)) return cleaned;
-  
-  // Map text descriptions to numeric values
   return ROAST_LEVEL_MAP[cleaned] || null;
 };
 
-// Sanitize altitude to integer meters
 const sanitizeAltitude = (value: unknown): number | null => {
   if (value === null || value === undefined) return null;
-  
-  // If already a number, validate range
   if (typeof value === "number") {
     const num = Math.round(value);
-    if (num >= 0 && num <= 6000) return num; // Max altitude ~6000m
+    if (num >= 0 && num <= 6000) return num;
     return null;
   }
-  
   if (typeof value !== "string") return null;
-  
   const cleaned = value.trim().toLowerCase();
-  
-  // Extract number from strings like "1500m", "1200-1400 MASL", "1,500 meters"
-  // Take the first number or average of a range
   const rangeMatch = cleaned.match(/(\d[\d,]*)\s*[-–]\s*(\d[\d,]*)/);
   if (rangeMatch) {
     const low = parseInt(rangeMatch[1].replace(/,/g, ""), 10);
@@ -175,39 +145,30 @@ const sanitizeAltitude = (value: unknown): number | null => {
     if (avg >= 0 && avg <= 6000) return avg;
     return null;
   }
-  
-  // Extract single number
   const numMatch = cleaned.match(/(\d[\d,]*)/);
   if (numMatch) {
     const num = parseInt(numMatch[1].replace(/,/g, ""), 10);
     if (num >= 0 && num <= 6000) return num;
   }
-  
   return null;
 };
 
-// Simple string similarity (Levenshtein distance based)
 const stringSimilarity = (a: string, b: string): number => {
   if (!a || !b) return 0;
   const aLower = a.toLowerCase().trim();
   const bLower = b.toLowerCase().trim();
   if (aLower === bLower) return 100;
-  
-  // Simple word-based matching
   const aWords = aLower.split(/\s+/);
   const bWords = bLower.split(/\s+/);
-  
   let matches = 0;
   for (const word of aWords) {
     if (bWords.some(bWord => bWord.includes(word) || word.includes(bWord))) {
       matches++;
     }
   }
-  
   return Math.round((matches / Math.max(aWords.length, bWords.length)) * 100);
 };
 
-// Calculate match score between scanned coffee and existing catalog coffee
 interface ExistingCoffee {
   id: string;
   name: string;
@@ -223,20 +184,14 @@ const calculateMatchScore = (
   existing: ExistingCoffee
 ): number => {
   let score = 0;
-  
-  // Exact name + brand match = 100 (highest priority)
   if (scannedData.coffeeName && scannedData.brand) {
     const nameMatch = scannedData.coffeeName.toLowerCase() === existing.name.toLowerCase();
     const brandMatch = scannedData.brand.toLowerCase() === (existing.brand?.toLowerCase() || "");
     if (nameMatch && brandMatch) return 100;
   }
-  
-  // Name similarity (up to 50 points)
   if (scannedData.coffeeName && existing.name) {
     score += stringSimilarity(scannedData.coffeeName, existing.name) * 0.5;
   }
-  
-  // Brand match (20 points)
   if (scannedData.brand && existing.brand) {
     if (scannedData.brand.toLowerCase() === existing.brand.toLowerCase()) {
       score += 20;
@@ -244,39 +199,29 @@ const calculateMatchScore = (
       score += 10;
     }
   }
-  
-  // Origin country match (15 points)
   if (scannedData.originCountry && existing.origin_country) {
     if (scannedData.originCountry.toLowerCase() === existing.origin_country.toLowerCase()) {
       score += 15;
     }
   }
-  
-  // Origin region match (15 points)
   if (scannedData.originRegion && existing.origin_region) {
     if (scannedData.originRegion.toLowerCase() === existing.origin_region.toLowerCase()) {
       score += 15;
     }
   }
-  
   return Math.round(score);
 };
 
-// Firecrawl web enrichment
 async function enrichWithFirecrawl(
   coffeeName: string | null,
   brand: string | null
 ): Promise<{ brandStory: string | null; awards: string[]; website: string | null }> {
   const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
-  
   if (!FIRECRAWL_API_KEY || !brand) {
     return { brandStory: null, awards: [], website: null };
   }
-
   try {
     console.log(`Enriching with Firecrawl: ${brand}`);
-    
-    // Search for roaster website
     const searchResponse = await fetch("https://api.firecrawl.dev/v1/search", {
       method: "POST",
       headers: {
@@ -286,34 +231,24 @@ async function enrichWithFirecrawl(
       body: JSON.stringify({
         query: `${brand} coffee roaster official website`,
         limit: 3,
-        scrapeOptions: {
-          formats: ["markdown"],
-        },
+        scrapeOptions: { formats: ["markdown"] },
       }),
     });
-
     if (!searchResponse.ok) {
       console.error("Firecrawl search failed:", await searchResponse.text());
       return { brandStory: null, awards: [], website: null };
     }
-
     const searchData = await searchResponse.json();
     const firstResult = searchData.data?.[0];
-
     if (!firstResult) {
       return { brandStory: null, awards: [], website: null };
     }
-
-    // Extract useful info from the scraped content
     const markdown = firstResult.markdown || "";
     const website = firstResult.url || null;
-
-    // Use AI to extract brand story from the scraped content
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY || !markdown) {
       return { brandStory: null, awards: [], website };
     }
-
     const extractPrompt = `Extract a brief brand story (2-3 sentences max) and any coffee awards/certifications from this roaster's website content. Return JSON:
 {
   "brandStory": "Brief compelling description of the roaster",
@@ -322,7 +257,6 @@ async function enrichWithFirecrawl(
 
 Content:
 ${markdown.slice(0, 3000)}`;
-
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -334,20 +268,16 @@ ${markdown.slice(0, 3000)}`;
         messages: [{ role: "user", content: extractPrompt }],
       }),
     });
-
     if (!aiResponse.ok) {
       return { brandStory: null, awards: [], website };
     }
-
     const aiData = await aiResponse.json();
     const aiContent = aiData.choices?.[0]?.message?.content;
-
     try {
       const jsonMatch = aiContent.match(/```json\n?([\s\S]*?)\n?```/) || 
                        aiContent.match(/```\n?([\s\S]*?)\n?```/);
       const jsonString = jsonMatch ? jsonMatch[1] : aiContent;
       const extracted = JSON.parse(jsonString.trim());
-      
       return {
         brandStory: sanitizeString(extracted.brandStory, MAX_BRAND_STORY_LENGTH),
         awards: sanitizeStringArray(extracted.awards, 10),
@@ -365,7 +295,6 @@ ${markdown.slice(0, 3000)}`;
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -378,34 +307,32 @@ serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
     
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error("Supabase environment variables not configured");
     }
 
-    // Get auth token from request
+    // --- Determine if the request is authenticated or anonymous ---
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "No authorization header" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const token = authHeader?.replace("Bearer ", "") || "";
+    
+    let isAnonymous = true;
+    let userId: string | null = null;
+
+    // Only attempt user verification if we have a token that isn't the anon key
+    if (token && token !== SUPABASE_ANON_KEY) {
+      const supabaseAuth = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getUser(token);
+      
+      if (!claimsError && claimsData?.user) {
+        isAnonymous = false;
+        userId = claimsData.user.id;
+      }
     }
 
-    // Create Supabase client with service role for storage operations
+    // Service role client for all DB operations
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    
-    // Verify user
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-    
-    if (authError || !user) {
-      console.error("Auth error:", authError);
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     const { imageBase64, userTribe }: ScanRequest = await req.json();
 
@@ -416,36 +343,39 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Processing scan for user ${user.id}, tribe: ${userTribe}`);
+    console.log(`Processing scan: anonymous=${isAnonymous}, userId=${userId}, tribe=${userTribe}`);
 
-    // Step 1: Upload image to storage
-    const imageBuffer = Uint8Array.from(atob(imageBase64.split(",")[1] || imageBase64), c => c.charCodeAt(0));
-    const fileName = `${user.id}/${Date.now()}.jpg`;
+    // Step 1: Upload image to storage (authenticated only)
+    let imageUrl: string | null = null;
     
-    const { error: uploadError } = await supabaseClient.storage
-      .from("coffee-scans")
-      .upload(fileName, imageBuffer, {
-        contentType: "image/jpeg",
-        upsert: false,
-      });
+    if (!isAnonymous && userId) {
+      const imageBuffer = Uint8Array.from(atob(imageBase64.split(",")[1] || imageBase64), c => c.charCodeAt(0));
+      const fileName = `${userId}/${Date.now()}.jpg`;
+      
+      const { error: uploadError } = await supabaseClient.storage
+        .from("coffee-scans")
+        .upload(fileName, imageBuffer, {
+          contentType: "image/jpeg",
+          upsert: false,
+        });
 
-    if (uploadError) {
-      console.error("Upload error:", uploadError);
-      throw new Error(`Failed to upload image: ${uploadError.message}`);
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw new Error(`Failed to upload image: ${uploadError.message}`);
+      }
+
+      const { data: signedUrlData, error: signedUrlError } = await supabaseClient.storage
+        .from("coffee-scans")
+        .createSignedUrl(fileName, 60 * 60 * 24 * 365);
+
+      if (signedUrlError || !signedUrlData?.signedUrl) {
+        console.error("Signed URL error:", signedUrlError);
+        throw new Error("Failed to generate image URL");
+      }
+
+      imageUrl = signedUrlData.signedUrl;
+      console.log("Image uploaded with signed URL");
     }
-
-    // Generate signed URL (valid for 1 year) instead of public URL
-    const { data: signedUrlData, error: signedUrlError } = await supabaseClient.storage
-      .from("coffee-scans")
-      .createSignedUrl(fileName, 60 * 60 * 24 * 365); // 1 year expiry
-
-    if (signedUrlError || !signedUrlData?.signedUrl) {
-      console.error("Signed URL error:", signedUrlError);
-      throw new Error("Failed to generate image URL");
-    }
-
-    const imageUrl = signedUrlData.signedUrl;
-    console.log("Image uploaded with signed URL");
 
     // Step 2: Get tribe keywords for personalization
     const tribeKeywords = userTribe ? TRIBE_KEYWORDS[userTribe] || [] : [];
@@ -453,7 +383,7 @@ serve(async (req) => {
       ? `\n\nThe user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}. Consider these when calculating the tribe match score.`
       : "";
 
-    // Step 3: Call Gemini AI for image analysis with structured output
+    // Step 3: Call Gemini AI for image analysis
     const prompt = `You are a Coffee Sommelier AI. Analyze this coffee bag image and extract all visible information.
 
 Return a JSON object with the following structure (use null for fields you cannot determine):
@@ -549,7 +479,7 @@ Respond ONLY with the JSON object, no additional text.`;
       throw new Error("No content in AI response");
     }
 
-    // Parse AI response - handle potential markdown code blocks
+    // Parse AI response
     let parsedResult;
     try {
       const jsonMatch = aiContent.match(/```json\n?([\s\S]*?)\n?```/) || 
@@ -561,21 +491,15 @@ Respond ONLY with the JSON object, no additional text.`;
       throw new Error("Failed to parse AI response");
     }
 
-    // Step 4: Sanitize and validate ALL AI-generated content
+    // Step 4: Sanitize ALL AI-generated content
     const extractedData = parsedResult.extractedData || {};
     
-    // Sanitize structured origin fields
     const originCountry = sanitizeString(extractedData.originCountry, 100);
     const originRegion = sanitizeString(extractedData.originRegion, 100);
     const originFarm = sanitizeString(extractedData.originFarm, 200);
-    
-    // Sanitize roast level (new numeric format)
     const roastLevelNumeric = sanitizeRoastLevel(extractedData.roastLevel);
-    
-    // Sanitize altitude (new integer format)
     const altitudeMeters = sanitizeAltitude(extractedData.altitudeMeters || extractedData.altitude);
     
-    // Build legacy roast level string for backward compatibility
     const roastLevelNames: Record<string, string> = {
       "1": "Light",
       "2": "Light-Medium",
@@ -588,14 +512,12 @@ Respond ONLY with the JSON object, no additional text.`;
     const sanitizedData = {
       coffeeName: sanitizeString(extractedData.coffeeName),
       brand: sanitizeString(extractedData.brand),
-      // New structured fields
       originCountry,
       originRegion,
       originFarm,
       roastLevelNumeric,
       altitudeMeters,
       legacyRoastLevel,
-      // Other fields
       processingMethod: sanitizeString(extractedData.processingMethod, 100),
       variety: sanitizeString(extractedData.variety, 100),
       acidityScore: sanitizeNumber(parsedResult.flavorProfile?.acidityScore, 1, 5),
@@ -618,7 +540,7 @@ Respond ONLY with the JSON object, no additional text.`;
     });
 
     // Step 5: Calculate tribe match score
-    let tribeMatchScore = 50; // Default neutral score
+    let tribeMatchScore = 50;
     const matchReasons: string[] = [];
 
     if (userTribe && tribeKeywords.length > 0) {
@@ -632,20 +554,104 @@ Respond ONLY with the JSON object, no additional text.`;
         }
       }
       
-      // Calculate score based on keyword matches
       tribeMatchScore = Math.min(100, 50 + (matches * 15));
       
-      // Add contextual reasons
       if (matches === 0) {
         matchReasons.push("This coffee has different characteristics than your usual preferences");
-        tribeMatchScore = 30 + Math.floor(Math.random() * 20); // 30-50
+        tribeMatchScore = 30 + Math.floor(Math.random() * 20);
       } else if (matches >= 3) {
         matchReasons.push("This coffee aligns well with your taste profile!");
       }
     }
 
-    // Sanitize match reasons
     const sanitizedMatchReasons = sanitizeStringArray(matchReasons, 10);
+
+    // ============================================================
+    // ANONYMOUS PATH: Return AI results without any DB persistence
+    // ============================================================
+    if (isAnonymous) {
+      console.log("Anonymous scan — returning AI results without persistence");
+
+      // Still check catalog for matches (read-only)
+      let catalogMatchId: string | null = null;
+
+      if (sanitizedData.coffeeName || sanitizedData.brand) {
+        const { data: existingCoffees } = await supabaseClient
+          .from("coffees")
+          .select("id, name, brand, origin_country, origin_region, roast_level, processing_method")
+          .or(`name.ilike.%${sanitizedData.coffeeName || ''}%,brand.ilike.%${sanitizedData.brand || ''}%`)
+          .limit(20);
+
+        if (existingCoffees && existingCoffees.length > 0) {
+          for (const existing of existingCoffees) {
+            const score = calculateMatchScore(sanitizedData, existing);
+            if (score >= 80) {
+              catalogMatchId = existing.id;
+              break;
+            }
+          }
+        }
+      }
+
+      // Enrich with Firecrawl (no DB write, just data enrichment)
+      let enrichedBrandStory = sanitizedData.brandStory;
+      let enrichedAwards = sanitizedData.awards;
+
+      if (!catalogMatchId) {
+        const firecrawlData = await enrichWithFirecrawl(sanitizedData.coffeeName, sanitizedData.brand);
+        if (firecrawlData.brandStory && !enrichedBrandStory) {
+          enrichedBrandStory = firecrawlData.brandStory;
+        }
+        if (firecrawlData.awards.length > 0) {
+          enrichedAwards = [...new Set([...enrichedAwards, ...firecrawlData.awards])];
+        }
+      }
+
+      const tempId = crypto.randomUUID();
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            id: tempId,
+            coffeeId: catalogMatchId || tempId,
+            isNewCoffee: null, // unknown — not persisted
+            imageUrl: null,
+            coffeeName: sanitizedData.coffeeName,
+            brand: sanitizedData.brand,
+            originCountry: sanitizedData.originCountry,
+            originRegion: sanitizedData.originRegion,
+            originFarm: sanitizedData.originFarm,
+            roastLevelNumeric: sanitizedData.roastLevelNumeric,
+            altitudeMeters: sanitizedData.altitudeMeters,
+            origin: [sanitizedData.originCountry, sanitizedData.originRegion, sanitizedData.originFarm].filter(Boolean).join(", "),
+            roastLevel: sanitizedData.legacyRoastLevel,
+            altitude: sanitizedData.altitudeMeters ? `${sanitizedData.altitudeMeters}m` : null,
+            processingMethod: sanitizedData.processingMethod,
+            variety: sanitizedData.variety,
+            acidityScore: sanitizedData.acidityScore,
+            bodyScore: sanitizedData.bodyScore,
+            sweetnessScore: sanitizedData.sweetnessScore,
+            flavorNotes: sanitizedData.flavorNotes,
+            brandStory: enrichedBrandStory,
+            awards: enrichedAwards,
+            cuppingScore: sanitizedData.cuppingScore,
+            aiConfidence: sanitizedData.confidence,
+            tribeMatchScore,
+            matchReasons: sanitizedMatchReasons,
+            jargonExplanations: sanitizedData.jargonExplanations,
+            scannedAt: new Date().toISOString(),
+          },
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // ============================================================
+    // AUTHENTICATED PATH: Full persistence (existing behavior)
+    // ============================================================
 
     // Step 6: Check for existing coffee in master catalog
     let coffeeId: string | null = null;
@@ -653,7 +659,6 @@ Respond ONLY with the JSON object, no additional text.`;
 
     console.log("Checking for existing coffee in catalog...");
 
-    // Query for potential matches
     const { data: existingCoffees, error: searchError } = await supabaseClient
       .from("coffees")
       .select("id, name, brand, origin_country, origin_region, roast_level, processing_method")
@@ -662,10 +667,8 @@ Respond ONLY with the JSON object, no additional text.`;
 
     if (searchError) {
       console.error("Search error:", searchError);
-      // Continue without matching - will create new entry
     }
 
-    // Find best match
     let bestMatch: { id: string; score: number } | null = null;
 
     if (existingCoffees && existingCoffees.length > 0) {
@@ -685,7 +688,6 @@ Respond ONLY with the JSON object, no additional text.`;
     let roasterId: string | null = null;
 
     if (!bestMatch) {
-      // Try to enrich with web data for new coffees
       const firecrawlData = await enrichWithFirecrawl(sanitizedData.coffeeName, sanitizedData.brand);
       if (firecrawlData.brandStory && !enrichedBrandStory) {
         enrichedBrandStory = firecrawlData.brandStory;
@@ -694,17 +696,15 @@ Respond ONLY with the JSON object, no additional text.`;
         enrichedAwards = [...new Set([...enrichedAwards, ...firecrawlData.awards])];
       }
 
-      // Step 7b: Create or find roaster profile if brand is present
+      // Create or find roaster profile if brand is present
       if (sanitizedData.brand) {
         console.log(`Checking for existing roaster: ${sanitizedData.brand}`);
         
-        // Generate slug from brand name
         const roasterSlug = sanitizedData.brand
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/^-|-$/g, '');
         
-        // Check if roaster already exists by slug or business name
         const { data: existingRoaster, error: roasterSearchError } = await supabaseClient
           .from("roasters")
           .select("id, business_name")
@@ -720,25 +720,23 @@ Respond ONLY with the JSON object, no additional text.`;
           roasterId = existingRoaster.id;
           console.log(`Found existing roaster: ${existingRoaster.business_name} (${roasterId})`);
         } else {
-          // Create new roaster profile
           console.log(`Creating new roaster profile: ${sanitizedData.brand}`);
           
           const { data: newRoaster, error: insertRoasterError } = await supabaseClient
             .from("roasters")
             .insert({
-              user_id: user.id, // Associate with the user who scanned
+              user_id: userId!,
               business_name: sanitizedData.brand,
               slug: roasterSlug,
               description: enrichedBrandStory,
-              is_verified: false, // Scanned roasters start unverified
-              location_country: sanitizedData.originCountry, // Best guess from coffee origin
+              is_verified: false,
+              location_country: sanitizedData.originCountry,
             })
             .select("id")
             .single();
 
           if (insertRoasterError) {
             console.error("Failed to create roaster:", insertRoasterError);
-            // Continue without roaster - not critical
           } else {
             roasterId = newRoaster.id;
             console.log(`Created new roaster: ${sanitizedData.brand} (${roasterId})`);
@@ -748,12 +746,10 @@ Respond ONLY with the JSON object, no additional text.`;
     }
 
     if (bestMatch) {
-      // Use existing coffee
       coffeeId = bestMatch.id;
       isNewCoffee = false;
       console.log(`Matched existing coffee: ${coffeeId} (score: ${bestMatch.score})`);
     } else {
-      // Create new coffee in master catalog
       console.log("No match found, creating new coffee in catalog...");
       
       const { data: newCoffee, error: insertCoffeeError } = await supabaseClient
@@ -782,8 +778,8 @@ Respond ONLY with the JSON object, no additional text.`;
           scanned_image_url: imageUrl,
           source: "scan",
           is_verified: false,
-          created_by: user.id,
-          roaster_id: roasterId, // Link to roaster if created/found
+          created_by: userId,
+          roaster_id: roasterId,
         })
         .select("id")
         .single();
@@ -798,13 +794,13 @@ Respond ONLY with the JSON object, no additional text.`;
       console.log(`Created new coffee: ${coffeeId}${roasterId ? ` linked to roaster ${roasterId}` : ''}`);
     }
 
-    // Step 8: Save scan log to coffee_scans table
+    // Step 8: Save scan log
     const { data: scanRecord, error: insertError } = await supabaseClient
       .from("coffee_scans")
       .insert({
-        user_id: user.id,
+        user_id: userId!,
         coffee_id: coffeeId,
-        image_url: imageUrl,
+        image_url: imageUrl!,
         tribe_match_score: tribeMatchScore,
         match_reasons: sanitizedMatchReasons,
         ai_confidence: sanitizedData.confidence,
@@ -820,14 +816,12 @@ Respond ONLY with the JSON object, no additional text.`;
 
     console.log("Scan saved:", scanRecord.id, "linked to coffee:", coffeeId);
 
-    // Fetch the coffee data for the response
     const { data: coffeeData } = await supabaseClient
       .from("coffees")
       .select("*")
       .eq("id", coffeeId)
       .single();
 
-    // Return the complete scan result
     return new Response(
       JSON.stringify({
         success: true,
@@ -838,17 +832,14 @@ Respond ONLY with the JSON object, no additional text.`;
           imageUrl: imageUrl,
           coffeeName: coffeeData?.name ?? sanitizedData.coffeeName,
           brand: coffeeData?.brand ?? sanitizedData.brand,
-          // Structured fields
           originCountry: coffeeData?.origin_country ?? sanitizedData.originCountry,
           originRegion: coffeeData?.origin_region ?? sanitizedData.originRegion,
           originFarm: coffeeData?.origin_farm ?? sanitizedData.originFarm,
           roastLevelNumeric: coffeeData?.roast_level ?? sanitizedData.roastLevelNumeric,
           altitudeMeters: coffeeData?.altitude_meters ?? sanitizedData.altitudeMeters,
-          // Legacy fields for backward compatibility
           origin: [sanitizedData.originCountry, sanitizedData.originRegion, sanitizedData.originFarm].filter(Boolean).join(", "),
           roastLevel: sanitizedData.legacyRoastLevel,
           altitude: sanitizedData.altitudeMeters ? `${sanitizedData.altitudeMeters}m` : null,
-          // Other fields
           processingMethod: coffeeData?.processing_method ?? sanitizedData.processingMethod,
           variety: coffeeData?.variety ?? sanitizedData.variety,
           acidityScore: coffeeData?.acidity_score ?? sanitizedData.acidityScore,

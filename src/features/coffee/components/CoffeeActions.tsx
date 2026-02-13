@@ -31,10 +31,10 @@ export function CoffeeActions({
 
   const handleToggleFavorite = async () => {
     if (!user) {
+      navigate("/auth", { state: { from: "/scanner" } });
       toast({
-        title: "Sign in required",
-        description: "Please sign in to add favorites.",
-        variant: "destructive",
+        title: "Sign up to save this coffee",
+        description: "Create an account to add favorites and build your collection.",
       });
       return;
     }
@@ -58,10 +58,10 @@ export function CoffeeActions({
 
   const handleAddToInventory = async () => {
     if (!user) {
+      navigate("/auth", { state: { from: "/scanner" } });
       toast({
-        title: "Sign in required",
-        description: "Please sign in to add to inventory.",
-        variant: "destructive",
+        title: "Sign up to save this coffee",
+        description: "Create an account to track your inventory.",
       });
       return;
     }

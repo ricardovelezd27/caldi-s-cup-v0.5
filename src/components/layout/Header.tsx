@@ -41,19 +41,19 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            {/* Scanner Icon */}
+            {/* Label Scanner */}
             <NavLink
               to={ROUTES.scanner}
               className={({ isActive }) =>
-                `p-2 transition-colors ${
+                `flex items-center gap-1 text-sm font-medium transition-colors ${
                   isActive
-                    ? "text-primary"
+                    ? "text-primary font-bold"
                     : "text-foreground hover:text-primary"
                 }`
               }
-              aria-label="Coffee Scanner"
             >
-              <ScanLine className="w-6 h-6" />
+              <ScanLine className="w-5 h-5" />
+              Label Scanner
             </NavLink>
 
             {/* Who we are */}
@@ -124,7 +124,7 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                     }
                   >
                     <ScanLine className="w-5 h-5" />
-                    Scanner
+                    Label Scanner
                   </NavLink>
 
                   <NavLink

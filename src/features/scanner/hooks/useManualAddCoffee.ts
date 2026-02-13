@@ -18,12 +18,13 @@ interface ManualCoffeeData {
 }
 
 function generateSlug(name: string): string {
-  return name
+  const base = name
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
-    .slice(0, 80);
+    .slice(0, 60);
+  return `${base}-${Date.now()}`;
 }
 
 export function useManualAddCoffee() {

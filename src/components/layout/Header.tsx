@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, ShoppingCart, ScanLine, BookOpen } from "lucide-react";
-import { ROUTES, NAV_LINKS } from "@/constants/app";
-import { useCart } from "@/contexts/cart";
+import { Menu, MessageSquare, ScanLine, Users } from "lucide-react";
+import { FeedbackTrigger } from "@/features/feedback";
+import { ROUTES } from "@/constants/app";
 import { useAuth } from "@/contexts/auth";
 import { UserMenu } from "@/components/auth";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,6 @@ interface HeaderProps {
 
 export const Header = ({ showLogo = true }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { itemCount } = useCart();
   const { user, profile, signOut } = useAuth();
 
   return (
@@ -42,19 +41,6 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            <NavLink
-              to={ROUTES.marketplace}
-              className={({ isActive }) =>
-                `font-medium transition-colors ${
-                  isActive
-                    ? "text-primary font-bold"
-                    : "text-foreground hover:text-primary"
-                }`
-              }
-            >
-              Marketplace
-            </NavLink>
-
             {/* Scanner Icon */}
             <NavLink
               to={ROUTES.scanner}
@@ -70,34 +56,20 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
               <ScanLine className="w-6 h-6" />
             </NavLink>
 
-            {/* Recipes */}
+            {/* Who we are */}
             <NavLink
-              to={ROUTES.recipes}
+              to={ROUTES.contactFeedback}
               className={({ isActive }) =>
-                `p-2 transition-colors ${
+                `flex items-center gap-1 text-sm font-medium transition-colors ${
                   isActive
-                    ? "text-primary"
+                    ? "text-primary font-bold"
                     : "text-foreground hover:text-primary"
                 }`
               }
-              aria-label="Recipes"
             >
-              <BookOpen className="w-6 h-6" />
+              <Users className="w-5 h-5" />
+              Who we are
             </NavLink>
-
-            {/* Cart Icon */}
-            <Link
-              to={ROUTES.cart}
-              className="relative p-2 text-foreground hover:text-primary transition-colors"
-              aria-label={`Shopping cart with ${itemCount} items`}
-            >
-              <ShoppingCart className="w-6 h-6" />
-              {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                  {itemCount > 99 ? "99+" : itemCount}
-                </span>
-              )}
-            </Link>
 
             {/* Auth: User Menu or Sign In Button */}
             {user ? (
@@ -114,22 +86,8 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
             )}
           </div>
 
-          {/* Mobile: Cart Icon + Hamburger Menu */}
+          {/* Mobile: Hamburger Menu */}
           <div className="md:hidden flex items-center gap-2">
-            {/* Mobile Cart Icon */}
-            <Link
-              to={ROUTES.cart}
-              className="relative p-2 text-foreground hover:text-primary transition-colors"
-              aria-label={`Shopping cart with ${itemCount} items`}
-            >
-              <ShoppingCart className="w-6 h-6" />
-              {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                  {itemCount > 99 ? "99+" : itemCount}
-                </span>
-              )}
-            </Link>
-
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <button
@@ -155,20 +113,6 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                 </SheetHeader>
                 <nav className="flex flex-col gap-4">
                   <NavLink
-                    to={ROUTES.marketplace}
-                    onClick={() => setIsOpen(false)}
-                    className={({ isActive }) =>
-                      `text-lg font-medium py-2 transition-colors ${
-                        isActive
-                          ? "text-primary font-bold"
-                          : "text-foreground hover:text-primary"
-                      }`
-                    }
-                  >
-                    Marketplace
-                  </NavLink>
-                  
-                  <NavLink
                     to={ROUTES.scanner}
                     onClick={() => setIsOpen(false)}
                     className={({ isActive }) =>
@@ -184,7 +128,7 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                   </NavLink>
 
                   <NavLink
-                    to={ROUTES.recipes}
+                    to={ROUTES.contactFeedback}
                     onClick={() => setIsOpen(false)}
                     className={({ isActive }) =>
                       `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
@@ -194,25 +138,24 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                       }`
                     }
                   >
-                    <BookOpen className="w-5 h-5" />
-                    Recipes
+                    <Users className="w-5 h-5" />
+                    Who we are
                   </NavLink>
-                  
-                  {/* Cart Link in Mobile Menu */}
-                  <NavLink
-                    to={ROUTES.cart}
-                    onClick={() => setIsOpen(false)}
-                    className={({ isActive }) =>
-                      `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
-                        isActive
-                          ? "text-primary font-bold"
-                          : "text-foreground hover:text-primary"
-                      }`
-                    }
-                  >
-                    <ShoppingCart className="w-5 h-5" />
-                    Cart {itemCount > 0 && `(${itemCount})`}
-                  </NavLink>
+
+                  <FeedbackTrigger>
+                    {(open) => (
+                      <button
+                        onClick={() => {
+                          setIsOpen(false);
+                          open();
+                        }}
+                        className="text-lg font-medium py-2 transition-colors flex items-center gap-2 text-foreground hover:text-primary text-left"
+                      >
+                        <MessageSquare className="w-5 h-5" />
+                        Feedback
+                      </button>
+                    )}
+                  </FeedbackTrigger>
 
                   {/* Auth Link in Mobile Menu */}
                   {user ? (

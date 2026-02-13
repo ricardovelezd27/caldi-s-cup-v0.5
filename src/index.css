@@ -200,6 +200,19 @@
     @apply transition-transform duration-200 hover:scale-105;
   }
 
+  /* Animated strikethrough */
+  @keyframes strikethrough {
+    0%, 14% { width: 0; }
+    24% { width: 100%; }
+    90% { width: 100%; }
+    100% { width: 0; }
+  }
+
+  .animate-strikethrough {
+    animation: strikethrough 5s ease-out 0.7s infinite;
+    width: 0;
+  }
+
   /* Hero background styling */
   .hero-background {
     background-position: center;

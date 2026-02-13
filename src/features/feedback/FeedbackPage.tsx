@@ -45,11 +45,11 @@ const FeedbackPage = () => {
 
         {/* 2. Why "Caldi"? */}
         <section className="grid md:grid-cols-2 gap-8 items-center">
-          <div className="flex justify-center">
+          <div className="flex justify-center w-full">
             <img
               src={duoGoatImg}
               alt="The legend of Kaldi"
-              className="w-52 md:w-64"
+              className="w-64 md:w-[80%]"
             />
           </div>
           <CaldiCard className="space-y-4">

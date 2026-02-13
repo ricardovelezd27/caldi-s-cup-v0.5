@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { APP_CONFIG, ROUTES } from "@/constants/app";
+import { FeedbackTrigger } from "@/features/feedback";
 
 export const Footer = () => {
   return (
@@ -8,12 +9,24 @@ export const Footer = () => {
         <p className="text-muted-foreground font-inter">
           © {APP_CONFIG.year} {APP_CONFIG.name}. Brewed with love.
         </p>
-        <Link
-          to={ROUTES.contactFeedback}
-          className="text-muted-foreground hover:text-primary font-inter transition-colors"
-        >
-          Contact
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            to={ROUTES.contactFeedback}
+            className="text-muted-foreground hover:text-primary font-inter transition-colors"
+          >
+            Who we are
+          </Link>
+          <FeedbackTrigger>
+            {(open) => (
+              <button
+                onClick={open}
+                className="text-muted-foreground hover:text-primary font-inter transition-colors"
+              >
+                Give Feedback
+              </button>
+            )}
+          </FeedbackTrigger>
+        </div>
       </div>
     </footer>
   );

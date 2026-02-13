@@ -15,6 +15,8 @@ import { useAuth } from "@/contexts/auth";
 import { StarRating } from "./StarRating";
 import { UsageSummary, formatUsageSummaryText } from "./UsageSummary";
 import { useUsageSummary } from "../hooks/useUsageSummary";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface FeedbackDialogProps {
   open: boolean;
@@ -29,6 +31,7 @@ export const FeedbackDialog = ({ open, onOpenChange }: FeedbackDialogProps) => {
   const [message, setMessage] = useState("");
   const [includeUsage, setIncludeUsage] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const usageSummary = useUsageSummary(includeUsage && !!user);
 
@@ -41,26 +44,30 @@ export const FeedbackDialog = ({ open, onOpenChange }: FeedbackDialogProps) => {
       setMessage("");
       setIncludeUsage(false);
       setSubmitted(false);
+      setSubmitting(false);
     }
   }, [open, profile?.display_name, user?.email]);
 
-  const handleSubmit = () => {
-    const subject = rating
-      ? `Caldi Feedback (${rating}/5 stars)`
-      : "Caldi Feedback";
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    const summaryText = includeUsage && user ? formatUsageSummaryText(usageSummary) : null;
 
-    const bodyParts: string[] = [];
-    if (name) bodyParts.push(`Name: ${name}`);
-    if (email) bodyParts.push(`Email: ${email}`);
-    if (rating) bodyParts.push(`Rating: ${rating}/5 stars`);
-    bodyParts.push("", message);
+    const { error } = await supabase.from("feedback" as any).insert({
+      user_id: user?.id ?? null,
+      name: name || null,
+      email: email || null,
+      rating: rating || null,
+      message,
+      usage_summary: summaryText,
+    });
 
-    if (includeUsage && user) {
-      bodyParts.push("", formatUsageSummaryText(usageSummary));
+    setSubmitting(false);
+
+    if (error) {
+      toast.error("Failed to send feedback. Please try again.");
+      return;
     }
 
-    const mailto = `mailto:r.velez@caldi.coffee?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyParts.join("\n"))}`;
-    window.open(mailto, "_blank");
     setSubmitted(true);
   };
 
@@ -162,10 +169,10 @@ export const FeedbackDialog = ({ open, onOpenChange }: FeedbackDialogProps) => {
           {/* Submit */}
           <Button
             onClick={handleSubmit}
-            disabled={!message.trim()}
+            disabled={!message.trim() || submitting}
             className="w-full"
           >
-            Send Feedback
+            {submitting ? "Sending…" : "Send Feedback"}
           </Button>
         </div>
       </DialogContent>

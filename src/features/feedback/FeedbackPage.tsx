@@ -29,17 +29,17 @@ const FeedbackPage = () => {
               will actually taste good tomorrow morning? That's where Caldi's Cup was born.
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              We help you scan any coffee bag and instantly understand what's inside. But we're
-              building something bigger — tools that help you discover and enjoy coffee in your own
-              way. Think of us as your AI-powered coffee companion.
+              We help you scan any coffee bag and instantly understand what's inside. But we're building something bigger, tools that help you discover and enjoy coffee in your own way. Think of us as your AI-powered coffee companion.
+            
+
             </p>
           </div>
           <div className="hidden md:flex justify-center">
             <img
               src={vibrantImg}
               alt="Overwhelmed coffee lover surrounded by options"
-              className="w-64 md:w-[80%]"
-            />
+              className="w-64 md:w-[80%]" />
+
           </div>
         </section>
 
@@ -49,17 +49,17 @@ const FeedbackPage = () => {
             <img
               src={duoGoatImg}
               alt="The legend of Kaldi"
-              className="w-64 md:w-[80%]"
-            />
+              className="w-64 md:w-[80%]" />
+
           </div>
           <CaldiCard className="space-y-4">
             <h2 className="text-3xl md:text-4xl font-bangers tracking-wide">
               Why "Caldi"?
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              Legend has it that Kaldi, an Ethiopian goat herder, discovered coffee centuries ago
-              when he noticed his goats dancing with unusual energy after eating mysterious red
-              berries. Curious, he tried them himself — and the rest is history.
+              Legend has it that Kaldi, an Ethiopian goat herder, discovered coffee centuries ago when he noticed his goats dancing with unusual energy after eating mysterious red berries. Curious, he tried them himself, and the rest is history.
+            
+
             </p>
             <p className="text-muted-foreground leading-relaxed">
               We changed the K to a C as an homage to Colombia, the land of exceptional coffee and
@@ -77,8 +77,8 @@ const FeedbackPage = () => {
               <img
                 src={ricardoImg}
                 alt="Ricardo, Founder of Caldi's Cup"
-                className="w-full h-full object-cover"
-              />
+                className="w-full h-full object-cover" />
+
             </div>
           </div>
           <div className="space-y-4">
@@ -99,7 +99,7 @@ const FeedbackPage = () => {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-xl">🇨🇴</span>
-                <span><strong className="text-foreground">Transforming Colombia</strong> — One cup at a time</span>
+                <span><strong className="text-foreground">Transforming Colombia</strong>Transforming Colombia: One cup at a time</span>
               </li>
             </ul>
           </div>
@@ -113,8 +113,8 @@ const FeedbackPage = () => {
             </h2>
             <blockquote className="border-l-4 border-secondary pl-6 space-y-3">
               <p className="text-muted-foreground leading-relaxed italic">
-                I'm Colombian. Coffee is in my blood — I believe in coffee as the force that will
-                transform my country.
+                I'm Colombian. Coffee is in my blood, I believe in coffee as the force that will transform my country.
+              
               </p>
               <p className="text-muted-foreground leading-relaxed italic">
                 The farmers growing the world's finest coffee often can't make a living from it.
@@ -143,9 +143,9 @@ const FeedbackPage = () => {
             </CaldiCard>
             <CaldiCard className="space-y-3">
               <h3 className="text-2xl font-bangers tracking-wide">🌟 Vision</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                A world where technology brings you closer to your perfect cup — and every purchase
-                supports farmers building better futures.
+              <p className="text-muted-foreground leading-relaxed">A world where technology brings you closer to your perfect cup, and every purchase supports farmers building better futures.
+
+
               </p>
             </CaldiCard>
           </div>
@@ -158,17 +158,17 @@ const FeedbackPage = () => {
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { label: "Today", text: "Scan & Discover", accent: "bg-secondary" },
-              { label: "Tomorrow", text: "Personalized Brewing Guides & AI at every level — send us your ideas!", accent: "bg-accent" },
-              { label: "Future", text: "Your Complete Coffee Companion", accent: "bg-primary" },
-            ].map((step) => (
-              <div key={step.label} className="text-center space-y-3">
+            { label: "Today", text: "Scan & Discover", accent: "bg-secondary" },
+            { label: "Tomorrow", text: "Personalized Brewing Guides & AI at every level — send us your ideas!", accent: "bg-accent" },
+            { label: "Future", text: "Your Complete Coffee Companion", accent: "bg-primary" }].
+            map((step) =>
+            <div key={step.label} className="text-center space-y-3">
                 <span className={`inline-block px-4 py-1 rounded-full text-sm font-semibold ${step.accent} text-foreground`}>
                   {step.label}
                 </span>
                 <p className="text-muted-foreground">{step.text}</p>
               </div>
-            ))}
+            )}
           </div>
         </section>
 
@@ -201,8 +201,8 @@ const FeedbackPage = () => {
               href="https://www.linkedin.com/in/ricardo-velez-dominguez/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-secondary transition-colors"
-            >
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-secondary transition-colors">
+
               <Linkedin className="w-6 h-6" />
               <span>LinkedIn</span>
             </a>
@@ -210,8 +210,8 @@ const FeedbackPage = () => {
               href="https://www.instagram.com/caldis_cup/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-secondary transition-colors"
-            >
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-secondary transition-colors">
+
               <Instagram className="w-6 h-6" />
               <span>Instagram</span>
             </a>
@@ -220,8 +220,8 @@ const FeedbackPage = () => {
             size="lg"
             variant="outline"
             onClick={() => setDialogOpen(true)}
-            className="gap-2"
-          >
+            className="gap-2">
+
             <MessageSquare className="w-5 h-5" />
             Give Us Feedback
           </Button>
@@ -229,8 +229,8 @@ const FeedbackPage = () => {
 
         <FeedbackDialog open={dialogOpen} onOpenChange={setDialogOpen} />
       </Container>
-    </PageLayout>
-  );
+    </PageLayout>);
+
 };
 
 export default FeedbackPage;

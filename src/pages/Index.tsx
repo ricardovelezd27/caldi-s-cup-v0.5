@@ -7,7 +7,7 @@ import { Camera, Heart, Sparkles, Coffee } from "lucide-react";
 
 // Import assets
 import pathToClarity from "@/assets/backgrounds/path-to-clarity.svg";
-import duoAndGoat from "@/assets/characters/ilustration_Duo_and_Goat_NoBG_1.png";
+import caldiScanning from "@/assets/characters/caldi-scanning.png";
 
 const HeroSection = () => {
   return (
@@ -66,8 +66,8 @@ const HeroSection = () => {
 
             {/* Character illustration */}
             <img
-              src={duoAndGoat}
-              alt="Caldi's duo and goat mascots"
+              src={caldiScanning}
+              alt="Caldi scanning coffee illustration"
               className="w-80 sm:w-96 md:w-[28rem] lg:w-[32rem] mt-12 md:mt-8 drop-shadow-lg"
             />
           </div>

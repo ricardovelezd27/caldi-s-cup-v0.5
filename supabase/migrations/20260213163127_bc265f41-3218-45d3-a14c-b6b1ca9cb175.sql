@@ -1,0 +1,1 @@
+ALTER TABLE public.roasters DROP CONSTRAINT roasters_user_id_key;

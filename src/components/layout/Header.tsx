@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, ScanLine } from "lucide-react";
+import { Menu, ScanLine, Users } from "lucide-react";
 import { ROUTES } from "@/constants/app";
 import { useAuth } from "@/contexts/auth";
 import { UserMenu } from "@/components/auth";
@@ -53,6 +53,21 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
               aria-label="Coffee Scanner"
             >
               <ScanLine className="w-6 h-6" />
+            </NavLink>
+
+            {/* Who we are */}
+            <NavLink
+              to={ROUTES.contactFeedback}
+              className={({ isActive }) =>
+                `flex items-center gap-1 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "text-primary font-bold"
+                    : "text-foreground hover:text-primary"
+                }`
+              }
+            >
+              <Users className="w-5 h-5" />
+              Who we are
             </NavLink>
 
             {/* Auth: User Menu or Sign In Button */}
@@ -109,6 +124,21 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                   >
                     <ScanLine className="w-5 h-5" />
                     Scanner
+                  </NavLink>
+
+                  <NavLink
+                    to={ROUTES.contactFeedback}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
+                        isActive
+                          ? "text-primary font-bold"
+                          : "text-foreground hover:text-primary"
+                      }`
+                    }
+                  >
+                    <Users className="w-5 h-5" />
+                    Who we are
                   </NavLink>
 
                   {/* Auth Link in Mobile Menu */}

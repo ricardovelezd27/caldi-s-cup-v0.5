@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { PageLayout } from "@/components/layout";
 import { Container, SectionHeading, CaldiCard } from "@/components/shared";
 import { APP_CONFIG, ROUTES } from "@/constants/app";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Camera, Heart, Sparkles } from "lucide-react";
 
 // Import assets
-import caldiModernChest from "@/assets/characters/caldi-modern-chest.png";
 import pathToClarity from "@/assets/backgrounds/path-to-clarity.svg";
+
 const HeroSection = () => {
   return (
     <section className="relative flex flex-col overflow-hidden pb-8">
@@ -25,7 +25,6 @@ const HeroSection = () => {
         <div className="hidden md:flex justify-center">
           <div className="text-center flex flex-col items-center py-6">
             <div className="caldi-card-glass p-4 lg:p-6 max-w-2xl">
-              {/* Big centered logo */}
               <img
                 alt="Caldi's Cup"
                 className="h-28 lg:h-36 mx-auto mb-4"
@@ -39,17 +38,13 @@ const HeroSection = () => {
               <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-4 font-inter max-w-lg mx-auto">
                 {APP_CONFIG.description}
               </p>
-              <Button size="lg" className="text-xl lg:text-2xl font-bold px-8 py-6" asChild>
-                <Link to={ROUTES.quiz}>{APP_CONFIG.cta.primary}</Link>
-              </Button>
             </div>
           </div>
         </div>
 
-        {/* Mobile Layout - improved contrast */}
+        {/* Mobile Layout */}
         <div className="flex md:hidden flex-col items-center py-4">
           <div className="text-center bg-background/90 backdrop-blur-sm rounded-2xl p-4 mx-4 border-4 border-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
-            {/* Big centered logo */}
             <img
               alt="Caldi's Cup"
               className="h-30 sm:h-34 mx-auto mb-2"
@@ -60,9 +55,6 @@ const HeroSection = () => {
               <br />
               <span className="text-secondary">Caldi brings it back to clarity.</span>
             </h1>
-            <Button size="lg" className="text-lg font-bold" asChild>
-              <Link to={ROUTES.quiz}>{APP_CONFIG.cta.primary}</Link>
-            </Button>
           </div>
         </div>
       </Container>
@@ -77,40 +69,51 @@ const HeroSection = () => {
     </section>
   );
 };
-const ProblemSection = () => {
-  const problems = [
-    {
-      emoji: "😵‍💫",
-      title: "Too Many Choices",
-      description: "Hundreds of beans, roasts, and origins. Where do you even start?",
-    },
-    {
-      emoji: "🤔",
-      title: "Confusing Jargon",
-      description: '"Bright acidity with stone fruit notes" — what does that even mean?',
-    },
-    {
-      emoji: "😤",
-      title: "Hit or Miss",
-      description: "Bought a fancy bag and hated it? We've all been there.",
-    },
-  ];
+
+const features = [
+  {
+    icon: Camera,
+    title: "Scan & Understand Any Coffee",
+    description:
+      "Snap a photo of the bag and instantly decode what makes it special — flavor notes, origin story, and all that confusing jargon translated into plain English.",
+  },
+  {
+    icon: Heart,
+    title: "Never Forget a Great Coffee",
+    description:
+      "Trying samples at a fair or exploring cafés in your city? Save every coffee you discover so you can remember what you loved and actually find it again later.",
+  },
+  {
+    icon: Sparkles,
+    title: "Find Your Coffee Tribe",
+    description:
+      "Skip the intimidating jargon. Answer a few fun questions about how you like your mornings, and we'll match you to your perfect coffee personality — no expertise required.",
+  },
+] as const;
+
+const FeaturesSection = () => {
   return (
-    <section className="py-20 bg-secondary/5">
+    <section className="py-16 md:py-20 bg-secondary/5">
       <Container>
-        <SectionHeading title="Does this sound familiar?" color="accent" className="mb-12" />
+        <SectionHeading title="What Caldi Does For You" color="secondary" className="mb-12" />
         <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-          {problems.map((problem, index) => (
+          {features.map((feature, index) => (
             <CaldiCard
-              key={problem.title}
-              className="text-center"
-              style={{
-                animationDelay: `${index * 100}ms`,
-              }}
+              key={feature.title}
+              className="text-center px-4"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="text-5xl mb-4">{problem.emoji}</div>
-              <h3 className="text-2xl lg:text-3xl font-bangers text-foreground mb-3">{problem.title}</h3>
-              <p className="text-muted-foreground font-inter text-base lg:text-lg">{problem.description}</p>
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                  <feature.icon className="w-8 h-8 text-primary" />
+                </div>
+              </div>
+              <h3 className="text-2xl lg:text-3xl font-bangers text-foreground mb-3">
+                {feature.title}
+              </h3>
+              <p className="text-muted-foreground font-inter text-base lg:text-lg">
+                {feature.description}
+              </p>
             </CaldiCard>
           ))}
         </div>
@@ -118,56 +121,31 @@ const ProblemSection = () => {
     </section>
   );
 };
-const SolutionSection = () => {
-  return (
-    <section className="py-20">
-      <Container size="wide">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          {/* Left: Text content */}
-          <div className="order-2 md:order-1">
-            <SectionHeading title="Caldi Makes It Simple" color="secondary" align="left" className="mb-6" />
-            <p className="text-lg lg:text-xl text-muted-foreground font-inter mb-8">
-              Answer a few fun questions about how you like your coffee, and we'll match you with beans that fit your
-              vibe. It's like having a coffee-loving friend who just{" "}
-              <em className="text-secondary font-medium not-italic">gets</em> you.
-            </p>
-            <Button size="lg" className="font-bold" asChild>
-              <Link to={ROUTES.quiz}>{APP_CONFIG.cta.primary}</Link>
-            </Button>
-          </div>
 
-          {/* Right: Modern Caldi as guide */}
-          <div className="order-1 md:order-2 flex justify-center">
-            <div className="relative">
-              <img
-                src={caldiModernChest}
-                alt="Modern Caldi - your coffee guide"
-                className="w-96 md:w-[32rem] lg:w-[40rem] h-auto drop-shadow-lg"
-              />
-              {/* Single bag as the "prize" */}
-              {/* Speech bubble callout - positioned above character */}
-              <div className="absolute -top-16 sm:-top-20 left-1/2 -translate-x-1/2 bg-background border-4 border-foreground rounded-2xl px-4 py-2 sm:py-3 shadow-[4px_4px_0px_0px_hsl(var(--foreground))] whitespace-nowrap z-10">
-                <span className="font-bangers text-secondary text-base sm:text-lg lg:text-xl">
-                  "Let's find your match!"
-                </span>
-                {/* Speech bubble tail - centered pointing down */}
-                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[12px] border-t-foreground"></div>
-                <div className="absolute -bottom-[6px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-background"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+const CTASection = () => {
+  return (
+    <section className="py-16 md:py-24">
+      <Container className="flex justify-center">
+        <Button
+          size="lg"
+          className="text-2xl md:text-3xl font-bangers px-12 py-8 tracking-wide"
+          asChild
+        >
+          <Link to={ROUTES.quiz}>Give Caldi a Try!</Link>
+        </Button>
       </Container>
     </section>
   );
 };
+
 const Index = () => {
   return (
     <PageLayout heroHasLogo>
       <HeroSection />
-      <ProblemSection />
-      <SolutionSection />
+      <FeaturesSection />
+      <CTASection />
     </PageLayout>
   );
 };
+
 export default Index;

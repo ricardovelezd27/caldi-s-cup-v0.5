@@ -1,65 +1,74 @@
 
-# Redesign "Who We Are" Page (FeedbackPage)
+
+# Fix Scanner Flow: Scan First, Sign Up Later
 
 ## Overview
-Transform the current minimal "Who We Are" section into a rich, multi-section storytelling page with two-column layouts on desktop that stack on mobile. The page uses the existing Caldi design system (Bangers headings, Inter body, 4px borders, brand colors). Ricardo's profile photo and the Duo-and-Goat illustration are embedded as assets. The feedback dialog trigger and footer CTA remain intact.
+Currently, the Scanner page redirects unauthenticated users to `/auth` before they can do anything. This blocks users from experiencing the app's core value. The fix allows anyone to scan a coffee and see full AI results -- authentication is only required when they try to save (favorites/inventory).
 
-## New Asset
-- Copy `user-uploads://Profile_picture_Ricardo.png` to `src/assets/characters/ricardo-profile.png`
+## Changes
 
-## File Changes
+### 1. ScannerPage.tsx -- Remove Auth Gate
+- Remove the `useEffect` that redirects to `/auth` when no user (lines 29-34)
+- Remove the `if (!user) return null` guard (lines 55-57)
+- Keep the auth loading skeleton but only show it when `authLoading && user` (already logged in, waiting for profile)
+- Hide the "Manual Add" tab for unauthenticated users (requires DB writes)
+- Show the "Take the Quiz" alert only when `user && !profile?.coffee_tribe` (not for anonymous visitors)
 
-### `src/features/feedback/FeedbackPage.tsx` (full rewrite)
-The page becomes a long-scroll storytelling page with these sections:
+### 2. Edge Function (scan-coffee/index.ts) -- Support Anonymous Scans
+The edge function currently requires a valid user token and persists everything to the database. For anonymous users:
+- Detect anonymous mode: if no valid auth token, set `isAnonymous = true`
+- Skip image upload to storage (no user folder)
+- Skip database persistence (no `coffees` insert, no `coffee_scans` insert, no roaster creation)
+- Still perform the full AI analysis (Gemini call) and Firecrawl enrichment
+- Return the AI results with a temporary UUID (`crypto.randomUUID()`) instead of a DB-generated ID
+- Authenticated users continue to get full persistence as before
 
-1. **Hero / Intro**: "The Story Behind Your Next Great Cup"
-   - Two-column on desktop: text left, Duo-and-Goat illustration right
-   - Stacks on mobile (image on top, text below)
-   - Summarized text: the "coffee aisle frustration" origin story and AI companion pitch
+### 3. useCoffeeScanner.ts -- Remove User Check
+- Remove the `if (!user)` early return that blocks scanning (lines 38-41)
+- When no user session exists, use the Supabase anon key as the Authorization Bearer token instead of the session access token
+- Both paths call the same edge function endpoint
 
-2. **Why "Caldi"?**
-   - Two-column: illustration (Duo and Goat) left, text right (swap from hero)
-   - The Kaldi legend + Colombian "C" homage
-   - Uses `CaldiCard` for the story block
+### 4. CoffeeActions.tsx -- Redirect to Sign Up
+- When `user` is null and they click Favorites or Inventory: navigate to `/auth` with `state: { from: '/scanner' }` instead of just showing a toast
+- Use a friendlier message: "Sign up to save this coffee to your collection"
 
-3. **Why This Matters**
-   - Two-column: Ricardo's photo (circular, bordered) left, text right
-   - Ricardo's three passions as a compact list with emoji markers
-   - Uses secondary color accent
+## Technical Details
 
-4. **A Personal Mission** (quote block)
-   - Full-width `CaldiCard` with secondary/5 background
-   - Ricardo's personal statement about Colombia, coffee farmers, and coca farming
-   - Styled as a blockquote with left border accent
+### Edge Function Branching Logic
+```text
+Request arrives
+  |
+  +-- Extract auth header
+  +-- Try getClaims(token)
+  |     |
+  |     +-- Success: isAnonymous = false, userId = claims.sub
+  |     +-- Fail / no header / anon key: isAnonymous = true
+  |
+  +-- Validate imageBase64 input
+  |
+  +-- if (!isAnonymous): Upload image to storage
+  +-- Call Gemini AI (always)
+  +-- Sanitize AI output (always)
+  +-- Calculate tribe match (always, uses userTribe from request body)
+  |
+  +-- if (!isAnonymous):
+  |     +-- Check catalog for existing coffee match
+  |     +-- Enrich with Firecrawl if new
+  |     +-- Create/find roaster
+  |     +-- Insert into coffees table
+  |     +-- Insert into coffee_scans table
+  |     +-- Return full persisted result
+  |
+  +-- if (isAnonymous):
+        +-- Still check catalog for matches (read-only, uses service role)
+        +-- Enrich with Firecrawl if new (enrichment only, no DB write)
+        +-- Return AI results with temporary ID
+        +-- Set isNewCoffee = null (unknown, not persisted)
+```
 
-5. **Our North Star** (Mission / Vision)
-   - Two-column grid: Mission card left, Vision card right
-   - Each in a `CaldiCard` with heading and body text
-   - Stacks on mobile
+### Files Modified
+1. `src/features/scanner/ScannerPage.tsx` -- remove auth redirect and user guard
+2. `src/features/scanner/hooks/useCoffeeScanner.ts` -- remove user check, use anon key fallback
+3. `supabase/functions/scan-coffee/index.ts` -- add anonymous scan path
+4. `src/features/coffee/components/CoffeeActions.tsx` -- navigate to auth instead of toast
 
-6. **The Journey Ahead** (roadmap)
-   - Three-step horizontal layout on desktop (Today / Tomorrow / Future)
-   - Stacks vertically on mobile
-   - Simple text badges with secondary color highlights
-
-7. **CTA Section**
-   - "Ready to discover something extraordinary?"
-   - Reuses the same CTA button pattern from Index: `Give Caldi AI a Try!` linking to `/quiz`
-   - Signature line: "With purpose and passion, Ricardo, Founder"
-
-8. **Connect / Feedback**
-   - Social icons: LinkedIn and Instagram (using lucide `Linkedin` and `Instagram` icons) linking to the provided URLs
-   - "Give Us Feedback" button opening the `FeedbackDialog`
-
-### Design Patterns
-- All headings use `font-bangers tracking-wide`
-- Body text uses `text-muted-foreground` with Inter
-- Two-column sections use `grid md:grid-cols-2 gap-8 items-center`
-- Mobile stacking is automatic via the grid (single column default)
-- Colors stay within the brand palette: secondary (#4db6ac) for accents, primary (#F1C30F) for CTAs, foreground (#2C4450) for text
-- Images use rounded corners and the 4px border/shadow treatment where appropriate
-- Ricardo's photo is displayed as a circular avatar with border
-
-### No other files change
-- Header, Footer, App.tsx routes all remain the same
-- FeedbackDialog and FeedbackTrigger are unchanged

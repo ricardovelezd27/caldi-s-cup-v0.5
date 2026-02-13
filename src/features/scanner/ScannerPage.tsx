@@ -1,7 +1,10 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { AlertCircle, ScanLine, PenLine } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { useCoffeeScanner } from "./hooks/useCoffeeScanner";
-import { ScanUploader, ScanningTips, ScanProgress, ScanResults, TribeScannerPreview, ManualAddForm } from "./components";
+import { ScanUploader, ScanningTips, ScanProgress, TribeScannerPreview, ManualAddForm } from "./components";
+import { transformToCoffee, extractScanMeta } from "./utils/transformScanData";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -10,6 +13,7 @@ import { Container } from "@/components/shared";
 
 export function ScannerPage() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const { 
     scanCoffee, 
     scanResult, 
@@ -20,6 +24,20 @@ export function ScannerPage() {
     isComplete,
     isError,
   } = useCoffeeScanner();
+
+  // Navigate to coffee profile page on scan completion
+  useEffect(() => {
+    if (isComplete && scanResult) {
+      const coffee = transformToCoffee(scanResult);
+      const scanMeta = extractScanMeta(scanResult);
+      const isNewCoffee = scanResult.isNewCoffee ?? false;
+      const coffeeId = scanResult.coffeeId || scanResult.id;
+      navigate(`/coffee/${coffeeId}`, {
+        state: { coffee, scanMeta, isNewCoffee },
+        replace: true,
+      });
+    }
+  }, [isComplete, scanResult, navigate]);
 
   const handleImageSelected = (imageBase64: string) => {
     scanCoffee(imageBase64);
@@ -55,7 +73,7 @@ export function ScannerPage() {
           {/* ===== SCAN TAB ===== */}
           <TabsContent value="scan" className="space-y-8">
             {/* No Tribe Warning */}
-            {user && !profile?.coffee_tribe && !isComplete && (
+            {user && !profile?.coffee_tribe && (
               <Alert className="border-4 border-accent bg-accent/5">
                 <AlertCircle className="h-4 w-4 text-accent" />
                 <AlertTitle className="font-bangers">Take the Quiz First!</AlertTitle>
@@ -67,11 +85,6 @@ export function ScannerPage() {
                   to discover your coffee tribe.
                 </AlertDescription>
               </Alert>
-            )}
-
-            {/* Scan Complete - Show Results */}
-            {isComplete && scanResult && (
-              <ScanResults data={scanResult} onScanAgain={resetScan} />
             )}
 
             {/* Scanning in Progress */}

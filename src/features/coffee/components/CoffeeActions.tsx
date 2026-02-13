@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Package, ScanLine, Share2, Loader2, Eye, Check } from "lucide-react";
+import { Heart, Package, ScanLine, Share2, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth";
@@ -83,9 +83,6 @@ export function CoffeeActions({
     }
   };
 
-  const handleViewProfile = () => {
-    navigate(`/coffee/${coffee.id}`);
-  };
 
   const handleShare = async () => {
     try {
@@ -140,14 +137,6 @@ export function CoffeeActions({
 
       {/* Secondary Actions */}
       <div className="flex flex-wrap gap-3">
-        {/* Show "View Full Profile" when on scan results */}
-        {scanMeta && (
-          <Button variant="default" onClick={handleViewProfile} className="flex-1">
-            <Eye className="h-4 w-4 mr-2" />
-            View Full Profile
-          </Button>
-        )}
-
         {onScanAgain && (
           <Button variant="outline" onClick={onScanAgain} className="flex-1">
             <ScanLine className="h-4 w-4 mr-2" />

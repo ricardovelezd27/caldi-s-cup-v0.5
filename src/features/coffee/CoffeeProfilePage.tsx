@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -7,17 +7,35 @@ import { Container } from "@/components/shared";
 import { CoffeeProfile } from "./components/CoffeeProfile";
 import { CoffeeActions } from "./components/CoffeeActions";
 import { useCoffee } from "./hooks/useCoffee";
+import type { Coffee, CoffeeScanMeta } from "./types";
+
+interface CoffeeRouteState {
+  coffee?: Coffee;
+  scanMeta?: CoffeeScanMeta;
+  isNewCoffee?: boolean;
+}
 
 /**
- * Unified Coffee Profile Page - displays any coffee from the master catalog.
- * Used for viewing scanned coffees, favorites, and inventory items.
+ * Unified Coffee Profile Page - single source of truth for all coffee display.
+ * Accepts data via route state (from scanner) or fetches from DB (direct URL).
  */
 export function CoffeeProfilePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: coffee, isLoading, error } = useCoffee(id);
+  const location = useLocation();
 
-  if (isLoading) {
+  // Route state from scanner navigation
+  const routeState = (location.state as CoffeeRouteState) ?? {};
+  const hasScanData = !!routeState.coffee;
+
+  // Only fetch from DB if no route state was provided
+  const { data: fetchedCoffee, isLoading, error } = useCoffee(hasScanData ? undefined : id);
+
+  const coffee = routeState.coffee ?? fetchedCoffee;
+  const scanMeta = routeState.scanMeta;
+  const isNewCoffee = routeState.isNewCoffee ?? false;
+
+  if (!hasScanData && isLoading) {
     return (
       <PageLayout>
         <Container className="py-6">
@@ -65,17 +83,25 @@ export function CoffeeProfilePage() {
         {/* Back Button */}
         <Button
           variant="ghost"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(scanMeta ? "/scanner" : -1 as any)}
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          {scanMeta ? "Back to Scanner" : "Back"}
         </Button>
 
         {/* Coffee Profile */}
         <CoffeeProfile
           coffee={coffee}
-          actions={<CoffeeActions coffee={coffee} />}
+          scanMeta={scanMeta}
+          isNewCoffee={isNewCoffee}
+          actions={
+            <CoffeeActions
+              coffee={coffee}
+              scanMeta={scanMeta}
+              onScanAgain={scanMeta ? () => navigate("/scanner") : undefined}
+            />
+          }
         />
       </Container>
     </PageLayout>

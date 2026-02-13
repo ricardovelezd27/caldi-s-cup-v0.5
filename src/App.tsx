@@ -12,6 +12,7 @@ import { QuizPage, ResultsPage } from "./features/quiz";
 import { DashboardPage } from "./features/dashboard";
 import { ScannerPage } from "./features/scanner";
 import { CoffeeProfilePage } from "./features/coffee";
+import { FeedbackPage } from "./features/feedback";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/scanner" element={<ScannerPage />} />
               <Route path="/coffee/:id" element={<CoffeeProfilePage />} />
+              <Route path="/contact_feedback" element={<FeedbackPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, ScanLine, Users } from "lucide-react";
+import { Menu, MessageSquare, ScanLine, Users } from "lucide-react";
+import { FeedbackTrigger } from "@/features/feedback";
 import { ROUTES } from "@/constants/app";
 import { useAuth } from "@/contexts/auth";
 import { UserMenu } from "@/components/auth";
@@ -140,6 +141,21 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                     <Users className="w-5 h-5" />
                     Who we are
                   </NavLink>
+
+                  <FeedbackTrigger>
+                    {(open) => (
+                      <button
+                        onClick={() => {
+                          setIsOpen(false);
+                          open();
+                        }}
+                        className="text-lg font-medium py-2 transition-colors flex items-center gap-2 text-foreground hover:text-primary text-left"
+                      >
+                        <MessageSquare className="w-5 h-5" />
+                        Feedback
+                      </button>
+                    )}
+                  </FeedbackTrigger>
 
                   {/* Auth Link in Mobile Menu */}
                   {user ? (

@@ -3,66 +3,74 @@ import { Button } from "@/components/ui/button";
 import { PageLayout } from "@/components/layout";
 import { Container, SectionHeading, CaldiCard } from "@/components/shared";
 import { APP_CONFIG, ROUTES } from "@/constants/app";
-import { ChevronDown, Camera, Heart, Sparkles } from "lucide-react";
+import { Camera, Heart, Sparkles, Coffee } from "lucide-react";
 
 // Import assets
 import pathToClarity from "@/assets/backgrounds/path-to-clarity.svg";
+import duoAndGoat from "@/assets/characters/ilustration_Duo_and_Goat_NoBG_1.png";
 
 const HeroSection = () => {
   return (
-    <section className="relative flex flex-col overflow-hidden pb-8">
-      {/* Path of Clarity - THE DOMINANT BACKGROUND */}
+    <section className="relative overflow-hidden py-12 md:py-16 lg:py-20">
+      {/* Path of Clarity background */}
       <div className="absolute inset-0 z-0 hero-background" style={{ backgroundImage: `url(${pathToClarity})` }} />
-
-      {/* Subtle gradient overlay for text readability */}
       <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/30 via-transparent to-background/50" />
 
       <Container size="wide" className="relative z-10">
-        {/* Desktop Layout: Centered Content */}
-        <div className="hidden md:flex justify-center">
-          <div className="text-center flex flex-col items-center py-6">
-            <div className="caldi-card-glass p-4 lg:p-6 max-w-2xl">
-              <img
-                alt="Caldi's Cup"
-                className="h-28 lg:h-36 mx-auto mb-4"
-                src="/lovable-uploads/7b48f6d9-16e6-4b03-9ae7-ab7dbbf294c3.png"
-              />
-              <h1 className="text-3xl lg:text-4xl font-bangers mb-3 leading-tight hero-text-shadow">
-                <span className="text-foreground">Coffee got complicated.</span>
-                <br />
-                <span className="text-secondary">Caldi brings it back to clarity.</span>
-              </h1>
-              <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground mb-4 font-inter max-w-lg mx-auto">
-                {APP_CONFIG.description}
-              </p>
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+          {/* Left Column: Typography & Action */}
+          <div className="flex flex-col items-center md:items-start text-center md:text-left">
+            {/* Badge */}
+            <span className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-1.5 text-xs font-inter font-semibold tracking-wider mb-6">
+              <Coffee className="w-4 h-4" />
+              AI-POWERED COFFEE DISCOVERY
+            </span>
+
+            {/* Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bangers leading-tight mb-4 hero-text-shadow">
+              <span className="text-foreground">Coffee Got </span>
+              <span className="text-foreground line-through decoration-accent decoration-[6px]">Complicated</span>
+              <br />
+              <span className="text-secondary">Caldi Makes It Simple.</span>
+            </h1>
+
+            {/* Body text */}
+            <p className="text-lg lg:text-xl text-muted-foreground font-inter max-w-md mb-8">
+              {APP_CONFIG.description}
+            </p>
+
+            {/* CTA row */}
+            <div className="flex items-center gap-6">
+              <Button size="lg" className="text-xl font-bangers px-8 py-6 tracking-wide" asChild>
+                <Link to={ROUTES.quiz}>Give Caldi AI a Try!</Link>
+              </Button>
+              <a
+                href="#features"
+                className="text-muted-foreground hover:text-foreground font-inter text-sm underline underline-offset-4 transition-colors"
+              >
+                How it works
+              </a>
             </div>
           </div>
-        </div>
 
-        {/* Mobile Layout */}
-        <div className="flex md:hidden flex-col items-center py-4">
-          <div className="text-center bg-background/90 backdrop-blur-sm rounded-2xl p-4 mx-4 border-4 border-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
+          {/* Right Column: Illustration */}
+          <div className="relative flex justify-center md:justify-end">
+            {/* Speech bubble */}
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 md:left-auto md:right-8 md:translate-x-0 z-10 animate-float">
+              <div className="bg-background rounded-2xl border-4 border-border caldi-shadow px-5 py-3">
+                <p className="text-secondary font-bangers text-lg whitespace-nowrap">Let's find your match!</p>
+              </div>
+            </div>
+
+            {/* Character illustration */}
             <img
-              alt="Caldi's Cup"
-              className="h-30 sm:h-34 mx-auto mb-2"
-              src="/lovable-uploads/024919ae-9240-42e9-ab0f-5a6c8fedeaf5.png"
+              src={duoAndGoat}
+              alt="Caldi's duo and goat mascots"
+              className="w-64 sm:w-72 md:w-80 lg:w-96 mt-10 md:mt-6 drop-shadow-lg"
             />
-            <h1 className="text-2xl sm:text-3xl font-bangers mb-2 leading-tight">
-              <span className="text-foreground">Coffee got complicated.</span>
-              <br />
-              <span className="text-secondary">Caldi brings it back to clarity.</span>
-            </h1>
           </div>
         </div>
       </Container>
-
-      {/* Scroll Indicator */}
-      <div className="flex justify-center mt-4">
-        <div className="flex flex-col items-center">
-          <ChevronDown className="w-6 h-6 text-foreground" />
-          <ChevronDown className="w-6 h-6 text-foreground/50 -mt-3" />
-        </div>
-      </div>
     </section>
   );
 };
@@ -90,7 +98,7 @@ const features = [
 
 const FeaturesSection = () => {
   return (
-    <section className="py-16 md:py-20 bg-secondary/5">
+    <section id="features" className="py-16 md:py-20 bg-secondary/5 scroll-mt-16">
       <Container>
         <SectionHeading title="What Caldi Does For You" color="secondary" className="mb-12" />
         <div className="grid md:grid-cols-3 gap-8 lg:gap-12">

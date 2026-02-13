@@ -34,7 +34,7 @@ const FeedbackPage = () => {
               way. Think of us as your AI-powered coffee companion.
             </p>
           </div>
-          <div className="flex justify-center">
+          <div className="hidden md:flex justify-center">
             <img
               src={vibrantImg}
               alt="Overwhelmed coffee lover surrounded by options"

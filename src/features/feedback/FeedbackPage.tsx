@@ -83,7 +83,7 @@ const FeedbackPage = () => {
           </div>
           <div className="space-y-4">
             <h2 className="text-3xl md:text-4xl font-bangers tracking-wide">
-              Why This Matters
+              Meet the Team
             </h2>
             <p className="text-muted-foreground leading-relaxed">
               I'm Ricardo, and I built Caldi's Cup at the intersection of three passions:

@@ -1,76 +1,65 @@
 
-
-# Save Feedback to Database Instead of Mailto
+# Redesign "Who We Are" Page (FeedbackPage)
 
 ## Overview
-Replace the mailto-based submission in `FeedbackDialog` with a direct database insert, keeping the user in the app the entire time.
+Transform the current minimal "Who We Are" section into a rich, multi-section storytelling page with two-column layouts on desktop that stack on mobile. The page uses the existing Caldi design system (Bangers headings, Inter body, 4px borders, brand colors). Ricardo's profile photo and the Duo-and-Goat illustration are embedded as assets. The feedback dialog trigger and footer CTA remain intact.
 
-## Database Changes
+## New Asset
+- Copy `user-uploads://Profile_picture_Ricardo.png` to `src/assets/characters/ricardo-profile.png`
 
-### New table: `feedback`
+## File Changes
 
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| id | uuid | No | gen_random_uuid() |
-| user_id | uuid | Yes | NULL |
-| name | text | Yes | NULL |
-| email | text | Yes | NULL |
-| rating | integer | Yes | NULL |
-| message | text | No | -- |
-| usage_summary | text | Yes | NULL |
-| created_at | timestamptz | No | now() |
+### `src/features/feedback/FeedbackPage.tsx` (full rewrite)
+The page becomes a long-scroll storytelling page with these sections:
 
-- `user_id` is nullable to allow anonymous feedback (no auth required for this feature).
-- `usage_summary` stores the formatted text block if the user consented.
+1. **Hero / Intro**: "The Story Behind Your Next Great Cup"
+   - Two-column on desktop: text left, Duo-and-Goat illustration right
+   - Stacks on mobile (image on top, text below)
+   - Summarized text: the "coffee aisle frustration" origin story and AI companion pitch
 
-### RLS Policies
+2. **Why "Caldi"?**
+   - Two-column: illustration (Duo and Goat) left, text right (swap from hero)
+   - The Kaldi legend + Colombian "C" homage
+   - Uses `CaldiCard` for the story block
 
-- **INSERT**: Allow anyone (anonymous or authenticated) to insert. Anonymous users won't have a `user_id`.
-  - Policy: `true` (permissive for INSERT, since feedback is public-facing)
-- **SELECT**: Only admins can read feedback entries.
-  - Policy: `has_role(auth.uid(), 'admin')`
-- **No UPDATE/DELETE** policies for regular users.
+3. **Why This Matters**
+   - Two-column: Ricardo's photo (circular, bordered) left, text right
+   - Ricardo's three passions as a compact list with emoji markers
+   - Uses secondary color accent
 
-### Migration SQL
+4. **A Personal Mission** (quote block)
+   - Full-width `CaldiCard` with secondary/5 background
+   - Ricardo's personal statement about Colombia, coffee farmers, and coca farming
+   - Styled as a blockquote with left border accent
 
-```text
-CREATE TABLE public.feedback (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid,
-  name text,
-  email text,
-  rating integer,
-  message text NOT NULL,
-  usage_summary text,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
+5. **Our North Star** (Mission / Vision)
+   - Two-column grid: Mission card left, Vision card right
+   - Each in a `CaldiCard` with heading and body text
+   - Stacks on mobile
 
-ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
+6. **The Journey Ahead** (roadmap)
+   - Three-step horizontal layout on desktop (Today / Tomorrow / Future)
+   - Stacks vertically on mobile
+   - Simple text badges with secondary color highlights
 
-CREATE POLICY "Anyone can insert feedback"
-  ON public.feedback FOR INSERT
-  WITH CHECK (true);
+7. **CTA Section**
+   - "Ready to discover something extraordinary?"
+   - Reuses the same CTA button pattern from Index: `Give Caldi AI a Try!` linking to `/quiz`
+   - Signature line: "With purpose and passion, Ricardo, Founder"
 
-CREATE POLICY "Admins can view all feedback"
-  ON public.feedback FOR SELECT
-  USING (has_role(auth.uid(), 'admin'));
-```
+8. **Connect / Feedback**
+   - Social icons: LinkedIn and Instagram (using lucide `Linkedin` and `Instagram` icons) linking to the provided URLs
+   - "Give Us Feedback" button opening the `FeedbackDialog`
 
-## Code Change: `FeedbackDialog.tsx`
+### Design Patterns
+- All headings use `font-bangers tracking-wide`
+- Body text uses `text-muted-foreground` with Inter
+- Two-column sections use `grid md:grid-cols-2 gap-8 items-center`
+- Mobile stacking is automatic via the grid (single column default)
+- Colors stay within the brand palette: secondary (#4db6ac) for accents, primary (#F1C30F) for CTAs, foreground (#2C4450) for text
+- Images use rounded corners and the 4px border/shadow treatment where appropriate
+- Ricardo's photo is displayed as a circular avatar with border
 
-Replace the `handleSubmit` function:
-- Remove the mailto URL composition and `window.open` call
-- Instead, insert a row into the `feedback` table using the Supabase client
-- Include `user_id` (if logged in), `name`, `email`, `rating`, `message`, and optionally `usage_summary` (the formatted text)
-- Add a loading/submitting state to disable the button during the insert
-- Show a toast on error, or transition to the thank-you screen on success
-
-No other files need to change -- the dialog UI, triggers, footer/header integrations, and FeedbackPage all remain the same.
-
-## Summary of Changes
-
-| Artifact | Change |
-|----------|--------|
-| New migration | Create `feedback` table with RLS |
-| `FeedbackDialog.tsx` | Replace mailto with Supabase insert |
-
+### No other files change
+- Header, Footer, App.tsx routes all remain the same
+- FeedbackDialog and FeedbackTrigger are unchanged

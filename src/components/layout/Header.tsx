@@ -145,9 +145,10 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                   <FeedbackTrigger>
                     {(open) => (
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setIsOpen(false);
-                          open();
+                          setTimeout(() => open(), 300);
                         }}
                         className="text-lg font-medium py-2 transition-colors flex items-center gap-2 text-foreground hover:text-primary text-left"
                       >

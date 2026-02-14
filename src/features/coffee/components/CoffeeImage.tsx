@@ -4,9 +4,10 @@ interface CoffeeImageProps {
   src: string | null;
   alt: string;
   className?: string;
+  isTemporaryImage?: boolean;
 }
 
-export function CoffeeImage({ src, alt, className }: CoffeeImageProps) {
+export function CoffeeImage({ src, alt, className, isTemporaryImage }: CoffeeImageProps) {
   return (
     <div
       className={cn(
@@ -15,12 +16,22 @@ export function CoffeeImage({ src, alt, className }: CoffeeImageProps) {
       )}
     >
       {src ? (
-        <img
-          src={src}
-          alt={alt}
-          className="h-full w-full object-cover"
-          loading="lazy"
-        />
+        <>
+          <img
+            src={src}
+            alt={alt}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+          {isTemporaryImage && (
+            <div className="absolute bottom-0 inset-x-0 bg-foreground/80 px-3 py-2 text-center">
+              <p className="text-background text-sm font-medium">
+                <a href="/auth" className="underline text-primary font-bold">Sign in</a>
+                {" "}to save this image to your collection
+              </p>
+            </div>
+          )}
+        </>
       ) : (
         <div className="flex h-full w-full items-center justify-center">
           <span className="text-muted-foreground text-sm">No image</span>

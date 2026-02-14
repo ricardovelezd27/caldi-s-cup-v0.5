@@ -1,114 +1,76 @@
 
+# User Profile Page
 
-# Display Scanned Image for Anonymous Users with Sign-In Prompt
-
-## Problem
-When a non-authenticated user scans a coffee, the resulting profile page shows "No image" because the edge function returns `imageUrl: null` for anonymous users (the image is not uploaded to storage). The original base64 image data is available on the frontend but is discarded.
-
-## Solution
-1. Pass the original base64 image through the scanner flow so it displays on the profile page
-2. Add a sign-in banner overlay on the image when the source is a temporary (non-persisted) data URL
+## Overview
+Create a dedicated `/profile` route that displays and allows editing of user information, styled consistently with the coffee profile page layout (image left, info right on desktop). The page is protected (requires authentication) and accessible from the burger menu on mobile and the UserMenu dropdown on desktop.
 
 ## Changes
 
-### 1. ScannerPage -- pass the original base64 image along with route state
-Store the base64 image from `handleImageSelected` and include it in the route state when navigating to the coffee profile. If the scan result has no `imageUrl`, use the base64 as a fallback.
+### 1. Database Migration -- add `city` column to `profiles`
+Add an optional `city` text column to the existing `profiles` table so users can store their location.
 
-**File**: `src/features/scanner/ScannerPage.tsx`
-- Store the selected base64 in a `useRef`
-- In the navigation effect, if `coffee.imageUrl` is null, set it to the base64 data URL
-- Add a flag `isTemporaryImage` to route state so the profile page knows to show the sign-in prompt
-
-### 2. CoffeeProfilePage -- pass the temporary image flag down
-Accept `isTemporaryImage` from route state and pass it through to `CoffeeProfile`.
-
-**File**: `src/features/coffee/CoffeeProfilePage.tsx`
-- Add `isTemporaryImage` to `CoffeeRouteState`
-- Pass it as a prop to `CoffeeProfile`
-
-### 3. CoffeeProfile -- forward the flag to CoffeeImage
-
-**File**: `src/features/coffee/components/CoffeeProfile.tsx`
-- Accept `isTemporaryImage` prop
-- Pass it to `CoffeeImage`
-
-### 4. CoffeeImage -- show sign-in overlay when image is temporary
-Add a semi-transparent overlay banner at the bottom of the image saying "Sign in to save this image" when `isTemporaryImage` is true.
-
-**File**: `src/features/coffee/components/CoffeeImage.tsx`
-- Accept `isTemporaryImage` prop
-- Render an overlay with a sign-in message and a link to `/auth`
-
-## Technical Details
-
-### ScannerPage.tsx
-```tsx
-const imageBase64Ref = useRef<string | null>(null);
-
-const handleImageSelected = (imageBase64: string) => {
-  imageBase64Ref.current = imageBase64;
-  scanCoffee(imageBase64);
-};
-
-// In the navigation effect:
-useEffect(() => {
-  if (isComplete && scanResult) {
-    const coffee = transformToCoffee(scanResult);
-    const scanMeta = extractScanMeta(scanResult);
-    const isNewCoffee = scanResult.isNewCoffee ?? false;
-    const coffeeId = scanResult.coffeeId || scanResult.id;
-
-    // If no image URL from backend (anonymous), use the original base64
-    let isTemporaryImage = false;
-    if (!coffee.imageUrl && imageBase64Ref.current) {
-      const base64 = imageBase64Ref.current;
-      coffee.imageUrl = base64.startsWith("data:") ? base64 : `data:image/jpeg;base64,${base64}`;
-      isTemporaryImage = true;
-    }
-
-    navigate(`/coffee/${coffeeId}`, {
-      state: { coffee, scanMeta, isNewCoffee, isTemporaryImage },
-      replace: true,
-    });
-  }
-}, [isComplete, scanResult, navigate]);
+```sql
+ALTER TABLE public.profiles ADD COLUMN city text DEFAULT NULL;
 ```
 
-### CoffeeImage.tsx
-```tsx
-interface CoffeeImageProps {
-  src: string | null;
-  alt: string;
-  className?: string;
-  isTemporaryImage?: boolean;
-}
+### 2. New Feature: `src/features/profile/ProfilePage.tsx`
+The main profile page, protected by `RequireAuth`. Uses the same two-column layout as `CoffeeProfile`:
+- **Left column**: User avatar (large, square, matching `CoffeeImage` style with 4px borders and sticker shadow). Shows initials fallback if no avatar. Below it, the tribe card (if they have one) with emoji, name, title, and fun description from `tribes.ts`.
+- **Right column**: 
+  - **Display Name** (editable text input)
+  - **Email** (read-only, shown as text)
+  - **City** (optional text input)
+  - **Coffee Tribe section**: If tribe exists, show tribe emoji + name + description. If no tribe, show a prompt card: "Discover your coffee personality!" with a CTA linking to `/quiz`.
+  - **Change Password section**: Current password not required (uses Supabase `updateUser`). Two fields: new password + confirm password. Submit button.
+  - **Save Profile button**: Saves display_name and city to `profiles` table via Supabase update + calls `refreshProfile()`.
 
-export function CoffeeImage({ src, alt, className, isTemporaryImage }: CoffeeImageProps) {
-  return (
-    <div className={cn("relative aspect-square ...", className)}>
-      {src ? (
-        <>
-          <img src={src} alt={alt} ... />
-          {isTemporaryImage && (
-            <div className="absolute bottom-0 inset-x-0 bg-foreground/80 px-3 py-2 text-center">
-              <p className="text-background text-sm font-medium">
-                <a href="/auth" className="underline text-primary font-bold">Sign in</a>
-                {" "}to save this image to your collection
-              </p>
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="flex ..."><span>No image</span></div>
-      )}
-    </div>
-  );
-}
-```
+### 3. New Component: `src/features/profile/components/ProfileAvatar.tsx`
+Reusable large avatar display matching the `CoffeeImage` container style (aspect-square, 4px border, sticker shadow). Shows `AvatarImage` or initials fallback.
 
-### Files Modified
-1. `src/features/scanner/ScannerPage.tsx` -- store base64, inject into coffee data for anon users
-2. `src/features/coffee/CoffeeProfilePage.tsx` -- forward `isTemporaryImage` from route state
-3. `src/features/coffee/components/CoffeeProfile.tsx` -- accept and pass `isTemporaryImage` prop
-4. `src/features/coffee/components/CoffeeImage.tsx` -- render sign-in overlay when temporary
+### 4. New Component: `src/features/profile/components/ProfileInfoForm.tsx`
+Form with fields for display name, city, email (read-only). Uses react-hook-form + zod validation. Save button updates `profiles` table and calls `refreshProfile()`.
 
+### 5. New Component: `src/features/profile/components/ChangePasswordForm.tsx`
+Simple form: new password + confirm password. Uses `supabase.auth.updateUser({ password })`. Shows success/error toast. Zod validation for min length and match.
+
+### 6. New Component: `src/features/profile/components/TribeSection.tsx`
+If user has `coffee_tribe` in profile, renders the tribe card with emoji, name, title, and the fun description from `TRIBES` data. If no tribe, renders a prompt card with text "You haven't discovered your coffee tribe yet!" and a "Take the Quiz" button linking to `/quiz`.
+
+### 7. Route Registration -- `src/App.tsx`
+Add `/profile` route pointing to `ProfilePage`, wrapped in `RequireAuth`.
+
+### 8. Route Constant -- `src/constants/app.ts`
+Add `profile: "/profile"` to `ROUTES`.
+
+### 9. Navigation Updates
+
+**Header.tsx (mobile burger menu)**: Add a "My Profile" link (with `User` icon) visible only when `user` is authenticated, placed before "Sign Out".
+
+**UserMenu.tsx (desktop dropdown)**: Update the existing "Profile" link from `/dashboard/profile` to `/profile`.
+
+### 10. Update `src/integrations/supabase/types.ts`
+This file auto-updates. The `city` column will appear after migration.
+
+## File Summary
+
+| File | Action |
+|------|--------|
+| `supabase/migrations/...` | New -- add `city` column |
+| `src/features/profile/ProfilePage.tsx` | New -- main page |
+| `src/features/profile/components/ProfileAvatar.tsx` | New -- avatar display |
+| `src/features/profile/components/ProfileInfoForm.tsx` | New -- name/city/email form |
+| `src/features/profile/components/ChangePasswordForm.tsx` | New -- password change form |
+| `src/features/profile/components/TribeSection.tsx` | New -- tribe display or quiz CTA |
+| `src/features/profile/components/index.ts` | New -- barrel export |
+| `src/features/profile/index.ts` | New -- barrel export |
+| `src/constants/app.ts` | Edit -- add `profile` route |
+| `src/App.tsx` | Edit -- add `/profile` route |
+| `src/components/layout/Header.tsx` | Edit -- add Profile link in mobile menu |
+| `src/components/auth/UserMenu.tsx` | Edit -- fix Profile link path |
+
+## Technical Notes
+- Password change uses `supabase.auth.updateUser({ password })` which does not require the current password when the user has an active session.
+- Profile save updates the `profiles` table directly (RLS policy `Users can update own profile` already covers this).
+- The `city` column is nullable with no default, keeping it fully optional.
+- All forms use Zod schemas for validation and `sonner` toasts for feedback.
+- The page follows the existing `PageLayout` + `Container` pattern for consistent header/footer rendering.

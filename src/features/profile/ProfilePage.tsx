@@ -2,7 +2,7 @@ import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared/Container";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { useAuth } from "@/contexts/auth";
-import { ProfileAvatar, ProfileInfoForm, ChangePasswordForm, TribeSection } from "./components";
+import { ProfileAvatar, ProfileInfoForm, ChangePasswordForm, TribeSection, FavoritesTable, InventoryTable } from "./components";
 import { Separator } from "@/components/ui/separator";
 
 function ProfileContent() {
@@ -39,6 +39,13 @@ function ProfileContent() {
 
             <ChangePasswordForm />
           </div>
+        </div>
+
+        <Separator className="my-8" />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-8">
+          <FavoritesTable />
+          <InventoryTable />
         </div>
       </Container>
     </PageLayout>

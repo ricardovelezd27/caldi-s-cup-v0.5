@@ -7,6 +7,8 @@ const getAllowedOrigin = (requestOrigin: string | null): string => {
     Deno.env.get("APP_ORIGIN"),
     "https://lovable.dev",
     "https://lovableproject.com",
+    "https://caldi.coffee",
+    "https://www.caldi.coffee",
   ].filter(Boolean);
   
   if (requestOrigin?.includes("localhost") || requestOrigin?.includes("127.0.0.1")) {

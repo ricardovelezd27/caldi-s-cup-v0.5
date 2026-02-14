@@ -33,6 +33,7 @@ export const ScenarioScreen = ({
             key={option.id}
             id={option.id}
             label={option.label}
+            description={option.description}
             tribe={option.tribe}
             iconName={option.icon}
             isSelected={selectedTribe === option.tribe}

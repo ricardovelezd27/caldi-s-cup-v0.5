@@ -36,6 +36,7 @@ const iconMap: Record<string, ComponentType<{ className?: string }>> = {
 interface VisualCardProps {
   id: string;
   label: string;
+  description?: string;
   tribe: CoffeeTribe;
   iconName: string;
   isSelected: boolean;
@@ -44,6 +45,7 @@ interface VisualCardProps {
 
 export const VisualCard = ({ 
   label, 
+  description,
   tribe, 
   iconName, 
   isSelected, 
@@ -80,6 +82,13 @@ export const VisualCard = ({
       )}>
         {label}
       </span>
+
+      {/* Description */}
+      {description && (
+        <span className="text-xs text-muted-foreground text-center leading-snug mt-1 line-clamp-3">
+          {description}
+        </span>
+      )}
 
       {/* Selection indicator */}
       {isSelected && (

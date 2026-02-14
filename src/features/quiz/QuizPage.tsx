@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HelpCircle } from 'lucide-react';
 import { PageLayout } from '@/components/layout';
@@ -39,6 +39,13 @@ export const QuizPage = () => {
     startQuiz,
     getResult,
   } = useQuizState();
+
+  // Auto-start quiz when onboarding completes (skip hook screen)
+  useEffect(() => {
+    if (onboardingComplete && state.currentStep === 0) {
+      startQuiz();
+    }
+  }, [onboardingComplete, state.currentStep, startQuiz]);
 
   const { currentStep, totalSteps, responses, isComplete } = state;
   const currentScenario = QUIZ_SCENARIOS[currentStep - 1];

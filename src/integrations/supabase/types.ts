@@ -265,6 +265,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           brewing_level: Database["public"]["Enums"]["brewing_level"] | null
+          city: string | null
           coffee_tribe: Database["public"]["Enums"]["coffee_tribe"] | null
           created_at: string
           display_name: string | null
@@ -277,6 +278,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           brewing_level?: Database["public"]["Enums"]["brewing_level"] | null
+          city?: string | null
           coffee_tribe?: Database["public"]["Enums"]["coffee_tribe"] | null
           created_at?: string
           display_name?: string | null
@@ -289,6 +291,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           brewing_level?: Database["public"]["Enums"]["brewing_level"] | null
+          city?: string | null
           coffee_tribe?: Database["public"]["Enums"]["coffee_tribe"] | null
           created_at?: string
           display_name?: string | null

@@ -1,0 +1,73 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Lock } from "lucide-react";
+
+const passwordSchema = z
+  .object({
+    password: z.string().min(6, "At least 6 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+
+type PasswordFormData = z.infer<typeof passwordSchema>;
+
+export function ChangePasswordForm() {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<PasswordFormData>({
+    resolver: zodResolver(passwordSchema),
+  });
+
+  const onSubmit = async (data: PasswordFormData) => {
+    const { error } = await supabase.auth.updateUser({ password: data.password });
+
+    if (error) {
+      toast.error(error.message || "Failed to update password");
+      return;
+    }
+
+    toast.success("Password updated!");
+    reset();
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <h3 className="text-lg flex items-center gap-2">
+        <Lock className="h-5 w-5" />
+        Change Password
+      </h3>
+
+      <div>
+        <Label htmlFor="password">New Password</Label>
+        <Input id="password" type="password" {...register("password")} />
+        {errors.password && (
+          <p className="text-destructive text-xs mt-1">{errors.password.message}</p>
+        )}
+      </div>
+
+      <div>
+        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
+        {errors.confirmPassword && (
+          <p className="text-destructive text-xs mt-1">{errors.confirmPassword.message}</p>
+        )}
+      </div>
+
+      <Button type="submit" variant="outline" disabled={isSubmitting}>
+        {isSubmitting ? "Updating..." : "Update Password"}
+      </Button>
+    </form>
+  );
+}

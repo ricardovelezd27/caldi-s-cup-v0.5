@@ -14,6 +14,7 @@ interface CoffeeRouteState {
   coffee?: Coffee;
   scanMeta?: CoffeeScanMeta;
   isNewCoffee?: boolean;
+  isTemporaryImage?: boolean;
 }
 
 /**
@@ -39,6 +40,7 @@ export function CoffeeProfilePage() {
   const coffee = routeState.coffee ?? fetchedCoffee;
   const scanMeta = routeState.scanMeta ?? fetchedScanMeta ?? undefined;
   const isNewCoffee = routeState.isNewCoffee ?? false;
+  const isTemporaryImage = routeState.isTemporaryImage ?? false;
 
   if (!hasScanData && isLoading) {
     return (
@@ -100,6 +102,7 @@ export function CoffeeProfilePage() {
           coffee={coffee}
           scanMeta={scanMeta}
           isNewCoffee={isNewCoffee}
+          isTemporaryImage={isTemporaryImage}
           actions={
             <CoffeeActions
               coffee={coffee}

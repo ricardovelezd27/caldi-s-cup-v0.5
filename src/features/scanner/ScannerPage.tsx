@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, ScanLine, PenLine } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
@@ -25,6 +25,8 @@ export function ScannerPage() {
     isError,
   } = useCoffeeScanner();
 
+  const imageBase64Ref = useRef<string | null>(null);
+
   // Navigate to coffee profile page on scan completion
   useEffect(() => {
     if (isComplete && scanResult) {
@@ -32,14 +34,24 @@ export function ScannerPage() {
       const scanMeta = extractScanMeta(scanResult);
       const isNewCoffee = scanResult.isNewCoffee ?? false;
       const coffeeId = scanResult.coffeeId || scanResult.id;
+
+      // If no image URL from backend (anonymous), use the original base64
+      let isTemporaryImage = false;
+      if (!coffee.imageUrl && imageBase64Ref.current) {
+        const base64 = imageBase64Ref.current;
+        coffee.imageUrl = base64.startsWith("data:") ? base64 : `data:image/jpeg;base64,${base64}`;
+        isTemporaryImage = true;
+      }
+
       navigate(`/coffee/${coffeeId}`, {
-        state: { coffee, scanMeta, isNewCoffee },
+        state: { coffee, scanMeta, isNewCoffee, isTemporaryImage },
         replace: true,
       });
     }
   }, [isComplete, scanResult, navigate]);
 
   const handleImageSelected = (imageBase64: string) => {
+    imageBase64Ref.current = imageBase64;
     scanCoffee(imageBase64);
   };
 

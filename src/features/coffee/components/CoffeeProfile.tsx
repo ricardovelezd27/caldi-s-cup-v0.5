@@ -20,6 +20,8 @@ interface CoffeeProfileProps {
   actions?: ReactNode;
   /** Additional content to display in accordions */
   accordionContent?: ReactNode;
+  /** Whether the image is a temporary base64 (not persisted) */
+  isTemporaryImage?: boolean;
 }
 
 /**
@@ -32,6 +34,7 @@ export function CoffeeProfile({
   isNewCoffee = false,
   actions,
   accordionContent,
+  isTemporaryImage = false,
 }: CoffeeProfileProps) {
   const hasAccordionContent = scanMeta || accordionContent || true;
 
@@ -46,6 +49,7 @@ export function CoffeeProfile({
             <CoffeeImage
               src={coffee.imageUrl}
               alt={coffee.name}
+              isTemporaryImage={isTemporaryImage}
             />
           </div>
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, MessageSquare, ScanLine, Users } from "lucide-react";
+import { Menu, MessageSquare, ScanLine, User, Users } from "lucide-react";
 import { FeedbackTrigger } from "@/features/feedback";
 import { ROUTES } from "@/constants/app";
 import { useAuth } from "@/contexts/auth";
@@ -160,15 +160,31 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
 
                   {/* Auth Link in Mobile Menu */}
                   {user ? (
-                    <button
+                    <>
+                      <NavLink
+                        to={ROUTES.profile}
+                        onClick={() => setIsOpen(false)}
+                        className={({ isActive }) =>
+                          `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
+                            isActive
+                              ? "text-primary font-bold"
+                              : "text-foreground hover:text-primary"
+                          }`
+                        }
+                      >
+                        <User className="w-5 h-5" />
+                        My Profile
+                      </NavLink>
+                      <button
                       onClick={() => {
                         signOut();
                         setIsOpen(false);
                       }}
                       className="text-lg font-medium py-2 transition-colors text-left text-destructive hover:text-destructive/80"
                     >
-                      Sign Out
-                    </button>
+                        Sign Out
+                      </button>
+                    </>
                   ) : (
                     <NavLink
                       to={ROUTES.auth}

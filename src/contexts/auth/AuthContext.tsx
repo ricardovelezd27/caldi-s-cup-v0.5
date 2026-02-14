@@ -19,6 +19,7 @@ interface Profile {
   onboarded_at: string | null;
   weekly_goal_target: number;
   brewing_level: BrewingLevel;
+  city: string | null;
   created_at: string;
   updated_at: string;
 }

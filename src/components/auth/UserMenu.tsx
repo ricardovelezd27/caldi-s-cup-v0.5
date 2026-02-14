@@ -65,7 +65,7 @@ export const UserMenu = ({ displayName, avatarUrl, email, onSignOut }: UserMenuP
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to={ROUTES.dashboard + "/profile"} className="cursor-pointer">
+          <Link to={ROUTES.profile} className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             Profile
           </Link>

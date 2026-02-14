@@ -1,103 +1,114 @@
 
 
-# Homogenize Coffee Profile Page Across All Entry Points
+# Display Scanned Image for Anonymous Users with Sign-In Prompt
 
 ## Problem
-When clicking a coffee from dashboard widgets (Recent Scans, Favorites, Inventory), the resulting Coffee Profile Page looks different from the scan-result version of the same page. The visual inconsistency comes from:
-1. Inventory widget items are not clickable (no link to `/coffee/:id`)
-2. Sections like Coffee Attributes, Flavor Notes, and Description silently hide when data is null instead of showing a "No data available" placeholder
-3. The scan-result version shows extra sections (Match Score, Jargon Buster, "Scan Another") that disappear on the DB-fetched version, creating a jarring difference
+When a non-authenticated user scans a coffee, the resulting profile page shows "No image" because the edge function returns `imageUrl: null` for anonymous users (the image is not uploaded to storage). The original base64 image data is available on the frontend but is discarded.
 
 ## Solution
-Ensure every coffee entry point links to the same `/coffee/:id` route AND that the profile page renders consistently regardless of how it was reached -- always showing all section headings with "No data available" fallbacks for missing fields.
+1. Pass the original base64 image through the scanner flow so it displays on the profile page
+2. Add a sign-in banner overlay on the image when the source is a temporary (non-persisted) data URL
 
 ## Changes
 
-### 1. InventoryWidget -- Make items clickable
-Wrap each inventory item in a `Link` to `/coffee/:id` so users can tap through to the profile page, matching the behavior of Recent Scans and Favorites widgets.
+### 1. ScannerPage -- pass the original base64 image along with route state
+Store the base64 image from `handleImageSelected` and include it in the route state when navigating to the coffee profile. If the scan result has no `imageUrl`, use the base64 as a fallback.
 
-### 2. CoffeeAttributes -- Show placeholder when scores are null
-Instead of returning `null` when all scores are missing, always render the "Coffee Attributes" card. Individual sliders show "No data available" when their value is null.
+**File**: `src/features/scanner/ScannerPage.tsx`
+- Store the selected base64 in a `useRef`
+- In the navigation effect, if `coffee.imageUrl` is null, set it to the base64 data URL
+- Add a flag `isTemporaryImage` to route state so the profile page knows to show the sign-in prompt
 
-### 3. CoffeeFlavorNotes -- Show placeholder when empty
-Instead of returning `null` when there are no flavor notes, render the card with a "No flavor notes detected" message.
+### 2. CoffeeProfilePage -- pass the temporary image flag down
+Accept `isTemporaryImage` from route state and pass it through to `CoffeeProfile`.
 
-### 4. CoffeeDescription -- Show placeholder when empty
-Instead of returning `null`, render the section with "No description available" text.
+**File**: `src/features/coffee/CoffeeProfilePage.tsx`
+- Add `isTemporaryImage` to `CoffeeRouteState`
+- Pass it as a prop to `CoffeeProfile`
 
-### 5. CoffeeInfo -- Show fallbacks for missing fields
-When origin, roast level, or other metadata fields are null, show "Unknown" or "Not specified" instead of hiding them entirely.
+### 3. CoffeeProfile -- forward the flag to CoffeeImage
+
+**File**: `src/features/coffee/components/CoffeeProfile.tsx`
+- Accept `isTemporaryImage` prop
+- Pass it to `CoffeeImage`
+
+### 4. CoffeeImage -- show sign-in overlay when image is temporary
+Add a semi-transparent overlay banner at the bottom of the image saying "Sign in to save this image" when `isTemporaryImage` is true.
+
+**File**: `src/features/coffee/components/CoffeeImage.tsx`
+- Accept `isTemporaryImage` prop
+- Render an overlay with a sign-in message and a link to `/auth`
 
 ## Technical Details
 
-### InventoryWidget.tsx (lines 62-85)
-Wrap each item `div` in a `Link to={/coffee/${item.coffee?.id}}`:
+### ScannerPage.tsx
 ```tsx
-<Link
-  key={item.id}
-  to={`/coffee/${item.coffee?.id}`}
-  className="p-2 rounded-lg border border-border bg-muted/30 text-center hover:bg-muted/50 transition-colors"
->
-  {/* ...existing content... */}
-</Link>
-```
+const imageBase64Ref = useRef<string | null>(null);
 
-### CoffeeAttributes.tsx (lines 32-51)
-Remove the early `return null` when `!hasAttributes`. Always render the card. Update `AttributeSlider` to show "No data" text when value is null:
-```tsx
-function AttributeSlider({ label, value, leftLabel, rightLabel }) {
-  if (value === null) {
-    return (
-      <div className="space-y-2">
-        <div className="flex justify-between items-center text-sm">
-          <span className="font-medium text-foreground">{label}</span>
-          <span className="text-muted-foreground italic text-xs">No data available</span>
-        </div>
-      </div>
-    );
+const handleImageSelected = (imageBase64: string) => {
+  imageBase64Ref.current = imageBase64;
+  scanCoffee(imageBase64);
+};
+
+// In the navigation effect:
+useEffect(() => {
+  if (isComplete && scanResult) {
+    const coffee = transformToCoffee(scanResult);
+    const scanMeta = extractScanMeta(scanResult);
+    const isNewCoffee = scanResult.isNewCoffee ?? false;
+    const coffeeId = scanResult.coffeeId || scanResult.id;
+
+    // If no image URL from backend (anonymous), use the original base64
+    let isTemporaryImage = false;
+    if (!coffee.imageUrl && imageBase64Ref.current) {
+      const base64 = imageBase64Ref.current;
+      coffee.imageUrl = base64.startsWith("data:") ? base64 : `data:image/jpeg;base64,${base64}`;
+      isTemporaryImage = true;
+    }
+
+    navigate(`/coffee/${coffeeId}`, {
+      state: { coffee, scanMeta, isNewCoffee, isTemporaryImage },
+      replace: true,
+    });
   }
-  // ...existing slider rendering
-}
+}, [isComplete, scanResult, navigate]);
 ```
 
-### CoffeeFlavorNotes.tsx (lines 11-14)
-Replace the early `return null` with a placeholder:
+### CoffeeImage.tsx
 ```tsx
-if (!coffee.flavorNotes || coffee.flavorNotes.length === 0) {
+interface CoffeeImageProps {
+  src: string | null;
+  alt: string;
+  className?: string;
+  isTemporaryImage?: boolean;
+}
+
+export function CoffeeImage({ src, alt, className, isTemporaryImage }: CoffeeImageProps) {
   return (
-    <div className="border-4 border-border rounded-lg p-4 shadow-[...] bg-card space-y-3">
-      <h3 className="font-bangers text-lg tracking-wide">Flavor Notes</h3>
-      <p className="text-sm text-muted-foreground italic">No flavor notes detected for this coffee.</p>
+    <div className={cn("relative aspect-square ...", className)}>
+      {src ? (
+        <>
+          <img src={src} alt={alt} ... />
+          {isTemporaryImage && (
+            <div className="absolute bottom-0 inset-x-0 bg-foreground/80 px-3 py-2 text-center">
+              <p className="text-background text-sm font-medium">
+                <a href="/auth" className="underline text-primary font-bold">Sign in</a>
+                {" "}to save this image to your collection
+              </p>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="flex ..."><span>No image</span></div>
+      )}
     </div>
   );
 }
-```
-
-### CoffeeDescription.tsx (lines 9-11)
-Replace early `return null` with placeholder text:
-```tsx
-if (!coffee.description) {
-  return (
-    <div className="space-y-2">
-      <h3 className="font-bangers text-lg tracking-wide">About This Coffee</h3>
-      <p className="text-muted-foreground italic">No description available for this coffee.</p>
-    </div>
-  );
-}
-```
-
-### CoffeeInfo.tsx (lines 44-48)
-Always show origin line even when empty:
-```tsx
-<div className="flex items-center gap-2 text-muted-foreground">
-  <MapPin className="h-4 w-4 shrink-0" />
-  <span>{origin || "Origin not specified"}</span>
-</div>
 ```
 
 ### Files Modified
-1. `src/features/dashboard/widgets/InventoryWidget.tsx` -- make items clickable links
-2. `src/features/coffee/components/CoffeeAttributes.tsx` -- always render, show "No data" per slider
-3. `src/features/coffee/components/CoffeeFlavorNotes.tsx` -- show placeholder when empty
-4. `src/features/coffee/components/CoffeeDescription.tsx` -- show placeholder when empty
-5. `src/features/coffee/components/CoffeeInfo.tsx` -- show fallback for missing origin
+1. `src/features/scanner/ScannerPage.tsx` -- store base64, inject into coffee data for anon users
+2. `src/features/coffee/CoffeeProfilePage.tsx` -- forward `isTemporaryImage` from route state
+3. `src/features/coffee/components/CoffeeProfile.tsx` -- accept and pass `isTemporaryImage` prop
+4. `src/features/coffee/components/CoffeeImage.tsx` -- render sign-in overlay when temporary
+

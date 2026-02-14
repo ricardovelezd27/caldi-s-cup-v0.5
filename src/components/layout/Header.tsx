@@ -56,7 +56,24 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
               Label Scanner
             </NavLink>
 
-            {/* Who we are */}
+            {/* My Profile (authenticated only) */}
+            {user && (
+              <NavLink
+                to={ROUTES.profile}
+                className={({ isActive }) =>
+                  `flex items-center gap-1 text-sm font-medium transition-colors ${
+                    isActive
+                      ? "text-primary font-bold"
+                      : "text-foreground hover:text-primary"
+                  }`
+                }
+              >
+                <User className="w-5 h-5" />
+                My Profile
+              </NavLink>
+            )}
+
+            {/* Our Story */}
             <NavLink
               to={ROUTES.contactFeedback}
               className={({ isActive }) =>
@@ -68,7 +85,7 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
               }
             >
               <Users className="w-5 h-5" />
-              Who we are
+              Our Story
             </NavLink>
 
             {/* Auth: User Menu or Sign In Button */}
@@ -127,6 +144,24 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                     Label Scanner
                   </NavLink>
 
+                  {/* My Profile (authenticated only, 2nd position) */}
+                  {user && (
+                    <NavLink
+                      to={ROUTES.profile}
+                      onClick={() => setIsOpen(false)}
+                      className={({ isActive }) =>
+                        `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
+                          isActive
+                            ? "text-primary font-bold"
+                            : "text-foreground hover:text-primary"
+                        }`
+                      }
+                    >
+                      <User className="w-5 h-5" />
+                      My Profile
+                    </NavLink>
+                  )}
+
                   <NavLink
                     to={ROUTES.contactFeedback}
                     onClick={() => setIsOpen(false)}
@@ -139,7 +174,7 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                     }
                   >
                     <Users className="w-5 h-5" />
-                    Who we are
+                    Our Story
                   </NavLink>
 
                   <FeedbackTrigger>
@@ -160,31 +195,15 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
 
                   {/* Auth Link in Mobile Menu */}
                   {user ? (
-                    <>
-                      <NavLink
-                        to={ROUTES.profile}
-                        onClick={() => setIsOpen(false)}
-                        className={({ isActive }) =>
-                          `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
-                            isActive
-                              ? "text-primary font-bold"
-                              : "text-foreground hover:text-primary"
-                          }`
-                        }
-                      >
-                        <User className="w-5 h-5" />
-                        My Profile
-                      </NavLink>
-                      <button
+                    <button
                       onClick={() => {
                         signOut();
                         setIsOpen(false);
                       }}
                       className="text-lg font-medium py-2 transition-colors text-left text-destructive hover:text-destructive/80"
                     >
-                        Sign Out
-                      </button>
-                    </>
+                      Sign Out
+                    </button>
                   ) : (
                     <NavLink
                       to={ROUTES.auth}

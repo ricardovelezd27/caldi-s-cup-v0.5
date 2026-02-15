@@ -1,65 +1,76 @@
 
-# Redesign "Who We Are" Page (FeedbackPage)
 
-## Overview
-Transform the current minimal "Who We Are" section into a rich, multi-section storytelling page with two-column layouts on desktop that stack on mobile. The page uses the existing Caldi design system (Bangers headings, Inter body, 4px borders, brand colors). Ricardo's profile photo and the Duo-and-Goat illustration are embedded as assets. The feedback dialog trigger and footer CTA remain intact.
+# Codebase Optimization -- Clean Up Without Deleting Future Features
 
-## New Asset
-- Copy `user-uploads://Profile_picture_Ricardo.png` to `src/assets/characters/ricardo-profile.png`
+## Approach
 
-## File Changes
+Instead of deleting dormant features (marketplace, cart, recipes), this plan focuses on fixing broken references, silencing console warnings, and removing only truly orphaned files that belong to no feature.
 
-### `src/features/feedback/FeedbackPage.tsx` (full rewrite)
-The page becomes a long-scroll storytelling page with these sections:
+---
 
-1. **Hero / Intro**: "The Story Behind Your Next Great Cup"
-   - Two-column on desktop: text left, Duo-and-Goat illustration right
-   - Stacks on mobile (image on top, text below)
-   - Summarized text: the "coffee aisle frustration" origin story and AI companion pitch
+## Fix 1: Footer Broken Link
 
-2. **Why "Caldi"?**
-   - Two-column: illustration (Duo and Goat) left, text right (swap from hero)
-   - The Kaldi legend + Colombian "C" homage
-   - Uses `CaldiCard` for the story block
+The Footer (line 33) links to "Recipes" via `ROUTES.recipes` (`/recipes`), but there is no route for `/recipes` in `App.tsx`. Clicking it sends users to the 404 page.
 
-3. **Why This Matters**
-   - Two-column: Ricardo's photo (circular, bordered) left, text right
-   - Ricardo's three passions as a compact list with emoji markers
-   - Uses secondary color accent
+**Action**: Remove the "Recipes" entry from the `footerNav.explore` array in `src/components/layout/Footer.tsx` (line 33). The other 3 links (Label Scanner, Coffee Quiz, The Brew Log) all have active routes.
 
-4. **A Personal Mission** (quote block)
-   - Full-width `CaldiCard` with secondary/5 background
-   - Ricardo's personal statement about Colombia, coffee farmers, and coca farming
-   - Styled as a blockquote with left border accent
+---
 
-5. **Our North Star** (Mission / Vision)
-   - Two-column grid: Mission card left, Vision card right
-   - Each in a `CaldiCard` with heading and body text
-   - Stacks on mobile
+## Fix 2: Clean Up ROUTES Constants
 
-6. **The Journey Ahead** (roadmap)
-   - Three-step horizontal layout on desktop (Today / Tomorrow / Future)
-   - Stacks vertically on mobile
-   - Simple text badges with secondary color highlights
+`src/constants/app.ts` has 4 route entries pointing to pages with no active route in `App.tsx`:
+- `marketplace: "/marketplace"` -- dormant feature
+- `recipes: "/recipes"` -- dormant feature  
+- `cart: "/cart"` -- dormant feature
+- `about: "/about"` -- no page exists at all
 
-7. **CTA Section**
-   - "Ready to discover something extraordinary?"
-   - Reuses the same CTA button pattern from Index: `Give Caldi AI a Try!` linking to `/quiz`
-   - Signature line: "With purpose and passion, Ricardo, Founder"
+These are referenced inside the dormant feature files themselves (which is fine) and in the Footer (which we fix above). But `about` has zero references anywhere.
 
-8. **Connect / Feedback**
-   - Social icons: LinkedIn and Instagram (using lucide `Linkedin` and `Instagram` icons) linking to the provided URLs
-   - "Give Us Feedback" button opening the `FeedbackDialog`
+**Action**: Remove only the `about` route entry since it has no page and no references. Keep `marketplace`, `recipes`, and `cart` since the dormant features reference them internally.
 
-### Design Patterns
-- All headings use `font-bangers tracking-wide`
-- Body text uses `text-muted-foreground` with Inter
-- Two-column sections use `grid md:grid-cols-2 gap-8 items-center`
-- Mobile stacking is automatic via the grid (single column default)
-- Colors stay within the brand palette: secondary (#4db6ac) for accents, primary (#F1C30F) for CTAs, foreground (#2C4450) for text
-- Images use rounded corners and the 4px border/shadow treatment where appropriate
-- Ricardo's photo is displayed as a circular avatar with border
+---
 
-### No other files change
-- Header, Footer, App.tsx routes all remain the same
-- FeedbackDialog and FeedbackTrigger are unchanged
+## Fix 3: UserMenu forwardRef Warning
+
+The console shows: *"Function components cannot be given refs. Check the render method of UserMenu."*
+
+The `UserMenu` component is a plain function component, but Radix's `DropdownMenu` internally tries to pass a ref. Wrapping it with `React.forwardRef` silences this warning.
+
+**Action**: Wrap `UserMenu` in `React.forwardRef` in `src/components/auth/UserMenu.tsx`.
+
+---
+
+## Fix 4: Delete Truly Orphaned Files
+
+These 2 files are not part of any feature (active or dormant) and have zero imports anywhere:
+
+| File | Reason |
+|------|--------|
+| `src/components/NavLink.tsx` | Custom NavLink wrapper, zero imports in entire codebase |
+| `src/App.css` | Vite boilerplate CSS (logo-spin, .read-the-docs), never imported |
+
+**Action**: Delete both files.
+
+---
+
+## Fix 5: Update .gitkeep Placeholder
+
+`src/features/.gitkeep` contains an outdated comment referencing "quiz/, results/, profile/" as future modules -- these already exist.
+
+**Action**: Remove this file since the `features/` directory is well-populated.
+
+---
+
+## Summary
+
+| Item | File | Change |
+|------|------|--------|
+| Broken footer link | `src/components/layout/Footer.tsx` | Remove "Recipes" from explore nav |
+| Dead route constant | `src/constants/app.ts` | Remove `about` route entry |
+| Console warning | `src/components/auth/UserMenu.tsx` | Add `forwardRef` wrapper |
+| Orphan file | `src/components/NavLink.tsx` | Delete |
+| Orphan file | `src/App.css` | Delete |
+| Stale placeholder | `src/features/.gitkeep` | Delete |
+
+**Zero impact** on any active or dormant feature. All marketplace, cart, and recipes code stays untouched.
+

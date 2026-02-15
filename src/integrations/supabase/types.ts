@@ -265,7 +265,9 @@ export type Database = {
         Row: {
           avatar_url: string | null
           brewing_level: Database["public"]["Enums"]["brewing_level"] | null
+          city: string | null
           coffee_tribe: Database["public"]["Enums"]["coffee_tribe"] | null
+          cover_url: string | null
           created_at: string
           display_name: string | null
           id: string
@@ -277,7 +279,9 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           brewing_level?: Database["public"]["Enums"]["brewing_level"] | null
+          city?: string | null
           coffee_tribe?: Database["public"]["Enums"]["coffee_tribe"] | null
+          cover_url?: string | null
           created_at?: string
           display_name?: string | null
           id: string
@@ -289,7 +293,9 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           brewing_level?: Database["public"]["Enums"]["brewing_level"] | null
+          city?: string | null
           coffee_tribe?: Database["public"]["Enums"]["coffee_tribe"] | null
+          cover_url?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
@@ -413,6 +419,54 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_error_reports: {
+        Row: {
+          coffee_brand: string | null
+          coffee_id: string
+          coffee_name: string | null
+          created_at: string
+          id: string
+          scan_id: string | null
+          suggested_edit: string
+          user_id: string
+        }
+        Insert: {
+          coffee_brand?: string | null
+          coffee_id: string
+          coffee_name?: string | null
+          created_at?: string
+          id?: string
+          scan_id?: string | null
+          suggested_edit: string
+          user_id: string
+        }
+        Update: {
+          coffee_brand?: string | null
+          coffee_id?: string
+          coffee_name?: string | null
+          created_at?: string
+          id?: string
+          scan_id?: string | null
+          suggested_edit?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_error_reports_coffee_id_fkey"
+            columns: ["coffee_id"]
+            isOneToOne: false
+            referencedRelation: "coffees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scan_error_reports_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "coffee_scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_coffee_favorites: {
         Row: {
           added_at: string | null
@@ -479,6 +533,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "user_coffee_inventory_coffee_id_fkey"
+            columns: ["coffee_id"]
+            isOneToOne: false
+            referencedRelation: "coffees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_coffee_ratings: {
+        Row: {
+          coffee_id: string
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_acidity_score: number | null
+          user_body_score: number | null
+          user_flavor_notes: string[] | null
+          user_id: string
+          user_match_score: number | null
+          user_sweetness_score: number | null
+        }
+        Insert: {
+          coffee_id: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_acidity_score?: number | null
+          user_body_score?: number | null
+          user_flavor_notes?: string[] | null
+          user_id: string
+          user_match_score?: number | null
+          user_sweetness_score?: number | null
+        }
+        Update: {
+          coffee_id?: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_acidity_score?: number | null
+          user_body_score?: number | null
+          user_flavor_notes?: string[] | null
+          user_id?: string
+          user_match_score?: number | null
+          user_sweetness_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_coffee_ratings_coffee_id_fkey"
             columns: ["coffee_id"]
             isOneToOne: false
             referencedRelation: "coffees"

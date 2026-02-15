@@ -54,7 +54,7 @@ const HeroSection = () => {
             {/* CTA row */}
             <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto">
               <Button size="lg" className="text-xl font-bangers px-8 py-6 tracking-wide w-full md:w-auto" asChild>
-                <Link to={ROUTES.quiz}>Give Caldi AI a Try!</Link>
+                <Link to={ROUTES.scanner}>Give Caldi AI a Try!</Link>
               </Button>
               <button
                 onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
@@ -136,7 +136,7 @@ const CTASection = () => {
     <section className="py-16 md:py-24">
       <Container className="flex justify-center">
         <Button size="lg" className="text-2xl md:text-3xl font-bangers px-12 py-8 tracking-wide" asChild>
-          <Link to={ROUTES.quiz}>Give Caldi a Try!</Link>
+          <Link to={ROUTES.scanner}>Give Caldi a Try!</Link>
         </Button>
       </Container>
     </section>

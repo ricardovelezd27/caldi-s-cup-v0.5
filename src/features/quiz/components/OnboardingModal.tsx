@@ -11,6 +11,7 @@ interface OnboardingModalProps {
   onComplete: () => void;
   forceShow?: boolean;
   onClose?: () => void;
+  isOnboarded?: boolean;
 }
 
 // Slide data - easier to maintain
@@ -83,18 +84,23 @@ const SlideIcon = ({ type }: { type: string }) => {
   }
 };
 
-export const OnboardingModal = ({ onComplete, forceShow = false, onClose }: OnboardingModalProps) => {
+export const OnboardingModal = ({ onComplete, forceShow = false, onClose, isOnboarded = false }: OnboardingModalProps) => {
   const [open, setOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const totalSlides = slides.length;
   const isLastSlide = currentSlide === totalSlides - 1;
 
-  // Check if quiz has been completed
+  // Check if quiz has been completed (profile takes priority over localStorage)
   useEffect(() => {
     if (forceShow) {
       setCurrentSlide(0);
       setOpen(true);
+      return;
+    }
+
+    if (isOnboarded) {
+      onComplete();
       return;
     }
     
@@ -104,7 +110,7 @@ export const OnboardingModal = ({ onComplete, forceShow = false, onClose }: Onbo
     } else {
       onComplete();
     }
-  }, [forceShow, onComplete]);
+  }, [forceShow, onComplete, isOnboarded]);
 
   const handleNext = () => {
     if (isLastSlide) {

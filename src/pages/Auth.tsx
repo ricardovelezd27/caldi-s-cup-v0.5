@@ -10,23 +10,17 @@ type AuthMode = "login" | "signup";
 
 const Auth = () => {
   const [mode, setMode] = useState<AuthMode>("login");
-  const { user, profile, isLoading, signIn, signUp } = useAuth();
+  const { user, isLoading, signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Redirect authenticated users based on onboarding status
+  // Redirect authenticated users to where they came from (or scanner)
   useEffect(() => {
     if (user && !isLoading) {
-      // If user hasn't completed onboarding (no coffee_tribe), go to quiz
-      if (!profile?.is_onboarded || !profile?.coffee_tribe) {
-        navigate(ROUTES.quiz, { replace: true });
-      } else {
-        // Onboarded users go to dashboard or where they came from
-        const from = (location.state as { from?: string })?.from || ROUTES.dashboard;
-        navigate(from, { replace: true });
-      }
+      const from = (location.state as { from?: string })?.from || ROUTES.scanner;
+      navigate(from, { replace: true });
     }
-  }, [user, profile, isLoading, navigate, location.state]);
+  }, [user, isLoading, navigate, location.state]);
 
   const handleLogin = async (data: LoginFormData) => {
     return signIn(data.email, data.password);

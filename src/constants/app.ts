@@ -20,13 +20,15 @@ export const ROUTES = {
   dashboard: "/dashboard",
   scanner: "/scanner",
   recipes: "/recipes",
-  about: "/about",
+  
   cart: "/cart",
   auth: "/auth",
   coffeeProfile: "/coffee",
   contactFeedback: "/contact_feedback",
+  profile: "/profile",
+  blog: "/brew-log",
 } as const;
 
 export const NAV_LINKS = [
-  { label: "Scanner", path: "/scanner" },
+  { label: "Label Scanner", path: "/scanner" },
 ] as const;

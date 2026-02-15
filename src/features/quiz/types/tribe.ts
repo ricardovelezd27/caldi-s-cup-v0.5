@@ -18,6 +18,7 @@ export interface TribeDefinition {
 export interface QuizScenarioOption {
   id: string;          // "A", "B", "C", "D"
   label: string;
+  description?: string; // Tweet-length explanation
   tribe: CoffeeTribe;
   icon: string;        // Lucide icon name
 }

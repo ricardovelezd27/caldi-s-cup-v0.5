@@ -60,9 +60,10 @@ export function InventoryWidget({ widget }: WidgetComponentProps) {
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {inventoryItems.map((item) => (
-              <div 
+              <Link 
                 key={item.id}
-                className="p-2 rounded-lg border border-border bg-muted/30 text-center"
+                to={`/coffee/${item.coffee?.id}`}
+                className="p-2 rounded-lg border border-border bg-muted/30 text-center hover:bg-muted/50 transition-colors"
               >
                 {item.coffee?.image_url && (
                   <div className="w-12 h-12 mx-auto rounded border-2 border-border overflow-hidden mb-2">
@@ -81,7 +82,7 @@ export function InventoryWidget({ widget }: WidgetComponentProps) {
                     {item.quantity_grams}g
                   </p>
                 )}
-              </div>
+              </Link>
             ))}
           </div>
         )}

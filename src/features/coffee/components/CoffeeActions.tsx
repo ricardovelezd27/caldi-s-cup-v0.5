@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Package, ScanLine, Share2, Loader2, Eye, Check } from "lucide-react";
+import { Heart, Package, ScanLine, Share2, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth";
 import { useFavorites } from "../hooks/useFavorites";
 import { useInventory } from "../hooks/useInventory";
+import { ReportScanErrorDialog } from "./ReportScanErrorDialog";
 import type { Coffee, CoffeeScanMeta } from "../types";
 
 interface CoffeeActionsProps {
@@ -31,10 +32,10 @@ export function CoffeeActions({
 
   const handleToggleFavorite = async () => {
     if (!user) {
+      navigate("/auth", { state: { from: "/scanner" } });
       toast({
-        title: "Sign in required",
-        description: "Please sign in to add favorites.",
-        variant: "destructive",
+        title: "Sign up to save this coffee",
+        description: "Create an account to add favorites and build your collection.",
       });
       return;
     }
@@ -58,10 +59,10 @@ export function CoffeeActions({
 
   const handleAddToInventory = async () => {
     if (!user) {
+      navigate("/auth", { state: { from: "/scanner" } });
       toast({
-        title: "Sign in required",
-        description: "Please sign in to add to inventory.",
-        variant: "destructive",
+        title: "Sign up to save this coffee",
+        description: "Create an account to track your inventory.",
       });
       return;
     }
@@ -83,9 +84,6 @@ export function CoffeeActions({
     }
   };
 
-  const handleViewProfile = () => {
-    navigate(`/coffee/${coffee.id}`);
-  };
 
   const handleShare = async () => {
     try {
@@ -140,20 +138,14 @@ export function CoffeeActions({
 
       {/* Secondary Actions */}
       <div className="flex flex-wrap gap-3">
-        {/* Show "View Full Profile" when on scan results */}
-        {scanMeta && (
-          <Button variant="default" onClick={handleViewProfile} className="flex-1">
-            <Eye className="h-4 w-4 mr-2" />
-            View Full Profile
-          </Button>
-        )}
-
         {onScanAgain && (
           <Button variant="outline" onClick={onScanAgain} className="flex-1">
             <ScanLine className="h-4 w-4 mr-2" />
             Scan Another
           </Button>
         )}
+
+        <ReportScanErrorDialog coffee={coffee} scanMeta={scanMeta} />
 
         <Button variant="ghost" onClick={handleShare} size="icon">
           <Share2 className="h-4 w-4" />

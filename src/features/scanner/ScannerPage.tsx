@@ -1,19 +1,19 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, ScanLine, PenLine } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { useCoffeeScanner } from "./hooks/useCoffeeScanner";
-import { ScanUploader, ScanningTips, ScanProgress, ScanResults, TribeScannerPreview, ManualAddForm } from "./components";
+import { ScanUploader, ScanningTips, ScanProgress, TribeScannerPreview, ManualAddForm } from "./components";
+import { transformToCoffee, extractScanMeta } from "./utils/transformScanData";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared";
-import { ROUTES } from "@/constants/app";
+import { FeedbackCTA } from "@/components/shared/FeedbackCTA";
 
 export function ScannerPage() {
-  const { user, profile, isLoading: authLoading } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { 
     scanCoffee, 
@@ -26,42 +26,38 @@ export function ScannerPage() {
     isError,
   } = useCoffeeScanner();
 
-  // Redirect if not authenticated
+  const imageBase64Ref = useRef<string | null>(null);
+
+  // Navigate to coffee profile page on scan completion
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate(ROUTES.auth, { replace: true });
+    if (isComplete && scanResult) {
+      const coffee = transformToCoffee(scanResult);
+      const scanMeta = extractScanMeta(scanResult);
+      const isNewCoffee = scanResult.isNewCoffee ?? false;
+      const coffeeId = scanResult.coffeeId || scanResult.id;
+
+      // If no image URL from backend (anonymous), use the original base64
+      let isTemporaryImage = false;
+      if (!coffee.imageUrl && imageBase64Ref.current) {
+        const base64 = imageBase64Ref.current;
+        coffee.imageUrl = base64.startsWith("data:") ? base64 : `data:image/jpeg;base64,${base64}`;
+        isTemporaryImage = true;
+      }
+
+      navigate(`/coffee/${coffeeId}`, {
+        state: { coffee, scanMeta, isNewCoffee, isTemporaryImage },
+        replace: true,
+      });
     }
-  }, [user, authLoading, navigate]);
-
-  // Show loading skeleton while auth is checking
-  if (authLoading) {
-    return (
-      <PageLayout>
-        <Container className="py-8">
-          <div className="max-w-4xl mx-auto space-y-6">
-            <Skeleton className="h-10 w-32" />
-            <Skeleton className="h-[400px] w-full" />
-            <div className="grid grid-cols-3 gap-4">
-              <Skeleton className="h-24" />
-              <Skeleton className="h-24" />
-              <Skeleton className="h-24" />
-            </div>
-          </div>
-        </Container>
-      </PageLayout>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
+  }, [isComplete, scanResult, navigate]);
 
   const handleImageSelected = (imageBase64: string) => {
+    imageBase64Ref.current = imageBase64;
     scanCoffee(imageBase64);
   };
 
   return (
-    <PageLayout>
+    <PageLayout compactFooter>
       <Container className="py-8">
         {/* Page Title */}
         <div className="mb-6">
@@ -79,16 +75,18 @@ export function ScannerPage() {
               <ScanLine className="h-4 w-4" />
               Scan
             </TabsTrigger>
-            <TabsTrigger value="manual" className="flex-1 gap-1.5">
-              <PenLine className="h-4 w-4" />
-              Add Manually
-            </TabsTrigger>
+            {user && (
+              <TabsTrigger value="manual" className="flex-1 gap-1.5">
+                <PenLine className="h-4 w-4" />
+                Add Manually
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* ===== SCAN TAB ===== */}
           <TabsContent value="scan" className="space-y-8">
             {/* No Tribe Warning */}
-            {!profile?.coffee_tribe && !isComplete && (
+            {user && !profile?.coffee_tribe && (
               <Alert className="border-4 border-accent bg-accent/5">
                 <AlertCircle className="h-4 w-4 text-accent" />
                 <AlertTitle className="font-bangers">Take the Quiz First!</AlertTitle>
@@ -100,11 +98,6 @@ export function ScannerPage() {
                   to discover your coffee tribe.
                 </AlertDescription>
               </Alert>
-            )}
-
-            {/* Scan Complete - Show Results */}
-            {isComplete && scanResult && (
-              <ScanResults data={scanResult} onScanAgain={resetScan} />
             )}
 
             {/* Scanning in Progress */}
@@ -146,10 +139,16 @@ export function ScannerPage() {
           </TabsContent>
 
           {/* ===== MANUAL ADD TAB ===== */}
-          <TabsContent value="manual">
-            <ManualAddForm />
-          </TabsContent>
+          {user && (
+            <TabsContent value="manual">
+              <ManualAddForm />
+            </TabsContent>
+          )}
         </Tabs>
+
+        <div className="mt-12">
+          <FeedbackCTA />
+        </div>
       </Container>
     </PageLayout>
   );

@@ -1,8 +1,55 @@
 import { Link } from "react-router-dom";
 import { APP_CONFIG, ROUTES } from "@/constants/app";
 import { FeedbackTrigger } from "@/features/feedback";
-import { Mail, Instagram, Twitter } from "lucide-react";
+import { Mail, Instagram, Youtube, Facebook } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+
+/** Simple SVG icons for platforms Lucide doesn't cover */
+const XIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+
+const TikTokIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.51a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V8.71a8.21 8.21 0 004.76 1.52V6.69h-1z" />
+  </svg>
+);
+
+const socialLinks = [
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/caldis_cup/",
+    icon: Instagram,
+    comingSoon: false,
+  },
+  {
+    label: "TikTok",
+    href: "#",
+    icon: TikTokIcon,
+    comingSoon: true,
+  },
+  {
+    label: "X",
+    href: "#",
+    icon: XIcon,
+    comingSoon: true,
+  },
+  {
+    label: "YouTube",
+    href: "#",
+    icon: Youtube,
+    comingSoon: true,
+  },
+  {
+    label: "Facebook",
+    href: "#",
+    icon: Facebook,
+    comingSoon: true,
+  },
+];
 
 const footerNav = {
   explore: [
@@ -10,6 +57,7 @@ const footerNav = {
     { label: "Coffee Quiz", path: ROUTES.quiz },
     { label: "Dashboard", path: ROUTES.dashboard },
     { label: "Recipes", path: ROUTES.recipes },
+    { label: "The Brew Log", path: ROUTES.blog },
   ],
   company: [
     { label: "Our Story", path: ROUTES.contactFeedback },
@@ -100,25 +148,32 @@ export const Footer = () => {
 
             <div className="mt-5">
               <p className="text-xs text-background/50 font-inter mb-2.5">Follow us</p>
-              <div className="flex gap-3">
-                <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Instagram"
-                  className="w-9 h-9 rounded-md border-2 border-background/20 flex items-center justify-center text-background/60 hover:text-primary hover:border-primary transition-colors"
-                >
-                  <Instagram className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Twitter"
-                  className="w-9 h-9 rounded-md border-2 border-background/20 flex items-center justify-center text-background/60 hover:text-primary hover:border-primary transition-colors"
-                >
-                  <Twitter className="w-4 h-4" />
-                </a>
+              <div className="flex flex-wrap gap-3">
+                {socialLinks.map((social) => (
+                  <div key={social.label} className="relative group">
+                    <a
+                      href={social.comingSoon ? undefined : social.href}
+                      target={social.comingSoon ? undefined : "_blank"}
+                      rel={social.comingSoon ? undefined : "noopener noreferrer"}
+                      aria-label={social.label}
+                      className={`w-9 h-9 rounded-md border-2 border-background/20 flex items-center justify-center transition-colors ${
+                        social.comingSoon
+                          ? "text-background/30 cursor-default"
+                          : "text-background/60 hover:text-primary hover:border-primary"
+                      }`}
+                    >
+                      <social.icon className="w-4 h-4" />
+                    </a>
+                    {social.comingSoon && (
+                      <Badge
+                        variant="outline"
+                        className="absolute -top-2.5 -right-2.5 text-[8px] px-1 py-0 leading-tight border-primary/50 text-primary bg-foreground whitespace-nowrap pointer-events-none"
+                      >
+                        Soon
+                      </Badge>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           </div>

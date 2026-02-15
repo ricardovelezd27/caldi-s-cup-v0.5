@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, MessageSquare, ScanLine, User, Users } from "lucide-react";
+import { Menu, MessageSquare, ScanLine, User, Users, Coffee } from "lucide-react";
 import { FeedbackTrigger } from "@/features/feedback";
 import { ROUTES } from "@/constants/app";
 import { useAuth } from "@/contexts/auth";
@@ -86,6 +86,21 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
             >
               <Users className="w-5 h-5" />
               Our Story
+            </NavLink>
+
+            {/* The Brew Log */}
+            <NavLink
+              to={ROUTES.blog}
+              className={({ isActive }) =>
+                `flex items-center gap-1 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "text-primary font-bold"
+                    : "text-foreground hover:text-primary"
+                }`
+              }
+            >
+              <Coffee className="w-5 h-5" />
+              The Brew Log
             </NavLink>
 
             {/* Auth: User Menu or Sign In Button */}
@@ -175,6 +190,21 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                   >
                     <Users className="w-5 h-5" />
                     Our Story
+                  </NavLink>
+
+                  <NavLink
+                    to={ROUTES.blog}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
+                        isActive
+                          ? "text-primary font-bold"
+                          : "text-foreground hover:text-primary"
+                      }`
+                    }
+                  >
+                    <Coffee className="w-5 h-5" />
+                    The Brew Log
                   </NavLink>
 
                   <FeedbackTrigger>

@@ -103,7 +103,7 @@ export function ProfileHero() {
     <div className="md:hidden w-full">
       {/* Cover gradient with SVG pattern or custom image */}
       <div
-        className="relative w-full h-[65vh] flex items-center justify-center overflow-hidden"
+        className="relative w-full h-[33vh] flex items-center justify-center overflow-hidden"
         style={{ background: hasCoverImage ? undefined : coverStyle.gradient }}
       >
         {/* Custom cover image */}

@@ -1,65 +1,76 @@
 
 
-# Bug Fix: Quiz Results Not Persisting + Auto-Redirect to Scanner
+# Codebase Optimization -- Clean Up Without Deleting Future Features
 
-## Problem
+## Approach
 
-Edgar Andres completed the quiz but his profile shows `coffee_tribe: null` and `is_onboarded: false`. Ximena and Lia worked fine. The root cause is that tribe persistence only happens via a `useEffect` on the `/results` page, which is fragile -- if the network is spotty or the user navigates away, the save never completes and has no retry.
+Instead of deleting dormant features (marketplace, cart, recipes), this plan focuses on fixing broken references, silencing console warnings, and removing only truly orphaned files that belong to no feature.
 
-Additionally, the user expects the quiz to auto-continue to the scanner page after completion, but the current flow lands on a static results page.
+---
 
-## Fix 1: Immediate Data Fix for Edgar
+## Fix 1: Footer Broken Link
 
-Run a database query to manually set Edgar's tribe based on his quiz result (which was displayed but not saved).
+The Footer (line 33) links to "Recipes" via `ROUTES.recipes` (`/recipes`), but there is no route for `/recipes` in `App.tsx`. Clicking it sends users to the 404 page.
 
-Since we cannot determine his exact tribe from the DB (it was only in memory/localStorage), we will update the `ResultsPage` save logic to be more resilient so this does not happen again. Edgar will need to retake the quiz (or we can set a default tribe if the user confirms which one it was).
+**Action**: Remove the "Recipes" entry from the `footerNav.explore` array in `src/components/layout/Footer.tsx` (line 33). The other 3 links (Label Scanner, Coffee Quiz, The Brew Log) all have active routes.
 
-## Fix 2: Move Save Logic Earlier and Add Retry (ResultsPage.tsx)
+---
 
-The save-to-profile `useEffect` on the ResultsPage currently:
-- Fires once with no retry on failure
-- Silently catches errors without re-attempting
-- Has no fallback if the network is temporarily down
+## Fix 2: Clean Up ROUTES Constants
 
-Changes:
-- Add a retry mechanism (up to 3 attempts with exponential backoff) to the save logic
-- If all retries fail, store the result in localStorage with a "pending save" flag so it can be retried on next app load
-- Add the pending save recovery in `AuthContext` or the ResultsPage mount
+`src/constants/app.ts` has 4 route entries pointing to pages with no active route in `App.tsx`:
+- `marketplace: "/marketplace"` -- dormant feature
+- `recipes: "/recipes"` -- dormant feature  
+- `cart: "/cart"` -- dormant feature
+- `about: "/about"` -- no page exists at all
 
-## Fix 3: Auto-Redirect to Scanner After Save (ResultsPage.tsx)
+These are referenced inside the dormant feature files themselves (which is fine) and in the Footer (which we fix above). But `about` has zero references anywhere.
 
-For authenticated users completing the quiz for the first time:
-- After the tribe is successfully saved, auto-navigate to `/scanner` after a brief 3-second delay (so they can see their tribe reveal)
-- Show a "Taking you to your first scan..." message
-- Keep the manual "Go to Dashboard" and "Retake Quiz" buttons visible during the countdown so users can opt out
+**Action**: Remove only the `about` route entry since it has no page and no references. Keep `marketplace`, `recipes`, and `cart` since the dormant features reference them internally.
 
-## Technical Details
+---
 
-### File: `src/features/quiz/ResultsPage.tsx`
+## Fix 3: UserMenu forwardRef Warning
 
-1. **Retry save logic**: Wrap the Supabase `.update()` call in a retry loop (3 attempts, 1s/2s/4s delays). Use the existing `retryWithBackoff` utility from `src/utils/network/retryWithBackoff.ts`.
+The console shows: *"Function components cannot be given refs. Check the render method of UserMenu."*
 
-2. **Pending save fallback**: If all retries fail, save to `localStorage` under key `caldi_pending_tribe_save` with the result. On next ResultsPage mount or AuthContext init, check for pending saves and retry.
+The `UserMenu` component is a plain function component, but Radix's `DropdownMenu` internally tries to pass a ref. Wrapping it with `React.forwardRef` silences this warning.
 
-3. **Auto-redirect**: After `hasSaved` becomes `true`, start a 3-second timer then navigate to `/scanner`. Add a visible countdown indicator ("Redirecting to scanner in 3...2...1..."). If the user clicks any CTA button, cancel the timer.
+**Action**: Wrap `UserMenu` in `React.forwardRef` in `src/components/auth/UserMenu.tsx`.
 
-4. **Redirect for first-time only**: Only auto-redirect if `profile?.is_onboarded` was `false` before the save (i.e., this is their first quiz completion, not a retake).
+---
 
-### File: `src/contexts/auth/AuthContext.tsx`
+## Fix 4: Delete Truly Orphaned Files
 
-Add a check on auth init: if `localStorage` contains `caldi_pending_tribe_save` and user is authenticated, attempt the save immediately. This catches any saves that failed entirely on the results page.
+These 2 files are not part of any feature (active or dormant) and have zero imports anywhere:
 
-## File Summary
+| File | Reason |
+|------|--------|
+| `src/components/NavLink.tsx` | Custom NavLink wrapper, zero imports in entire codebase |
+| `src/App.css` | Vite boilerplate CSS (logo-spin, .read-the-docs), never imported |
 
-| File | Action | Description |
-|------|--------|-------------|
-| `src/features/quiz/ResultsPage.tsx` | Edit | Add retry logic, pending save fallback, auto-redirect to scanner |
-| `src/contexts/auth/AuthContext.tsx` | Edit | Add pending tribe save recovery on auth init |
+**Action**: Delete both files.
 
-## Edge Cases Handled
+---
 
-- Network down during save: retries 3 times, then persists to localStorage for later
-- User navigates away during save: pending save recovered on next app load
-- Quiz retake (already onboarded): no auto-redirect to scanner, shows normal results page
-- Guest users: no change to current flow (localStorage save, sign-up CTA)
+## Fix 5: Update .gitkeep Placeholder
+
+`src/features/.gitkeep` contains an outdated comment referencing "quiz/, results/, profile/" as future modules -- these already exist.
+
+**Action**: Remove this file since the `features/` directory is well-populated.
+
+---
+
+## Summary
+
+| Item | File | Change |
+|------|------|--------|
+| Broken footer link | `src/components/layout/Footer.tsx` | Remove "Recipes" from explore nav |
+| Dead route constant | `src/constants/app.ts` | Remove `about` route entry |
+| Console warning | `src/components/auth/UserMenu.tsx` | Add `forwardRef` wrapper |
+| Orphan file | `src/components/NavLink.tsx` | Delete |
+| Orphan file | `src/App.css` | Delete |
+| Stale placeholder | `src/features/.gitkeep` | Delete |
+
+**Zero impact** on any active or dormant feature. All marketplace, cart, and recipes code stays untouched.
 

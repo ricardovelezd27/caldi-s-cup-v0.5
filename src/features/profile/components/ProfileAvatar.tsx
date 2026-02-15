@@ -65,26 +65,17 @@ export function ProfileAvatar({ avatarUrl, displayName, email, className }: Prof
   return (
     <div
       className={cn(
-        "relative aspect-square w-full overflow-hidden rounded-md border-[4px] border-border cursor-pointer group p-3 bg-muted",
+        "relative w-full overflow-hidden rounded-md border-[4px] border-border cursor-pointer group p-3 bg-muted",
         className
       )}
       style={{ boxShadow: "4px 4px 0px 0px hsl(var(--border))" }}
       onClick={() => !uploading && fileInputRef.current?.click()}
     >
-      <Avatar className="h-full w-full rounded-none">
-        <AvatarImage
-          src={avatarUrl || undefined}
-          alt={displayName || "User avatar"}
-          className="object-cover"
-        />
-        <AvatarFallback className="rounded-none bg-muted">
-          <img
-            src={caldiPlaceholder}
-            alt="Default avatar"
-            className="h-full w-full object-cover"
-          />
-        </AvatarFallback>
-      </Avatar>
+      <img
+        src={avatarUrl || caldiPlaceholder}
+        alt={displayName || "User avatar"}
+        className="w-full h-auto object-contain"
+      />
 
       {/* Upload overlay */}
       <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/40 transition-colors">

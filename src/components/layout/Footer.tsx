@@ -30,7 +30,6 @@ const footerNav = {
   explore: [
     { label: "Label Scanner", path: ROUTES.scanner },
     { label: "Coffee Quiz", path: ROUTES.quiz },
-    { label: "Recipes", path: ROUTES.recipes },
     { label: "The Brew Log", path: ROUTES.blog },
   ],
   company: [

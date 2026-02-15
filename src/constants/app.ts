@@ -20,7 +20,7 @@ export const ROUTES = {
   dashboard: "/dashboard",
   scanner: "/scanner",
   recipes: "/recipes",
-  about: "/about",
+  
   cart: "/cart",
   auth: "/auth",
   coffeeProfile: "/coffee",

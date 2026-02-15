@@ -1,132 +1,99 @@
-# Coffee Profile Page -- Interactive Feedback and Layout Restructure
+
+# UI Polish: Navigation, Footer, Feedback, and Instructional Text
 
 ## Overview
 
-This plan adds user-adjustable sliders to Coffee Attributes and Match Score, restructures the section order (placing About This Coffee and Jargon Buster below Match Score, then Flavor Notes), and stores user feedback in the database for future taste fine-tuning and roaster insights.
+Four targeted improvements: hide the Dashboard nav link, add a compact footer variant for the scanner, fix the mobile feedback trigger, add feedback sections to coffee/scanner/profile pages, and add instructional text above interactive coffee sections.
 
 ---
 
-## 1. Database: New `user_coffee_ratings` Table
+## 1. Hide Dashboard from Desktop Navigation
 
-A new table stores the user's personal adjustments per coffee:
+**File: `src/components/layout/Header.tsx`**
 
-```sql
-CREATE TABLE public.user_coffee_ratings (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  coffee_id UUID NOT NULL REFERENCES public.coffees(id) ON DELETE CASCADE,
-  user_body_score SMALLINT CHECK (user_body_score BETWEEN 1 AND 5),
-  user_acidity_score SMALLINT CHECK (user_acidity_score BETWEEN 1 AND 5),
-  user_sweetness_score SMALLINT CHECK (user_sweetness_score BETWEEN 1 AND 5),
-  user_match_score SMALLINT CHECK (user_match_score BETWEEN 0 AND 100),
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(user_id, coffee_id)
-);
+Remove the Dashboard `NavLink` from both desktop and mobile navigation. The Dashboard route remains accessible via direct URL but is not shown in the nav bar.
 
-ALTER TABLE public.user_coffee_ratings ENABLE ROW LEVEL SECURITY;
+---
 
-CREATE POLICY "Users can read own ratings"
-  ON public.user_coffee_ratings FOR SELECT
-  USING (auth.uid() = user_id);
+## 2. Compact Footer for Scanner Page
 
-CREATE POLICY "Users can insert own ratings"
-  ON public.user_coffee_ratings FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+**File: `src/components/layout/Footer.tsx`**
 
-CREATE POLICY "Users can update own ratings"
-  ON public.user_coffee_ratings FOR UPDATE
-  USING (auth.uid() = user_id);
+Add a `compact` prop (default `false`). When `true`, render a minimal single-row footer with just the copyright and email link -- no 4-column grid. This keeps the scanner page focused.
+
+**File: `src/components/layout/PageLayout.tsx`**
+
+Add a `compactFooter` prop that passes through to `<Footer compact />`.
+
+**File: `src/features/scanner/ScannerPage.tsx`**
+
+Pass `compactFooter` to PageLayout:
+```tsx
+<PageLayout compactFooter>
 ```
 
-This table captures one row per user per coffee. Upsert on `(user_id, coffee_id)` ensures idempotent saves.
+---
+
+## 3. Fix Mobile Feedback Trigger in Burger Menu
+
+**File: `src/components/layout/Header.tsx`**
+
+The current `FeedbackTrigger` in the mobile menu calls `setIsOpen(false)` then `setTimeout(() => open(), 300)`. The issue is likely that the `Sheet` unmount destroys the `FeedbackDialog` before it opens. The fix:
+
+- Move the `FeedbackDialog` state management outside the `Sheet` component so the dialog persists after the sheet closes.
+- Add a `useState` for `feedbackOpen` at the `Header` level.
+- In the mobile menu button: close the sheet, then after 300ms set `feedbackOpen = true`.
+- Render `<FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />` outside the `Sheet`.
 
 ---
 
-## 2. Coffee Attributes -- Dual-Layer Slider
+## 4. Feedback Section on Coffee, Scanner, and Profile Pages
 
-**File: `src/features/coffee/components/CoffeeAttributes.tsx**`
+Add a feedback CTA section (matching the Our Story page pattern) as the last item on these pages. This is a simple reusable component.
 
-Currently the sliders are `disabled`. The change:
+**New file: `src/components/shared/FeedbackCTA.tsx`**
 
-- The slider track will show the **AI score as a colored segment** (yellow from 0 to AI value, teal from AI value to max) -- this remains fixed and represents the scan data.
-- The **draggable thumb** represents the user's personal rating. It initializes at the AI value but can be moved freely (1--5 scale).
-- The numeric display updates to show both: `AI: 3/5 | You: 4/5` when they differ.
-- Slider is enabled only for authenticated users; guests see the disabled slider as before.
-- Changes are debounced (500ms) and saved via upsert to `user_coffee_ratings`.
+A small card with a "Give Us Feedback" button that opens the `FeedbackDialog`. Styled consistently with the Our Story page's feedback section.
 
-**New hook: `src/features/coffee/hooks/useUserCoffeeRating.ts**`
-
-- Fetches existing user rating for the coffee (if any) from `user_coffee_ratings`.
-- Provides `saveRating(field, value)` that upserts the row.
-- Uses `useDebouncedValue` for auto-save on slider change.
+**Files to edit:**
+- `src/features/coffee/CoffeeProfilePage.tsx` -- add `<FeedbackCTA />` after `CoffeeProfile`.
+- `src/features/scanner/ScannerPage.tsx` -- add `<FeedbackCTA />` at the bottom of the Container.
+- `src/features/profile/ProfilePage.tsx` -- add `<FeedbackCTA />` at the bottom of the Container.
 
 ---
 
-## 3. Match Score -- Interactive Slider
+## 5. Instructional Text Above Interactive Sections
 
-**File: `src/features/coffee/components/CoffeeScanMatch.tsx**`
+**File: `src/features/coffee/components/CoffeeAttributes.tsx`**
 
-Replace the `<Progress>` bar with the same dual-layer slider pattern:
+Add a subtle helper line below the heading when the user is authenticated:
+> "Drag the sliders to reflect your own experience with this coffee."
 
-- The colored track shows AI's match score (yellow portion = AI score).
-- The draggable thumb lets the user adjust their personal match percentage (0--100).
-- Display: `AI: 36% | You: 55%` when they differ.
+**File: `src/features/coffee/components/CoffeeScanMatch.tsx`**
 
-**Tribe-aware "why" phrase:**
+Add below the heading when authenticated:
+> "Adjust the score to match how well this coffee suits your taste."
 
-- Replace the generic phrases like "Excellent Match for your taste profile",  "**Low Match for your taste profile",  "**This coffee has different characteristics than your usual preferences"****  with a tribe-specific explanation phrases use AI and the context provided by the coffee attributes plus the tribe to generate these descriptive phrases. 
-- Logic: Based on the user's `coffee_tribe` from AuthContext and the match score level, generate a contextual sentence. Examples:
-  - Fox at 90%: "This rare gem aligns perfectly with your pursuit of the exceptional."
-  - Owl at 35%: "The processing data doesn't match your precision standards."
-  - Hummingbird at 80%: "This adventurous profile has the surprises you crave."
-  - Bee at 40%: "This coffee strays from the consistent comfort you prefer."
+**File: `src/features/coffee/components/CoffeeFlavorNotes.tsx`**
 
-**Collapsible "Why this matches/doesn't match":**
+Add below the heading when authenticated:
+> "Add or remove tags to describe the flavors you taste."
 
-- Wrap the match reasons list in a `Collapsible` component (collapsed by default).
-- The trigger text adapts: "Why this matches" (score >= 50) or "Why this doesn't match" (score < 50).
-- When score is low, the reasons should already explain what doesn't align (this comes from the AI scan data).
+For guests, these lines are not shown (the existing "Sign in to rate" tooltip suffices).
 
 ---
 
-## 4. Section Reorder in CoffeeProfile
+## File Summary
 
-**File: `src/features/coffee/components/CoffeeProfile.tsx**`
-
-New order for both mobile and desktop right column:
-
-1. Coffee Info + Actions (unchanged)
-2. Coffee Attributes (with interactive sliders)
-3. Match Score (with interactive slider, tribe phrase, collapsible reasons)
-4. About This Coffee + Jargon Buster (in a card with consistent margins)
-5. Flavor Notes
-
-**About This Coffee card margins fix:**
-
-- `CoffeeDescription` will be wrapped in the same `border-4 border-border rounded-lg p-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card` container used by other sections, ensuring visual consistency.
-- Jargon Buster accordion will be nested inside the same card, below the description text.
-
----
-
-## 5. File Summary
-
-
-| File                                                   | Action | Description                                                  |
-| ------------------------------------------------------ | ------ | ------------------------------------------------------------ |
-| Migration SQL                                          | New    | `user_coffee_ratings` table + RLS                            |
-| `src/features/coffee/hooks/useUserCoffeeRating.ts`     | New    | Fetch/save user ratings hook                                 |
-| `src/features/coffee/components/CoffeeAttributes.tsx`  | Edit   | Dual-layer interactive sliders with user thumb               |
-| `src/features/coffee/components/CoffeeScanMatch.tsx`   | Edit   | Interactive match slider, tribe phrases, collapsible reasons |
-| `src/features/coffee/components/CoffeeProfile.tsx`     | Edit   | Reorder sections, fix About This Coffee margins              |
-| `src/features/coffee/components/CoffeeDescription.tsx` | Edit   | Wrap in consistent card styling with Jargon Buster           |
-
-
----
-
-## Technical Notes
-
-- **Debounced auto-save**: User slider changes debounce at 500ms before upserting to `user_coffee_ratings`. No explicit "Save" button needed.
-- **Optimistic UI**: Slider updates the local state immediately; the save happens in the background with a toast on error.
-- **Guest users**: Sliders remain read-only (disabled) for unauthenticated users. A subtle tooltip says "Sign in to rate this coffee."
-- **CQRS alignment**: User ratings are write-optimized (simple upsert). Future aggregation for roaster dashboards will use a separate read-optimized view/materialized query, not queried inline.
+| File | Action | Description |
+|------|--------|-------------|
+| `src/components/layout/Header.tsx` | Edit | Remove Dashboard link; fix mobile feedback dialog |
+| `src/components/layout/Footer.tsx` | Edit | Add `compact` prop for minimal variant |
+| `src/components/layout/PageLayout.tsx` | Edit | Pass `compactFooter` prop to Footer |
+| `src/features/scanner/ScannerPage.tsx` | Edit | Use compact footer; add FeedbackCTA |
+| `src/components/shared/FeedbackCTA.tsx` | New | Reusable feedback call-to-action section |
+| `src/features/coffee/CoffeeProfilePage.tsx` | Edit | Add FeedbackCTA at bottom |
+| `src/features/profile/ProfilePage.tsx` | Edit | Add FeedbackCTA at bottom |
+| `src/features/coffee/components/CoffeeAttributes.tsx` | Edit | Add instructional text for authenticated users |
+| `src/features/coffee/components/CoffeeScanMatch.tsx` | Edit | Add instructional text for authenticated users |
+| `src/features/coffee/components/CoffeeFlavorNotes.tsx` | Edit | Add instructional text for authenticated users |

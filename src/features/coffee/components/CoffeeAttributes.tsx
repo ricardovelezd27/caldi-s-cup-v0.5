@@ -124,6 +124,11 @@ export function CoffeeAttributes({
       <h3 className="font-bangers text-lg text-foreground tracking-wide">
         Coffee Attributes
       </h3>
+      {isAuthenticated && (
+        <p className="text-xs text-muted-foreground italic -mt-2">
+          Drag the sliders to reflect your own experience with this coffee.
+        </p>
+      )}
       <AttributeSlider
         label="Body"
         aiValue={coffee.bodyScore}

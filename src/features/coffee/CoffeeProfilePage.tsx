@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared";
+import { FeedbackCTA } from "@/components/shared/FeedbackCTA";
 import { CoffeeProfile } from "./components/CoffeeProfile";
 import { CoffeeActions } from "./components/CoffeeActions";
 import { useCoffee } from "./hooks/useCoffee";
@@ -111,6 +112,10 @@ export function CoffeeProfilePage() {
             />
           }
         />
+
+        <div className="mt-12">
+          <FeedbackCTA />
+        </div>
       </Container>
     </PageLayout>
   );

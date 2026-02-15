@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared";
+import { FeedbackCTA } from "@/components/shared/FeedbackCTA";
 
 export function ScannerPage() {
   const { user, profile } = useAuth();
@@ -56,7 +57,7 @@ export function ScannerPage() {
   };
 
   return (
-    <PageLayout>
+    <PageLayout compactFooter>
       <Container className="py-8">
         {/* Page Title */}
         <div className="mb-6">
@@ -144,6 +145,10 @@ export function ScannerPage() {
             </TabsContent>
           )}
         </Tabs>
+
+        <div className="mt-12">
+          <FeedbackCTA />
+        </div>
       </Container>
     </PageLayout>
   );

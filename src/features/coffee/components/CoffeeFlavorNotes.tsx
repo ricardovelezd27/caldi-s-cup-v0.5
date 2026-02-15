@@ -105,6 +105,11 @@ export function CoffeeFlavorNotes({
       <h3 className="font-bangers text-lg text-foreground tracking-wide">
         Flavor Notes
       </h3>
+      {isAuthenticated && (
+        <p className="text-xs text-muted-foreground italic -mt-1">
+          Add or remove tags to describe the flavors you taste.
+        </p>
+      )}
 
       {displayNotes.length === 0 && !isAuthenticated && (
         <p className="text-sm text-muted-foreground italic">No flavor notes detected for this coffee.</p>

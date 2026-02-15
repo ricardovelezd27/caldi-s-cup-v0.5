@@ -4,6 +4,7 @@ import { RequireAuth } from "@/components/auth/RequireAuth";
 import { useAuth } from "@/contexts/auth";
 import { ProfileAvatar, ProfileInfoForm, ChangePasswordForm, TribeSection, FavoritesTable, InventoryTable } from "./components";
 import { Separator } from "@/components/ui/separator";
+import { FeedbackCTA } from "@/components/shared/FeedbackCTA";
 
 function ProfileContent() {
   const { user, profile } = useAuth();
@@ -55,6 +56,10 @@ function ProfileContent() {
           <div className="order-2 md:order-1">
             <FavoritesTable />
           </div>
+        </div>
+
+        <div className="mt-8 pb-8">
+          <FeedbackCTA />
         </div>
       </Container>
     </PageLayout>

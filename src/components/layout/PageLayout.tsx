@@ -7,6 +7,7 @@ interface PageLayoutProps {
   showHeader?: boolean;
   showFooter?: boolean;
   heroHasLogo?: boolean;
+  compactFooter?: boolean;
 }
 
 export const PageLayout = ({
@@ -14,6 +15,7 @@ export const PageLayout = ({
   showHeader = true,
   showFooter = true,
   heroHasLogo = false,
+  compactFooter = false,
 }: PageLayoutProps) => {
   const [hasScrolled, setHasScrolled] = useState(false);
 
@@ -38,7 +40,7 @@ export const PageLayout = ({
       <main className="flex-1">
         {children}
       </main>
-      {showFooter && <Footer />}
+      {showFooter && <Footer compact={compactFooter} />}
     </div>
   );
 };

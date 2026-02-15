@@ -545,6 +545,7 @@ export type Database = {
           updated_at: string | null
           user_acidity_score: number | null
           user_body_score: number | null
+          user_flavor_notes: string[] | null
           user_id: string
           user_match_score: number | null
           user_sweetness_score: number | null
@@ -556,6 +557,7 @@ export type Database = {
           updated_at?: string | null
           user_acidity_score?: number | null
           user_body_score?: number | null
+          user_flavor_notes?: string[] | null
           user_id: string
           user_match_score?: number | null
           user_sweetness_score?: number | null
@@ -567,6 +569,7 @@ export type Database = {
           updated_at?: string | null
           user_acidity_score?: number | null
           user_body_score?: number | null
+          user_flavor_notes?: string[] | null
           user_id?: string
           user_match_score?: number | null
           user_sweetness_score?: number | null

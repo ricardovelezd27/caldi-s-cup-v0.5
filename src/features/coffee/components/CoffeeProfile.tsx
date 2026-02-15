@@ -87,7 +87,12 @@ export function CoffeeProfile({
 
           {/* Flavor Notes — order-7 mobile, order-3 desktop */}
           <div className="order-7 lg:order-3">
-            <CoffeeFlavorNotes coffee={coffee} />
+            <CoffeeFlavorNotes
+              coffee={coffee}
+              isAuthenticated={isAuthenticated}
+              userFlavorNotes={rating.userFlavorNotes.length > 0 ? rating.userFlavorNotes : undefined}
+              onUserFlavorNotesChange={(notes) => updateField("userFlavorNotes", notes)}
+            />
           </div>
 
           {/* Mobile-only: extra accordion content */}
@@ -121,7 +126,12 @@ export function CoffeeProfile({
 
           <CoffeeDescription coffee={coffee} scanMeta={scanMeta} />
 
-          <CoffeeFlavorNotes coffee={coffee} />
+          <CoffeeFlavorNotes
+            coffee={coffee}
+            isAuthenticated={isAuthenticated}
+            userFlavorNotes={rating.userFlavorNotes.length > 0 ? rating.userFlavorNotes : undefined}
+            onUserFlavorNotesChange={(notes) => updateField("userFlavorNotes", notes)}
+          />
 
           {accordionContent}
         </div>

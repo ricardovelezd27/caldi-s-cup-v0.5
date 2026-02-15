@@ -57,11 +57,11 @@ function AttributeSlider({
       </div>
 
       <div className="relative">
-        {/* AI marker dot on the track */}
+        {/* AI marker dot on the track — same size as thumb */}
         {aiValue !== null && hasDifference && (
           <div
-            className="absolute top-1/2 -translate-y-1/2 z-10 w-2.5 h-2.5 rounded-full bg-primary border-2 border-primary-foreground pointer-events-none"
-            style={{ left: `calc(${aiMarkerPercent}% - 5px)` }}
+            className="absolute top-1/2 -translate-y-1/2 z-10 w-5 h-5 rounded-full bg-primary border-2 border-primary-foreground pointer-events-none"
+            style={{ left: `calc(${aiMarkerPercent}% - 10px)` }}
             title={`AI: ${aiValue}/5`}
           />
         )}

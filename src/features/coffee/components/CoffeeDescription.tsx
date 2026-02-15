@@ -1,7 +1,6 @@
 import type { Coffee } from "../types";
 import type { CoffeeScanMeta } from "../types";
 import { CoffeeJargonBuster } from "./CoffeeJargonBuster";
-import { Accordion } from "@/components/ui/accordion";
 
 interface CoffeeDescriptionProps {
   coffee: Coffee;
@@ -22,12 +21,10 @@ export function CoffeeDescription({ coffee, scanMeta }: CoffeeDescriptionProps) 
         <p className="text-muted-foreground italic text-sm">No description available for this coffee.</p>
       )}
 
-      {/* Jargon Buster nested inside the same card */}
+      {/* Jargon Buster always expanded inside the same card */}
       {scanMeta && Object.keys(scanMeta.jargonExplanations).length > 0 && (
         <div className="pt-2 border-t border-border">
-          <Accordion type="single" collapsible className="w-full">
-            <CoffeeJargonBuster scanMeta={scanMeta} />
-          </Accordion>
+          <CoffeeJargonBuster scanMeta={scanMeta} />
         </div>
       )}
     </div>

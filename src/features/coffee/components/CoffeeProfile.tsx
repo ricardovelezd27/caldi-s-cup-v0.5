@@ -57,19 +57,9 @@ export function CoffeeProfile({
             <div className="order-3 lg:hidden">{actions}</div>
           )}
 
-          {/* Attributes — order-4 mobile, order-2 desktop */}
-          <div className="order-4 lg:order-2">
-            <CoffeeAttributes
-              coffee={coffee}
-              rating={rating}
-              isAuthenticated={isAuthenticated}
-              onRatingChange={updateField}
-            />
-          </div>
-
-          {/* Mobile-only: Match Score */}
+          {/* Mobile-only: Match Score — order-4 mobile */}
           {scanMeta && (
-            <div className="order-5 lg:hidden">
+            <div className="order-4 lg:hidden">
               <CoffeeScanMatch
                 scanMeta={scanMeta}
                 tribe={profile?.coffee_tribe ?? null}
@@ -79,6 +69,16 @@ export function CoffeeProfile({
               />
             </div>
           )}
+
+          {/* Attributes — order-5 mobile, order-2 desktop */}
+          <div className="order-5 lg:order-2">
+            <CoffeeAttributes
+              coffee={coffee}
+              rating={rating}
+              isAuthenticated={isAuthenticated}
+              onRatingChange={updateField}
+            />
+          </div>
 
           {/* Mobile-only: About This Coffee + Jargon */}
           <div className="order-6 lg:hidden">
@@ -107,13 +107,6 @@ export function CoffeeProfile({
 
           {actions}
 
-          <CoffeeAttributes
-            coffee={coffee}
-            rating={rating}
-            isAuthenticated={isAuthenticated}
-            onRatingChange={updateField}
-          />
-
           {scanMeta && (
             <CoffeeScanMatch
               scanMeta={scanMeta}
@@ -123,6 +116,13 @@ export function CoffeeProfile({
               onUserMatchChange={(v) => updateField("userMatchScore", v)}
             />
           )}
+
+          <CoffeeAttributes
+            coffee={coffee}
+            rating={rating}
+            isAuthenticated={isAuthenticated}
+            onRatingChange={updateField}
+          />
 
           <CoffeeDescription coffee={coffee} scanMeta={scanMeta} />
 

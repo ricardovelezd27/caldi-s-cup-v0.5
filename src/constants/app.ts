@@ -26,6 +26,7 @@ export const ROUTES = {
   coffeeProfile: "/coffee",
   contactFeedback: "/contact_feedback",
   profile: "/profile",
+  blog: "/brew-log",
 } as const;
 
 export const NAV_LINKS = [

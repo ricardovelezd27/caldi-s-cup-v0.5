@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import { ProfileAvatar } from "./ProfileAvatar";
 import { getTribeDefinition, type CoffeeTribe } from "@/features/quiz";
 import { getTribeCoverStyle } from "../utils/tribeCoverStyles";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Pencil, Check, X } from "lucide-react";
+import { Pencil, Check, X, Camera, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import caldiLogo from "/lovable-uploads/8e78a6bd-5f00-45be-b082-c35b57fa9a7c.png";
@@ -16,6 +16,8 @@ export function ProfileHero() {
   const [tempName, setTempName] = useState("");
   const [tempCity, setTempCity] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   if (!user || !profile) return null;
 
@@ -57,27 +59,100 @@ export function ProfileHero() {
     setSaving(false);
   };
 
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+    const filePath = `${user.id}/cover.${ext}`;
+
+    setUploadingCover(true);
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ cover_url: publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      await refreshProfile();
+      toast.success("Cover updated!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload cover");
+    } finally {
+      setUploadingCover(false);
+      if (coverInputRef.current) coverInputRef.current.value = "";
+    }
+  };
+
+  const hasCoverImage = !!profile.cover_url;
+
   return (
     <div className="md:hidden w-full">
-      {/* Cover gradient with SVG pattern */}
+      {/* Cover gradient with SVG pattern or custom image */}
       <div
         className="relative w-full h-[65vh] flex items-center justify-center overflow-hidden"
-        style={{ background: coverStyle.gradient }}
+        style={{ background: hasCoverImage ? undefined : coverStyle.gradient }}
       >
-        {/* SVG pattern overlay */}
-        {coverStyle.patternSvg && (
+        {/* Custom cover image */}
+        {hasCoverImage && (
+          <img
+            src={profile.cover_url!}
+            alt="Cover"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+
+        {/* SVG pattern overlay (only when no custom cover) */}
+        {!hasCoverImage && coverStyle.patternSvg && (
           <div
             className="absolute inset-0 opacity-[0.07]"
             style={{ backgroundImage: coverStyle.patternSvg, backgroundRepeat: "repeat" }}
           />
         )}
 
-        {/* Caldi watermark */}
-        <img
-          src={caldiLogo}
-          alt=""
-          aria-hidden
-          className="h-20 object-contain opacity-30 select-none pointer-events-none"
+        {/* Caldi watermark (only when no custom cover) */}
+        {!hasCoverImage && (
+          <img
+            src={caldiLogo}
+            alt=""
+            aria-hidden
+            className="h-20 object-contain opacity-30 select-none pointer-events-none"
+          />
+        )}
+
+        {/* Cover camera button — always visible, bottom-right */}
+        <button
+          onClick={() => !uploadingCover && coverInputRef.current?.click()}
+          className="absolute bottom-14 right-4 flex items-center gap-2 rounded-full bg-foreground/60 backdrop-blur-sm text-background px-3 py-2 text-xs font-medium transition-colors active:bg-foreground/80"
+          aria-label="Change cover photo"
+        >
+          {uploadingCover ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Camera className="h-4 w-4" />
+          )}
+          <span>Edit cover</span>
+        </button>
+
+        <input
+          ref={coverInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleCoverUpload}
         />
       </div>
 

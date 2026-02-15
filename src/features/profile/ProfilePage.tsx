@@ -51,14 +51,18 @@ function ProfileContent() {
               </>
             )}
 
-            <ProfileInfoForm
-              displayName={profile.display_name}
-              city={profile.city ?? null}
-              email={user.email || ""}
-              userId={user.id}
-            />
-
-            <Separator />
+            {/* Desktop: show profile form inline. Mobile: editing handled in ProfileHero */}
+            {!isMobile && (
+              <>
+                <ProfileInfoForm
+                  displayName={profile.display_name}
+                  city={profile.city ?? null}
+                  email={user.email || ""}
+                  userId={user.id}
+                />
+                <Separator />
+              </>
+            )}
 
             <ChangePasswordForm />
 

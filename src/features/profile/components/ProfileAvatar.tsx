@@ -13,9 +13,10 @@ interface ProfileAvatarProps {
   email?: string;
   className?: string;
   variant?: "square" | "circle";
+  showOverlayAlways?: boolean;
 }
 
-export function ProfileAvatar({ avatarUrl, displayName, email, className, variant = "square" }: ProfileAvatarProps) {
+export function ProfileAvatar({ avatarUrl, displayName, email, className, variant = "square", showOverlayAlways = false }: ProfileAvatarProps) {
   const isCircle = variant === "circle";
   const { user, refreshProfile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -88,11 +89,11 @@ export function ProfileAvatar({ avatarUrl, displayName, email, className, varian
       />
 
       {/* Upload overlay */}
-      <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/40 transition-colors">
+      <div className={`absolute inset-0 flex items-center justify-center transition-colors ${showOverlayAlways ? "bg-foreground/30" : "bg-foreground/0 group-hover:bg-foreground/40"}`}>
         {uploading ? (
           <Loader2 className="h-8 w-8 text-primary-foreground animate-spin" />
         ) : (
-          <Camera className="h-8 w-8 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Camera className={`h-8 w-8 text-primary-foreground transition-opacity ${showOverlayAlways ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} />
         )}
       </div>
 

@@ -73,7 +73,7 @@ export function CoffeeScanMatch({
   const hasDifference = userMatchScore !== null && userMatchScore !== undefined && userMatchScore !== aiScore;
 
   const getMatchColor = (score: number) => {
-    if (score >= 70) return "text-green-600";
+    if (score >= 70) return "text-secondary";
     if (score >= 40) return "text-accent";
     return "text-destructive";
   };
@@ -106,8 +106,8 @@ export function CoffeeScanMatch({
       <div className="relative">
         {hasDifference && (
           <div
-            className="absolute top-1/2 -translate-y-1/2 z-10 w-2.5 h-2.5 rounded-full bg-primary border-2 border-primary-foreground pointer-events-none"
-            style={{ left: `${aiMarkerPercent}%` }}
+            className="absolute top-1/2 -translate-y-1/2 z-10 w-5 h-5 rounded-full bg-primary border-2 border-primary-foreground pointer-events-none"
+            style={{ left: `calc(${aiMarkerPercent}% - 10px)` }}
             title={`AI: ${aiScore}%`}
           />
         )}
@@ -165,7 +165,7 @@ export function CoffeeScanMatch({
               {scanMeta.matchReasons.map((reason, index) => (
                 <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
                   {isPositiveMatch ? (
-                    <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-green-600" />
+                    <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-secondary" />
                   ) : (
                     <XCircle className="h-4 w-4 shrink-0 mt-0.5 text-destructive" />
                   )}

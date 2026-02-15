@@ -9,6 +9,7 @@ export interface UserCoffeeRating {
   userAcidityScore: number | null;
   userSweetnessScore: number | null;
   userMatchScore: number | null;
+  userFlavorNotes: string[];
 }
 
 const EMPTY_RATING: UserCoffeeRating = {
@@ -16,6 +17,7 @@ const EMPTY_RATING: UserCoffeeRating = {
   userAcidityScore: null,
   userSweetnessScore: null,
   userMatchScore: null,
+  userFlavorNotes: [],
 };
 
 /**
@@ -52,6 +54,7 @@ export function useUserCoffeeRating(coffeeId: string | undefined) {
           userAcidityScore: data.user_acidity_score,
           userSweetnessScore: data.user_sweetness_score,
           userMatchScore: data.user_match_score,
+          userFlavorNotes: (data as any).user_flavor_notes ?? [],
         });
       }
       hasFetched.current = true;
@@ -65,13 +68,16 @@ export function useUserCoffeeRating(coffeeId: string | undefined) {
   // Debounced save
   useEffect(() => {
     if (!user || !coffeeId || !hasFetched.current) return;
-    // Skip the initial load echo
     if (isInitialLoad.current) {
       isInitialLoad.current = false;
       return;
     }
 
-    const allNull = Object.values(debouncedRating).every((v) => v === null);
+    const allNull = debouncedRating.userBodyScore === null &&
+      debouncedRating.userAcidityScore === null &&
+      debouncedRating.userSweetnessScore === null &&
+      debouncedRating.userMatchScore === null &&
+      debouncedRating.userFlavorNotes.length === 0;
     if (allNull) return;
 
     const upsert = async () => {
@@ -85,7 +91,8 @@ export function useUserCoffeeRating(coffeeId: string | undefined) {
             user_acidity_score: debouncedRating.userAcidityScore,
             user_sweetness_score: debouncedRating.userSweetnessScore,
             user_match_score: debouncedRating.userMatchScore,
-          },
+            user_flavor_notes: debouncedRating.userFlavorNotes,
+          } as any,
           { onConflict: "user_id,coffee_id" }
         );
 
@@ -102,7 +109,7 @@ export function useUserCoffeeRating(coffeeId: string | undefined) {
   }, [debouncedRating, user, coffeeId]);
 
   const updateField = useCallback(
-    (field: keyof UserCoffeeRating, value: number) => {
+    (field: keyof UserCoffeeRating, value: number | string[]) => {
       setRating((prev) => ({ ...prev, [field]: value }));
     },
     []

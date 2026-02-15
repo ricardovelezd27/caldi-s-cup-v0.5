@@ -1,108 +1,65 @@
 
 
-# Modern Mobile Profile Hero with Tribe Covers and Inline Editing
+# Bug Fix: Quiz Results Not Persisting + Auto-Redirect to Scanner
 
-## Overview
+## Problem
 
-Transform the mobile profile into an immersive, modern experience. The cover extends to ~65vh with tribe-specific CSS gradients and SVG patterns, a white content card overlaps it with rounded corners, and user identity is displayed seamlessly (no labels). A pencil icon toggles inline editing for name and city.
+Edgar Andres completed the quiz but his profile shows `coffee_tribe: null` and `is_onboarded: false`. Ximena and Lia worked fine. The root cause is that tribe persistence only happens via a `useEffect` on the `/results` page, which is fragile -- if the network is spotty or the user navigates away, the save never completes and has no retry.
 
----
+Additionally, the user expects the quiz to auto-continue to the scanner page after completion, but the current flow lands on a static results page.
 
-## Visual Layout
+## Fix 1: Immediate Data Fix for Edgar
 
-```text
-+----------------------------------+
-|                                  |
-|   TRIBE GRADIENT + SVG PATTERN   |
-|                                  |
-|      Caldi Logo (watermark)      |
-|                                  |
-|                                  |
-|  +--------+                      |
-|  | AVATAR |  (circle, overlap)   |
-+--|   (o)  |--+-------------------+
-   +--------+
- Display Name            [pencil]
- user@email.com
- Fox -- The Tastemaker
-+----- white card continues -------+
-| Tribe detail card                |
-| Change Password (collapsible)    |
-| Retake Quiz (collapsible)        |
-| Inventory / Favorites            |
-+----------------------------------+
-```
+Run a database query to manually set Edgar's tribe based on his quiz result (which was displayed but not saved).
 
----
+Since we cannot determine his exact tribe from the DB (it was only in memory/localStorage), we will update the `ResultsPage` save logic to be more resilient so this does not happen again. Edgar will need to retake the quiz (or we can set a default tribe if the user confirms which one it was).
 
-## Changes
+## Fix 2: Move Save Logic Earlier and Add Retry (ResultsPage.tsx)
 
-### 1. New File: `src/features/profile/utils/tribeCoverStyles.ts`
+The save-to-profile `useEffect` on the ResultsPage currently:
+- Fires once with no retry on failure
+- Silently catches errors without re-attempting
+- Has no fallback if the network is temporarily down
 
-A utility that maps each tribe to a gradient string and an inline SVG data URI pattern:
+Changes:
+- Add a retry mechanism (up to 3 attempts with exponential backoff) to the save logic
+- If all retries fail, store the result in localStorage with a "pending save" flag so it can be retried on next app load
+- Add the pending save recovery in `AuthContext` or the ResultsPage mount
 
-| Tribe | Gradient | Pattern |
-|-------|----------|---------|
-| Fox | Deep warm red-orange to golden amber | Diamond/gem shapes |
-| Owl | Teal to dark slate | Fine grid lines |
-| Hummingbird | Warm yellow to coral | Organic wavy lines |
-| Bee | Rich amber to deep brown | Honeycomb hexagons |
-| (none) | Neutral muted gray | None |
+## Fix 3: Auto-Redirect to Scanner After Save (ResultsPage.tsx)
 
-All colors are derived from the brand palette (destructive red for Fox, secondary teal for Owl, primary yellow for Hummingbird, accent orange for Bee). Returns `{ gradient: string, patternSvg: string | null }`.
+For authenticated users completing the quiz for the first time:
+- After the tribe is successfully saved, auto-navigate to `/scanner` after a brief 3-second delay (so they can see their tribe reveal)
+- Show a "Taking you to your first scan..." message
+- Keep the manual "Go to Dashboard" and "Retake Quiz" buttons visible during the countdown so users can opt out
 
-### 2. Rewrite: `src/features/profile/components/ProfileHero.tsx`
+## Technical Details
 
-Major changes from the current 150px banner:
+### File: `src/features/quiz/ResultsPage.tsx`
 
-- **Cover**: `h-[65vh]` with tribe gradient background and subtle SVG pattern overlay at low opacity. Caldi logo watermark centered with ~40% opacity.
-- **White card overlap**: A `div` with `bg-background rounded-t-3xl -mt-10 relative z-10` that creates the smooth transition into content (like the reference image).
-- **Avatar**: Circular, positioned at the boundary using `-mt-16` inside the white card, left-aligned with padding.
-- **Identity block** (inside white card, below avatar):
-  - Display name as a Bangers heading (no label)
-  - Email in muted Inter text (no label)
-  - Tribe emoji + name + title as a tagline
-  - Pencil icon button (top-right of identity area)
-- **Edit mode** (toggled by pencil):
-  - Name becomes an `Input` field (no label, placeholder "Your name")
-  - City `Input` appears below email
-  - Avatar shows camera overlay persistently (`showOverlayAlways` prop)
-  - Save (checkmark) and Cancel (X) icon buttons replace the pencil
-  - On save: same Supabase update as `ProfileInfoForm` (`profiles.update`)
-  - On cancel: revert local state, exit edit mode
+1. **Retry save logic**: Wrap the Supabase `.update()` call in a retry loop (3 attempts, 1s/2s/4s delays). Use the existing `retryWithBackoff` utility from `src/utils/network/retryWithBackoff.ts`.
 
-### 3. Edit: `src/features/profile/components/ProfileAvatar.tsx`
+2. **Pending save fallback**: If all retries fail, save to `localStorage` under key `caldi_pending_tribe_save` with the result. On next ResultsPage mount or AuthContext init, check for pending saves and retry.
 
-Add optional `showOverlayAlways?: boolean` prop. When true, the camera icon overlay is always visible (full opacity) instead of only on hover. Used during edit mode in ProfileHero.
+3. **Auto-redirect**: After `hasSaved` becomes `true`, start a 3-second timer then navigate to `/scanner`. Add a visible countdown indicator ("Redirecting to scanner in 3...2...1..."). If the user clicks any CTA button, cancel the timer.
 
-### 4. Edit: `src/features/profile/ProfilePage.tsx`
+4. **Redirect for first-time only**: Only auto-redirect if `profile?.is_onboarded` was `false` before the save (i.e., this is their first quiz completion, not a retake).
 
-On mobile only:
-- Remove `ProfileInfoForm` from the mobile flow (editing is now handled inline in ProfileHero)
-- The mobile content sequence becomes: ProfileHero (with inline edit), TribeSection, Separator, ChangePasswordForm, Separator, RetakeQuizSection, Separator, tables, FeedbackCTA
+### File: `src/contexts/auth/AuthContext.tsx`
 
-Desktop layout remains completely untouched.
-
----
+Add a check on auth init: if `localStorage` contains `caldi_pending_tribe_save` and user is authenticated, attempt the save immediately. This catches any saves that failed entirely on the results page.
 
 ## File Summary
 
 | File | Action | Description |
 |------|--------|-------------|
-| `src/features/profile/utils/tribeCoverStyles.ts` | New | Tribe-to-gradient and SVG pattern mapping |
-| `src/features/profile/components/ProfileHero.tsx` | Rewrite | 65vh cover, white card overlap, inline identity with edit mode |
-| `src/features/profile/components/ProfileAvatar.tsx` | Edit | Add `showOverlayAlways` prop |
-| `src/features/profile/ProfilePage.tsx` | Edit | Remove ProfileInfoForm from mobile flow |
+| `src/features/quiz/ResultsPage.tsx` | Edit | Add retry logic, pending save fallback, auto-redirect to scanner |
+| `src/contexts/auth/AuthContext.tsx` | Edit | Add pending tribe save recovery on auth init |
 
----
+## Edge Cases Handled
 
-## Technical Details
-
-- Gradients use inline `style={{ background: 'linear-gradient(...)' }}` with brand HSL values
-- SVG patterns are tiny inline data URIs in `backgroundImage` with `repeat` and 5-8% opacity
-- The white card overlap uses `rounded-t-3xl` (24px radius) and `-mt-10` with `relative z-10`
-- Edit mode uses local `useState` for `isEditing`, `tempName`, and `tempCity`
-- Save calls `supabase.from("profiles").update(...)` then `refreshProfile()` from AuthContext
-- Brand compliance: 4px borders on avatar (border-background for contrast), Bangers font on name, Inter on email, Energy Yellow save button, Bean Black borders
-- No new dependencies required
+- Network down during save: retries 3 times, then persists to localStorage for later
+- User navigates away during save: pending save recovered on next app load
+- Quiz retake (already onboarded): no auto-redirect to scanner, shows normal results page
+- Guest users: no change to current flow (localStorage save, sign-up CTA)
 

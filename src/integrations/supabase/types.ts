@@ -537,6 +537,50 @@ export type Database = {
           },
         ]
       }
+      user_coffee_ratings: {
+        Row: {
+          coffee_id: string
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_acidity_score: number | null
+          user_body_score: number | null
+          user_id: string
+          user_match_score: number | null
+          user_sweetness_score: number | null
+        }
+        Insert: {
+          coffee_id: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_acidity_score?: number | null
+          user_body_score?: number | null
+          user_id: string
+          user_match_score?: number | null
+          user_sweetness_score?: number | null
+        }
+        Update: {
+          coffee_id?: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_acidity_score?: number | null
+          user_body_score?: number | null
+          user_id?: string
+          user_match_score?: number | null
+          user_sweetness_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_coffee_ratings_coffee_id_fkey"
+            columns: ["coffee_id"]
+            isOneToOne: false
+            referencedRelation: "coffees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string

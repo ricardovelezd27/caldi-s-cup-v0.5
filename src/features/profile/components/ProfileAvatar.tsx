@@ -65,7 +65,7 @@ export function ProfileAvatar({ avatarUrl, displayName, email, className }: Prof
   return (
     <div
       className={cn(
-        "relative w-full overflow-hidden rounded-md border-[4px] border-border cursor-pointer group p-3 bg-muted",
+        "relative w-full aspect-square overflow-hidden rounded-md border-[4px] border-border cursor-pointer group bg-muted",
         className
       )}
       style={{ boxShadow: "4px 4px 0px 0px hsl(var(--border))" }}
@@ -74,7 +74,7 @@ export function ProfileAvatar({ avatarUrl, displayName, email, className }: Prof
       <img
         src={avatarUrl || caldiPlaceholder}
         alt={displayName || "User avatar"}
-        className="w-full h-auto object-contain"
+        className="w-full h-full object-contain p-2"
       />
 
       {/* Upload overlay */}

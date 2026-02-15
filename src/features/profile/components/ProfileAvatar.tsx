@@ -65,7 +65,7 @@ export function ProfileAvatar({ avatarUrl, displayName, email, className }: Prof
   return (
     <div
       className={cn(
-        "relative aspect-square w-full overflow-hidden rounded-md border-[4px] border-border cursor-pointer group",
+        "relative aspect-square w-full overflow-hidden rounded-md border-[4px] border-border cursor-pointer group p-3 bg-muted",
         className
       )}
       style={{ boxShadow: "4px 4px 0px 0px hsl(var(--border))" }}

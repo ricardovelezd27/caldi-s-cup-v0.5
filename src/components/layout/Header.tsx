@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { Menu, MessageSquare, ScanLine, User, Users, Coffee } from "lucide-react";
-import { FeedbackTrigger } from "@/features/feedback";
+import { FeedbackDialog } from "@/features/feedback/components/FeedbackDialog";
 import { ROUTES } from "@/constants/app";
 import { useAuth } from "@/contexts/auth";
 import { UserMenu } from "@/components/auth";
@@ -19,242 +19,218 @@ interface HeaderProps {
 
 export const Header = ({ showLogo = true }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
 
   return (
-    <header className="py-4 sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
-      <div className="container mx-auto px-4">
-        <nav className="flex items-center justify-between">
-          {/* Logo */}
-          <Link
-            to={ROUTES.home}
-            className={`flex items-center transition-opacity duration-300 ${
-              showLogo ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
-          >
-            <img
-              alt="Caldi's Cup"
-              className="h-10 md:h-12"
-              src="/lovable-uploads/8e78a6bd-5f00-45be-b082-c35b57fa9a7c.png"
-            />
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
-            {/* Label Scanner */}
-            <NavLink
-              to={ROUTES.scanner}
-              className={({ isActive }) =>
-                `flex items-center gap-1 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "text-primary font-bold"
-                    : "text-foreground hover:text-primary"
-                }`
-              }
+    <>
+      <header className="py-4 sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
+        <div className="container mx-auto px-4">
+          <nav className="flex items-center justify-between">
+            {/* Logo */}
+            <Link
+              to={ROUTES.home}
+              className={`flex items-center transition-opacity duration-300 ${
+                showLogo ? "opacity-100" : "opacity-0 pointer-events-none"
+              }`}
             >
-              <ScanLine className="w-5 h-5" />
-              Label Scanner
-            </NavLink>
+              <img
+                alt="Caldi's Cup"
+                className="h-10 md:h-12"
+                src="/lovable-uploads/8e78a6bd-5f00-45be-b082-c35b57fa9a7c.png"
+              />
+            </Link>
 
-            {/* My Profile (authenticated only) */}
-            {user && (
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-6">
               <NavLink
-                to={ROUTES.profile}
+                to={ROUTES.scanner}
                 className={({ isActive }) =>
                   `flex items-center gap-1 text-sm font-medium transition-colors ${
-                    isActive
-                      ? "text-primary font-bold"
-                      : "text-foreground hover:text-primary"
+                    isActive ? "text-primary font-bold" : "text-foreground hover:text-primary"
                   }`
                 }
               >
-                <User className="w-5 h-5" />
-                My Profile
+                <ScanLine className="w-5 h-5" />
+                Label Scanner
               </NavLink>
-            )}
 
-            {/* Our Story */}
-            <NavLink
-              to={ROUTES.contactFeedback}
-              className={({ isActive }) =>
-                `flex items-center gap-1 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "text-primary font-bold"
-                    : "text-foreground hover:text-primary"
-                }`
-              }
-            >
-              <Users className="w-5 h-5" />
-              Our Story
-            </NavLink>
-
-            {/* The Brew Log */}
-            <NavLink
-              to={ROUTES.blog}
-              className={({ isActive }) =>
-                `flex items-center gap-1 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "text-primary font-bold"
-                    : "text-foreground hover:text-primary"
-                }`
-              }
-            >
-              <Coffee className="w-5 h-5" />
-              The Brew Log
-            </NavLink>
-
-            {/* Auth: User Menu or Sign In Button */}
-            {user ? (
-              <UserMenu
-                displayName={profile?.display_name}
-                avatarUrl={profile?.avatar_url}
-                email={user.email}
-                onSignOut={signOut}
-              />
-            ) : (
-              <Button asChild variant="outline" size="sm">
-                <Link to={ROUTES.auth}>Sign In</Link>
-              </Button>
-            )}
-          </div>
-
-          {/* Mobile: Hamburger Menu */}
-          <div className="md:hidden flex items-center gap-2">
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <button
-                  className="p-2 text-foreground hover:text-primary transition-colors"
-                  aria-label="Open menu"
+              {user && (
+                <NavLink
+                  to={ROUTES.profile}
+                  className={({ isActive }) =>
+                    `flex items-center gap-1 text-sm font-medium transition-colors ${
+                      isActive ? "text-primary font-bold" : "text-foreground hover:text-primary"
+                    }`
+                  }
                 >
-                  <Menu size={24} />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] bg-background">
-                <SheetHeader className="mb-8">
-                  <Link
-                    to={ROUTES.home}
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center"
-                  >
-                    <img
-                      alt="Caldi's Cup"
-                      className="h-10"
-                      src="/lovable-uploads/8e78a6bd-5f00-45be-b082-c35b57fa9a7c.png"
-                    />
-                  </Link>
-                </SheetHeader>
-                <nav className="flex flex-col gap-4">
-                  <NavLink
-                    to={ROUTES.scanner}
-                    onClick={() => setIsOpen(false)}
-                    className={({ isActive }) =>
-                      `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
-                        isActive
-                          ? "text-primary font-bold"
-                          : "text-foreground hover:text-primary"
-                      }`
-                    }
-                  >
-                    <ScanLine className="w-5 h-5" />
-                    Label Scanner
-                  </NavLink>
+                  <User className="w-5 h-5" />
+                  My Profile
+                </NavLink>
+              )}
 
-                  {/* My Profile (authenticated only, 2nd position) */}
-                  {user && (
+              <NavLink
+                to={ROUTES.contactFeedback}
+                className={({ isActive }) =>
+                  `flex items-center gap-1 text-sm font-medium transition-colors ${
+                    isActive ? "text-primary font-bold" : "text-foreground hover:text-primary"
+                  }`
+                }
+              >
+                <Users className="w-5 h-5" />
+                Our Story
+              </NavLink>
+
+              <NavLink
+                to={ROUTES.blog}
+                className={({ isActive }) =>
+                  `flex items-center gap-1 text-sm font-medium transition-colors ${
+                    isActive ? "text-primary font-bold" : "text-foreground hover:text-primary"
+                  }`
+                }
+              >
+                <Coffee className="w-5 h-5" />
+                The Brew Log
+              </NavLink>
+
+              {user ? (
+                <UserMenu
+                  displayName={profile?.display_name}
+                  avatarUrl={profile?.avatar_url}
+                  email={user.email}
+                  onSignOut={signOut}
+                />
+              ) : (
+                <Button asChild variant="outline" size="sm">
+                  <Link to={ROUTES.auth}>Sign In</Link>
+                </Button>
+              )}
+            </div>
+
+            {/* Mobile: Hamburger Menu */}
+            <div className="md:hidden flex items-center gap-2">
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                  <button
+                    className="p-2 text-foreground hover:text-primary transition-colors"
+                    aria-label="Open menu"
+                  >
+                    <Menu size={24} />
+                  </button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[280px] bg-background">
+                  <SheetHeader className="mb-8">
+                    <Link
+                      to={ROUTES.home}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center"
+                    >
+                      <img
+                        alt="Caldi's Cup"
+                        className="h-10"
+                        src="/lovable-uploads/8e78a6bd-5f00-45be-b082-c35b57fa9a7c.png"
+                      />
+                    </Link>
+                  </SheetHeader>
+                  <nav className="flex flex-col gap-4">
                     <NavLink
-                      to={ROUTES.profile}
+                      to={ROUTES.scanner}
                       onClick={() => setIsOpen(false)}
                       className={({ isActive }) =>
                         `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
-                          isActive
-                            ? "text-primary font-bold"
-                            : "text-foreground hover:text-primary"
+                          isActive ? "text-primary font-bold" : "text-foreground hover:text-primary"
                         }`
                       }
                     >
-                      <User className="w-5 h-5" />
-                      My Profile
+                      <ScanLine className="w-5 h-5" />
+                      Label Scanner
                     </NavLink>
-                  )}
 
-                  <NavLink
-                    to={ROUTES.contactFeedback}
-                    onClick={() => setIsOpen(false)}
-                    className={({ isActive }) =>
-                      `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
-                        isActive
-                          ? "text-primary font-bold"
-                          : "text-foreground hover:text-primary"
-                      }`
-                    }
-                  >
-                    <Users className="w-5 h-5" />
-                    Our Story
-                  </NavLink>
-
-                  <NavLink
-                    to={ROUTES.blog}
-                    onClick={() => setIsOpen(false)}
-                    className={({ isActive }) =>
-                      `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
-                        isActive
-                          ? "text-primary font-bold"
-                          : "text-foreground hover:text-primary"
-                      }`
-                    }
-                  >
-                    <Coffee className="w-5 h-5" />
-                    The Brew Log
-                  </NavLink>
-
-                  <FeedbackTrigger>
-                    {(open) => (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsOpen(false);
-                          setTimeout(() => open(), 300);
-                        }}
-                        className="text-lg font-medium py-2 transition-colors flex items-center gap-2 text-foreground hover:text-primary text-left"
+                    {user && (
+                      <NavLink
+                        to={ROUTES.profile}
+                        onClick={() => setIsOpen(false)}
+                        className={({ isActive }) =>
+                          `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
+                            isActive ? "text-primary font-bold" : "text-foreground hover:text-primary"
+                          }`
+                        }
                       >
-                        <MessageSquare className="w-5 h-5" />
-                        Feedback
-                      </button>
+                        <User className="w-5 h-5" />
+                        My Profile
+                      </NavLink>
                     )}
-                  </FeedbackTrigger>
 
-                  {/* Auth Link in Mobile Menu */}
-                  {user ? (
-                    <button
-                      onClick={() => {
-                        signOut();
-                        setIsOpen(false);
-                      }}
-                      className="text-lg font-medium py-2 transition-colors text-left text-destructive hover:text-destructive/80"
-                    >
-                      Sign Out
-                    </button>
-                  ) : (
                     <NavLink
-                      to={ROUTES.auth}
+                      to={ROUTES.contactFeedback}
                       onClick={() => setIsOpen(false)}
                       className={({ isActive }) =>
-                        `text-lg font-medium py-2 transition-colors ${
-                          isActive
-                            ? "text-primary font-bold"
-                            : "text-foreground hover:text-primary"
+                        `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
+                          isActive ? "text-primary font-bold" : "text-foreground hover:text-primary"
                         }`
                       }
                     >
-                      Sign In
+                      <Users className="w-5 h-5" />
+                      Our Story
                     </NavLink>
-                  )}
-                </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
-        </nav>
-      </div>
-    </header>
+
+                    <NavLink
+                      to={ROUTES.blog}
+                      onClick={() => setIsOpen(false)}
+                      className={({ isActive }) =>
+                        `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
+                          isActive ? "text-primary font-bold" : "text-foreground hover:text-primary"
+                        }`
+                      }
+                    >
+                      <Coffee className="w-5 h-5" />
+                      The Brew Log
+                    </NavLink>
+
+                    <button
+                      onClick={() => {
+                        setIsOpen(false);
+                        setTimeout(() => setFeedbackOpen(true), 300);
+                      }}
+                      className="text-lg font-medium py-2 transition-colors flex items-center gap-2 text-foreground hover:text-primary text-left"
+                    >
+                      <MessageSquare className="w-5 h-5" />
+                      Feedback
+                    </button>
+
+                    {user ? (
+                      <button
+                        onClick={() => {
+                          signOut();
+                          setIsOpen(false);
+                        }}
+                        className="text-lg font-medium py-2 transition-colors text-left text-destructive hover:text-destructive/80"
+                      >
+                        Sign Out
+                      </button>
+                    ) : (
+                      <NavLink
+                        to={ROUTES.auth}
+                        onClick={() => setIsOpen(false)}
+                        className={({ isActive }) =>
+                          `text-lg font-medium py-2 transition-colors ${
+                            isActive ? "text-primary font-bold" : "text-foreground hover:text-primary"
+                          }`
+                        }
+                      >
+                        Sign In
+                      </NavLink>
+                    )}
+                  </nav>
+                </SheetContent>
+              </Sheet>
+            </div>
+          </nav>
+        </div>
+      </header>
+
+      {/* Feedback dialog rendered outside Sheet so it persists after menu closes */}
+      <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+    </>
   );
 };

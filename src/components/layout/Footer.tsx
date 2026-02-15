@@ -19,43 +19,17 @@ const TikTokIcon = ({ className }: { className?: string }) => (
 );
 
 const socialLinks = [
-  {
-    label: "Instagram",
-    href: "https://www.instagram.com/caldis_cup/",
-    icon: Instagram,
-    comingSoon: false,
-  },
-  {
-    label: "TikTok",
-    href: "#",
-    icon: TikTokIcon,
-    comingSoon: true,
-  },
-  {
-    label: "X",
-    href: "#",
-    icon: XIcon,
-    comingSoon: true,
-  },
-  {
-    label: "YouTube",
-    href: "#",
-    icon: Youtube,
-    comingSoon: true,
-  },
-  {
-    label: "Facebook",
-    href: "#",
-    icon: Facebook,
-    comingSoon: true,
-  },
+  { label: "Instagram", href: "https://www.instagram.com/caldis_cup/", icon: Instagram, comingSoon: false },
+  { label: "TikTok", href: "#", icon: TikTokIcon, comingSoon: true },
+  { label: "X", href: "#", icon: XIcon, comingSoon: true },
+  { label: "YouTube", href: "#", icon: Youtube, comingSoon: true },
+  { label: "Facebook", href: "#", icon: Facebook, comingSoon: true },
 ];
 
 const footerNav = {
   explore: [
     { label: "Label Scanner", path: ROUTES.scanner },
     { label: "Coffee Quiz", path: ROUTES.quiz },
-    { label: "Dashboard", path: ROUTES.dashboard },
     { label: "Recipes", path: ROUTES.recipes },
     { label: "The Brew Log", path: ROUTES.blog },
   ],
@@ -64,7 +38,30 @@ const footerNav = {
   ],
 };
 
-export const Footer = () => {
+interface FooterProps {
+  compact?: boolean;
+}
+
+export const Footer = ({ compact = false }: FooterProps) => {
+  if (compact) {
+    return (
+      <footer className="border-t-4 border-border bg-foreground text-background">
+        <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p className="text-xs text-background/50 font-inter">
+            © {APP_CONFIG.year} {APP_CONFIG.name}. Brewed with love.
+          </p>
+          <a
+            href="mailto:r.velez@caldi.coffee"
+            className="flex items-center gap-1.5 text-xs text-background/60 hover:text-primary font-inter transition-colors"
+          >
+            <Mail className="w-3.5 h-3.5" />
+            r.velez@caldi.coffee
+          </a>
+        </div>
+      </footer>
+    );
+  }
+
   return (
     <footer className="border-t-4 border-border mt-16 bg-foreground text-background">
       <div className="container mx-auto px-4 py-12">
@@ -81,16 +78,11 @@ export const Footer = () => {
 
           {/* Explore Column */}
           <div>
-            <h3 className="font-bangers text-lg tracking-wide text-primary mb-4">
-              Explore
-            </h3>
+            <h3 className="font-bangers text-lg tracking-wide text-primary mb-4">Explore</h3>
             <ul className="space-y-2.5">
               {footerNav.explore.map((link) => (
                 <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    className="text-sm text-background/70 hover:text-primary font-inter transition-colors"
-                  >
+                  <Link to={link.path} className="text-sm text-background/70 hover:text-primary font-inter transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -100,16 +92,11 @@ export const Footer = () => {
 
           {/* Company Column */}
           <div>
-            <h3 className="font-bangers text-lg tracking-wide text-primary mb-4">
-              Company
-            </h3>
+            <h3 className="font-bangers text-lg tracking-wide text-primary mb-4">Company</h3>
             <ul className="space-y-2.5">
               {footerNav.company.map((link) => (
                 <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    className="text-sm text-background/70 hover:text-primary font-inter transition-colors"
-                  >
+                  <Link to={link.path} className="text-sm text-background/70 hover:text-primary font-inter transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -117,10 +104,7 @@ export const Footer = () => {
               <li>
                 <FeedbackTrigger>
                   {(open) => (
-                    <button
-                      onClick={open}
-                      className="text-sm text-background/70 hover:text-primary font-inter transition-colors"
-                    >
+                    <button onClick={open} className="text-sm text-background/70 hover:text-primary font-inter transition-colors">
                       Give Feedback
                     </button>
                   )}
@@ -131,21 +115,15 @@ export const Footer = () => {
 
           {/* Contact & Socials Column */}
           <div>
-            <h3 className="font-bangers text-lg tracking-wide text-primary mb-4">
-              Get in Touch
-            </h3>
+            <h3 className="font-bangers text-lg tracking-wide text-primary mb-4">Get in Touch</h3>
             <ul className="space-y-2.5">
               <li>
-                <a
-                  href="mailto:r.velez@caldi.coffee"
-                  className="flex items-center gap-2 text-sm text-background/70 hover:text-primary font-inter transition-colors"
-                >
+                <a href="mailto:r.velez@caldi.coffee" className="flex items-center gap-2 text-sm text-background/70 hover:text-primary font-inter transition-colors">
                   <Mail className="w-4 h-4 shrink-0" />
                   r.velez@caldi.coffee
                 </a>
               </li>
             </ul>
-
             <div className="mt-5">
               <p className="text-xs text-background/50 font-inter mb-2.5">Follow us</p>
               <div className="flex flex-wrap gap-3">
@@ -157,18 +135,13 @@ export const Footer = () => {
                       rel={social.comingSoon ? undefined : "noopener noreferrer"}
                       aria-label={social.label}
                       className={`w-9 h-9 rounded-md border-2 border-background/20 flex items-center justify-center transition-colors ${
-                        social.comingSoon
-                          ? "text-background/30 cursor-default"
-                          : "text-background/60 hover:text-primary hover:border-primary"
+                        social.comingSoon ? "text-background/30 cursor-default" : "text-background/60 hover:text-primary hover:border-primary"
                       }`}
                     >
                       <social.icon className="w-4 h-4" />
                     </a>
                     {social.comingSoon && (
-                      <Badge
-                        variant="outline"
-                        className="absolute -top-2.5 -right-2.5 text-[8px] px-1 py-0 leading-tight border-primary/50 text-primary bg-foreground whitespace-nowrap pointer-events-none"
-                      >
+                      <Badge variant="outline" className="absolute -top-2.5 -right-2.5 text-[8px] px-1 py-0 leading-tight border-primary/50 text-primary bg-foreground whitespace-nowrap pointer-events-none">
                         Soon
                       </Badge>
                     )}
@@ -185,9 +158,7 @@ export const Footer = () => {
           <p className="text-xs text-background/50 font-inter">
             © {APP_CONFIG.year} {APP_CONFIG.name}. Brewed with love.
           </p>
-          <p className="text-xs text-background/50 font-inter">
-            All rights reserved.
-          </p>
+          <p className="text-xs text-background/50 font-inter">All rights reserved.</p>
         </div>
       </div>
     </footer>

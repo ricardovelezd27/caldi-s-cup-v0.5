@@ -101,6 +101,11 @@ export function CoffeeScanMatch({
           )}
         </span>
       </div>
+      {isAuthenticated && (
+        <p className="text-xs text-muted-foreground italic -mt-2">
+          Adjust the score to match how well this coffee suits your taste.
+        </p>
+      )}
 
       {/* Interactive slider */}
       <div className="relative">

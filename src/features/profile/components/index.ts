@@ -1,4 +1,5 @@
 export { ProfileAvatar } from "./ProfileAvatar";
+export { ProfileHero } from "./ProfileHero";
 export { ProfileInfoForm } from "./ProfileInfoForm";
 export { ChangePasswordForm } from "./ChangePasswordForm";
 export { RetakeQuizSection } from "./RetakeQuizSection";

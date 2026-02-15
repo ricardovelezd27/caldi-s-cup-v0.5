@@ -12,9 +12,11 @@ interface ProfileAvatarProps {
   displayName?: string | null;
   email?: string;
   className?: string;
+  variant?: "square" | "circle";
 }
 
-export function ProfileAvatar({ avatarUrl, displayName, email, className }: ProfileAvatarProps) {
+export function ProfileAvatar({ avatarUrl, displayName, email, className, variant = "square" }: ProfileAvatarProps) {
+  const isCircle = variant === "circle";
   const { user, refreshProfile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -65,16 +67,24 @@ export function ProfileAvatar({ avatarUrl, displayName, email, className }: Prof
   return (
     <div
       className={cn(
-        "relative w-full aspect-square overflow-hidden rounded-md border-[4px] border-border cursor-pointer group bg-muted",
+        "relative overflow-hidden cursor-pointer group bg-muted",
+        isCircle
+          ? "rounded-full border-[4px] border-background"
+          : "w-full aspect-square rounded-md border-[4px] border-border",
         className
       )}
-      style={{ boxShadow: "4px 4px 0px 0px hsl(var(--border))" }}
+      style={isCircle ? undefined : { boxShadow: "4px 4px 0px 0px hsl(var(--border))" }}
       onClick={() => !uploading && fileInputRef.current?.click()}
     >
       <img
         src={avatarUrl || caldiPlaceholder}
         alt={displayName || "User avatar"}
-        className="w-full h-full object-contain p-2"
+        className={cn(
+          "w-full h-full",
+          isCircle
+            ? (avatarUrl ? "object-cover rounded-full" : "object-contain p-2")
+            : "object-contain p-2"
+        )}
       />
 
       {/* Upload overlay */}

@@ -2,6 +2,9 @@ import { createContext, useContext, useEffect, useState, useMemo, ReactNode } fr
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { errorLogger } from "@/services/errorLogging";
+import { retryWithBackoff } from "@/utils/network/retryWithBackoff";
+
+const PENDING_TRIBE_SAVE_KEY = 'caldi_pending_tribe_save';
 
 // Coffee tribe type
 export type CoffeeTribe = 'fox' | 'owl' | 'hummingbird' | 'bee';
@@ -76,6 +79,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Recover pending tribe save from localStorage (failed quiz save)
+  const recoverPendingTribeSave = async (userId: string) => {
+    try {
+      const pending = localStorage.getItem(PENDING_TRIBE_SAVE_KEY);
+      if (!pending) return;
+      const result = JSON.parse(pending);
+      if (!result?.tribe) return;
+
+      await retryWithBackoff(
+        async () => {
+          const { error } = await supabase
+            .from('profiles')
+            .update({
+              coffee_tribe: result.tribe,
+              is_onboarded: true,
+              onboarded_at: new Date().toISOString(),
+            })
+            .eq('id', userId);
+          if (error) throw new Error(error.message);
+        },
+        { maxRetries: 2, initialDelay: 1000 }
+      );
+
+      localStorage.removeItem(PENDING_TRIBE_SAVE_KEY);
+      // Refresh profile to reflect the recovered save
+      const freshProfile = await fetchProfile(userId);
+      if (freshProfile) setProfile(freshProfile);
+      console.log('[AuthContext] Recovered pending tribe save successfully');
+    } catch (err) {
+      console.warn('[AuthContext] Failed to recover pending tribe save:', err);
+    }
+  };
+
   // Initialize auth state
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -105,7 +141,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       if (session?.user) {
         errorLogger.setUserContext(session.user.id);
-        fetchProfile(session.user.id).then(setProfile);
+        fetchProfile(session.user.id).then((p) => {
+          setProfile(p);
+          // Recover any pending tribe save from failed quiz completion
+          if (p && session.user) {
+            recoverPendingTribeSave(session.user.id);
+          }
+        });
       }
       
       setIsLoading(false);

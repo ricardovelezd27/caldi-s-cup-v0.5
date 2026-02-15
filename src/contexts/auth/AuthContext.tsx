@@ -14,6 +14,7 @@ interface Profile {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
+  cover_url: string | null;
   coffee_tribe: CoffeeTribe | null;
   is_onboarded: boolean;
   onboarded_at: string | null;

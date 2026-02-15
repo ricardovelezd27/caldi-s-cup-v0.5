@@ -16,15 +16,16 @@ function ProfileContent() {
         <h1 className="text-3xl md:text-4xl mb-8">My Profile</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-8">
-          {/* Left column — avatar + tribe (desktop), just avatar (mobile) */}
+          {/* Left column — avatar + tribe */}
           <div className="space-y-6">
             <ProfileAvatar
               avatarUrl={profile.avatar_url}
               displayName={profile.display_name}
               email={user.email}
             />
-            {/* Tribe shows here on desktop only */}
-            <div className="hidden md:block">
+            {/* Tribe always under avatar */}
+            <div>
+              <h2 className="text-xl md:text-2xl mb-3">You experience coffee like...</h2>
               <TribeSection tribe={profile.coffee_tribe} />
             </div>
           </div>
@@ -37,11 +38,6 @@ function ProfileContent() {
               email={user.email || ""}
               userId={user.id}
             />
-
-            {/* Tribe shows here on mobile only */}
-            <div className="md:hidden">
-              <TribeSection tribe={profile.coffee_tribe} />
-            </div>
 
             <Separator />
 

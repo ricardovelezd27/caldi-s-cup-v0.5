@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { PageLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
@@ -9,9 +9,12 @@ import { TribeReveal } from './components/TribeReveal';
 import { TRIBES } from './data/tribes';
 import { QuizResult, CoffeeTribe } from './types/tribe';
 import { ROUTES } from '@/constants/app';
-import { Coffee, LayoutDashboard, RefreshCw, UserPlus } from 'lucide-react';
+import { Coffee, LayoutDashboard, RefreshCw, UserPlus, ScanLine } from 'lucide-react';
+import { retryWithBackoff } from '@/utils/network/retryWithBackoff';
 
 const RESULT_STORAGE_KEY = 'caldi_quiz_result';
+export const PENDING_TRIBE_SAVE_KEY = 'caldi_pending_tribe_save';
+const REDIRECT_DELAY_SECONDS = 3;
 
 export const ResultsPage = () => {
   const location = useLocation();
@@ -21,6 +24,16 @@ export const ResultsPage = () => {
   const [result, setResult] = useState<QuizResult | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const wasFirstOnboarding = useRef(false);
+
+  // Track if this is first onboarding before the save changes the profile
+  useEffect(() => {
+    if (profile && !profile.is_onboarded) {
+      wasFirstOnboarding.current = true;
+    }
+  }, [profile]);
 
   // Get result from navigation state or localStorage
   useEffect(() => {
@@ -28,22 +41,17 @@ export const ResultsPage = () => {
     
     if (stateResult) {
       setResult(stateResult);
-      // Save to localStorage for guests
       if (!user) {
         try {
           localStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(stateResult));
-        } catch {
-          // Ignore storage errors
-        }
+        } catch { /* ignore */ }
       }
     } else {
-      // Try to load from localStorage
       try {
         const saved = localStorage.getItem(RESULT_STORAGE_KEY);
         if (saved) {
           setResult(JSON.parse(saved));
         } else {
-          // No result found, redirect to quiz
           navigate('/quiz');
         }
       } catch {
@@ -52,63 +60,94 @@ export const ResultsPage = () => {
     }
   }, [location.state, user, navigate]);
 
-  // Save result to profile if authenticated
+  // Cancel redirect
+  const cancelRedirect = useCallback(() => {
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+    setCountdown(null);
+  }, []);
+
+  // Start auto-redirect countdown
+  useEffect(() => {
+    if (hasSaved && wasFirstOnboarding.current && user) {
+      setCountdown(REDIRECT_DELAY_SECONDS);
+      let remaining = REDIRECT_DELAY_SECONDS;
+      countdownRef.current = setInterval(() => {
+        remaining -= 1;
+        if (remaining <= 0) {
+          clearInterval(countdownRef.current!);
+          countdownRef.current = null;
+          navigate(ROUTES.scanner);
+        } else {
+          setCountdown(remaining);
+        }
+      }, 1000);
+    }
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [hasSaved, user, navigate]);
+
+  // Save result to profile with retry
   useEffect(() => {
     const saveToProfile = async () => {
-      if (user && result && !hasSaved && !isSaving) {
-        setIsSaving(true);
-        try {
-          const { error } = await supabase
-            .from('profiles')
-            .update({
-              coffee_tribe: result.tribe,
-              is_onboarded: true,
-              onboarded_at: new Date().toISOString(),
-            })
-            .eq('id', user.id);
+      if (!user || !result || hasSaved || isSaving) return;
+      setIsSaving(true);
+      try {
+        await retryWithBackoff(
+          async () => {
+            const { error } = await supabase
+              .from('profiles')
+              .update({
+                coffee_tribe: result.tribe,
+                is_onboarded: true,
+                onboarded_at: new Date().toISOString(),
+              })
+              .eq('id', user.id);
+            if (error) throw new Error(error.message);
+          },
+          { maxRetries: 3, initialDelay: 1000, backoffFactor: 2 }
+        );
 
-          if (error) {
-            console.error('Failed to save tribe:', error);
-            toast({
-              title: "Couldn't save your tribe",
-              description: "Don't worry, your result is saved locally.",
-              variant: "destructive",
-            });
-          } else {
-            setHasSaved(true);
-            // Refresh profile so other pages see the new tribe immediately
-            await refreshProfile();
-            // Clear localStorage since it's saved to profile
-            try {
-              localStorage.removeItem(RESULT_STORAGE_KEY);
-              localStorage.removeItem('caldi_quiz_state');
-            } catch {
-              // Ignore
-            }
-            toast({
-              title: "Coffee Tribe Saved!",
-              description: `You're now officially ${TRIBES[result.tribe].name}.`,
-            });
-          }
-        } catch (err) {
-          console.error('Error saving tribe:', err);
-        } finally {
-          setIsSaving(false);
-        }
+        setHasSaved(true);
+        await refreshProfile();
+        try {
+          localStorage.removeItem(RESULT_STORAGE_KEY);
+          localStorage.removeItem('caldi_quiz_state');
+          localStorage.removeItem(PENDING_TRIBE_SAVE_KEY);
+        } catch { /* ignore */ }
+        toast({
+          title: "Coffee Tribe Saved!",
+          description: `You're now officially ${TRIBES[result.tribe].name}.`,
+        });
+      } catch (err) {
+        console.error('All retries failed saving tribe:', err);
+        // Persist pending save for recovery
+        try {
+          localStorage.setItem(PENDING_TRIBE_SAVE_KEY, JSON.stringify(result));
+        } catch { /* ignore */ }
+        toast({
+          title: "Couldn't save your tribe",
+          description: "We'll retry automatically next time you open the app.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSaving(false);
       }
     };
 
     saveToProfile();
-  }, [user, result, hasSaved, isSaving, toast]);
+  }, [user, result, hasSaved, isSaving, toast, refreshProfile]);
 
   // Handle retake quiz
   const handleRetake = () => {
+    cancelRedirect();
     try {
       localStorage.removeItem(RESULT_STORAGE_KEY);
       localStorage.removeItem('caldi_quiz_state');
-    } catch {
-      // Ignore
-    }
+    } catch { /* ignore */ }
     navigate('/quiz');
   };
 
@@ -168,24 +207,42 @@ export const ResultsPage = () => {
             </div>
           </div>
 
+          {/* Auto-redirect countdown */}
+          {countdown !== null && (
+            <div className="bg-secondary/20 border-4 border-secondary rounded-lg p-4 mb-6 text-center">
+              <div className="flex items-center justify-center gap-2 text-foreground">
+                <ScanLine className="w-5 h-5 text-secondary" />
+                <span className="font-bangers text-lg tracking-wide">
+                  Taking you to your first scan in {countdown}...
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* CTAs */}
           <div className="space-y-4">
-            {/* Primary CTA: Dashboard for logged in, Sign Up for guests */}
             {user ? (
-              <Button 
-                size="lg" 
-                className="w-full text-lg"
-                onClick={() => navigate(ROUTES.dashboard)}
-              >
-                <LayoutDashboard className="w-5 h-5 mr-2" />
-                Go to My Dashboard
-              </Button>
+              <>
+                <Button 
+                  size="lg" 
+                  className="w-full text-lg"
+                  onClick={() => { cancelRedirect(); navigate(ROUTES.scanner); }}
+                >
+                  <ScanLine className="w-5 h-5 mr-2" />
+                  Scan Your First Coffee
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="lg" 
+                  className="w-full text-lg"
+                  onClick={() => { cancelRedirect(); navigate(ROUTES.dashboard); }}
+                >
+                  <LayoutDashboard className="w-5 h-5 mr-2" />
+                  Go to My Dashboard
+                </Button>
+              </>
             ) : (
-              <Button
-                size="lg"
-                className="w-full text-lg"
-                asChild
-              >
+              <Button size="lg" className="w-full text-lg" asChild>
                 <Link to={ROUTES.auth}>
                   <UserPlus className="w-5 h-5 mr-2" />
                   Sign Up to Save My Tribe
@@ -193,7 +250,6 @@ export const ResultsPage = () => {
               </Button>
             )}
 
-            {/* Retake Quiz */}
             <Button
               variant="ghost"
               className="w-full text-muted-foreground"
@@ -208,6 +264,11 @@ export const ResultsPage = () => {
           {user && hasSaved && (
             <p className="text-center text-sm text-muted-foreground mt-6">
               ✓ Your Coffee Tribe has been saved to your profile
+            </p>
+          )}
+          {user && isSaving && (
+            <p className="text-center text-sm text-muted-foreground mt-6 animate-pulse">
+              Saving your tribe...
             </p>
           )}
         </div>

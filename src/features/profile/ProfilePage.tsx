@@ -16,14 +16,17 @@ function ProfileContent() {
         <h1 className="text-3xl md:text-4xl mb-8">My Profile</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-8">
-          {/* Left column */}
+          {/* Left column — avatar + tribe (desktop), just avatar (mobile) */}
           <div className="space-y-6">
             <ProfileAvatar
               avatarUrl={profile.avatar_url}
               displayName={profile.display_name}
               email={user.email}
             />
-            <TribeSection tribe={profile.coffee_tribe} />
+            {/* Tribe shows here on desktop only */}
+            <div className="hidden md:block">
+              <TribeSection tribe={profile.coffee_tribe} />
+            </div>
           </div>
 
           {/* Right column */}
@@ -35,6 +38,11 @@ function ProfileContent() {
               userId={user.id}
             />
 
+            {/* Tribe shows here on mobile only */}
+            <div className="md:hidden">
+              <TribeSection tribe={profile.coffee_tribe} />
+            </div>
+
             <Separator />
 
             <ChangePasswordForm />
@@ -43,9 +51,14 @@ function ProfileContent() {
 
         <Separator className="my-8" />
 
+        {/* Mobile: Inventory first, then Favorites. Desktop: side-by-side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-8">
-          <FavoritesTable />
-          <InventoryTable />
+          <div className="order-1 md:order-2">
+            <InventoryTable />
+          </div>
+          <div className="order-2 md:order-1">
+            <FavoritesTable />
+          </div>
         </div>
       </Container>
     </PageLayout>

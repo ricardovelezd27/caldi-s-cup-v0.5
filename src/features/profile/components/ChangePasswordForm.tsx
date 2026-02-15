@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,7 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Lock } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Lock, ChevronDown } from "lucide-react";
 
 const passwordSchema = z
   .object({
@@ -21,6 +23,7 @@ const passwordSchema = z
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
 export function ChangePasswordForm() {
+  const [open, setOpen] = useState(false);
   const {
     register,
     handleSubmit,
@@ -40,34 +43,40 @@ export function ChangePasswordForm() {
 
     toast.success("Password updated!");
     reset();
+    setOpen(false);
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <h3 className="text-lg flex items-center gap-2">
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left text-lg font-medium hover:text-primary transition-colors py-2">
         <Lock className="h-5 w-5" />
         Change Password
-      </h3>
+        <ChevronDown className={`h-4 w-4 ml-auto transition-transform ${open ? "rotate-180" : ""}`} />
+      </CollapsibleTrigger>
 
-      <div>
-        <Label htmlFor="password">New Password</Label>
-        <Input id="password" type="password" {...register("password")} />
-        {errors.password && (
-          <p className="text-destructive text-xs mt-1">{errors.password.message}</p>
-        )}
-      </div>
+      <CollapsibleContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
+          <div>
+            <Label htmlFor="password">New Password</Label>
+            <Input id="password" type="password" {...register("password")} />
+            {errors.password && (
+              <p className="text-destructive text-xs mt-1">{errors.password.message}</p>
+            )}
+          </div>
 
-      <div>
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
-        <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
-        {errors.confirmPassword && (
-          <p className="text-destructive text-xs mt-1">{errors.confirmPassword.message}</p>
-        )}
-      </div>
+          <div>
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
+            {errors.confirmPassword && (
+              <p className="text-destructive text-xs mt-1">{errors.confirmPassword.message}</p>
+            )}
+          </div>
 
-      <Button type="submit" variant="outline" disabled={isSubmitting}>
-        {isSubmitting ? "Updating..." : "Update Password"}
-      </Button>
-    </form>
+          <Button type="submit" variant="outline" disabled={isSubmitting}>
+            {isSubmitting ? "Updating..." : "Update Password"}
+          </Button>
+        </form>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

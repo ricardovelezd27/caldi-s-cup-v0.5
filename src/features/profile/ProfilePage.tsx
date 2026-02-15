@@ -2,7 +2,7 @@ import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared/Container";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { useAuth } from "@/contexts/auth";
-import { ProfileAvatar, ProfileInfoForm, ChangePasswordForm, TribeSection, FavoritesTable, InventoryTable } from "./components";
+import { ProfileAvatar, ProfileInfoForm, ChangePasswordForm, RetakeQuizSection, TribeSection, FavoritesTable, InventoryTable } from "./components";
 import { Separator } from "@/components/ui/separator";
 import { FeedbackCTA } from "@/components/shared/FeedbackCTA";
 
@@ -43,6 +43,10 @@ function ProfileContent() {
             <Separator />
 
             <ChangePasswordForm />
+
+            <Separator />
+
+            <RetakeQuizSection />
           </div>
         </div>
 

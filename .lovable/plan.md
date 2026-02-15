@@ -1,79 +1,108 @@
 
-# LinkedIn-Style Mobile Profile Header
+
+# Modern Mobile Profile Hero with Tribe Covers and Inline Editing
 
 ## Overview
 
-Redesign the mobile profile page to feature a LinkedIn-inspired cover + avatar layout. A cover banner displays the Caldi logo, with a circular profile photo overlapping the bottom edge. Below that, the user's name, tribe emoji, and a brief tribe description appear inline. Desktop layout remains unchanged.
+Transform the mobile profile into an immersive, modern experience. The cover extends to ~65vh with tribe-specific CSS gradients and SVG patterns, a white content card overlaps it with rounded corners, and user identity is displayed seamlessly (no labels). A pencil icon toggles inline editing for name and city.
 
 ---
 
-## 1. New Component: ProfileHero (mobile only)
-
-**New file: `src/features/profile/components/ProfileHero.tsx`**
-
-A self-contained component rendered only on mobile (hidden on `md:` and up) that contains:
-
-- **Cover banner**: A colored background (using the user's tribe color or a default muted tone) with the Caldi logo centered, full-width with horizontal padding. Height roughly 140-160px.
-- **Circular avatar**: 120x120px circle with a 4px white border, positioned to overlap the cover by ~50%. Uses `object-cover` for photos, `object-contain` with padding for the Caldi placeholder. Clickable to trigger avatar upload (reuses the same upload logic from `ProfileAvatar`).
-- **Camera overlay on hover/tap**: Same pattern as current ProfileAvatar.
-- **Name + Tribe summary**: Below the avatar, display the user's display name (Bangers heading), tribe emoji + tribe name inline, and a one-line tribe tagline (the `title` field from tribe data, e.g., "The Tastemaker").
+## Visual Layout
 
 ```text
 +----------------------------------+
-|         [COVER BANNER]           |
-|        Caldi Logo centered       |
 |                                  |
-|   +------+                       |
-|   | AVATAR|  (overlapping)       |
-+---|      |--+--------------------+
-    +------+
-  Display Name
-  Fox - The Tastemaker
+|   TRIBE GRADIENT + SVG PATTERN   |
+|                                  |
+|      Caldi Logo (watermark)      |
+|                                  |
+|                                  |
+|  +--------+                      |
+|  | AVATAR |  (circle, overlap)   |
++--|   (o)  |--+-------------------+
+   +--------+
+ Display Name            [pencil]
+ user@email.com
+ Fox -- The Tastemaker
++----- white card continues -------+
+| Tribe detail card                |
+| Change Password (collapsible)    |
+| Retake Quiz (collapsible)        |
+| Inventory / Favorites            |
++----------------------------------+
 ```
 
-## 2. Update ProfilePage Layout
+---
 
-**File: `src/features/profile/ProfilePage.tsx`**
+## Changes
 
-- Import `ProfileHero` and `useIsMobile`.
-- On mobile: render `<ProfileHero />` at the top (before the Container), then hide the old avatar and tribe section.
-- On desktop (`md:` and up): keep the existing 2-column grid layout exactly as-is (no changes to desktop).
+### 1. New File: `src/features/profile/utils/tribeCoverStyles.ts`
 
-The mobile flow becomes:
-1. ProfileHero (cover + avatar + name + tribe tagline)
-2. TribeSection card (full detail)
-3. ProfileInfoForm
-4. ChangePasswordForm
-5. RetakeQuizSection
-6. InventoryTable
-7. FavoritesTable
-8. FeedbackCTA
+A utility that maps each tribe to a gradient string and an inline SVG data URI pattern:
 
-## 3. Update ProfileAvatar for Circle Variant
+| Tribe | Gradient | Pattern |
+|-------|----------|---------|
+| Fox | Deep warm red-orange to golden amber | Diamond/gem shapes |
+| Owl | Teal to dark slate | Fine grid lines |
+| Hummingbird | Warm yellow to coral | Organic wavy lines |
+| Bee | Rich amber to deep brown | Honeycomb hexagons |
+| (none) | Neutral muted gray | None |
 
-**File: `src/features/profile/components/ProfileAvatar.tsx`**
+All colors are derived from the brand palette (destructive red for Fox, secondary teal for Owl, primary yellow for Hummingbird, accent orange for Bee). Returns `{ gradient: string, patternSvg: string | null }`.
 
-Add an optional `variant` prop: `"square"` (default, current behavior) or `"circle"`.
+### 2. Rewrite: `src/features/profile/components/ProfileHero.tsx`
 
-When `variant="circle"`:
-- Container uses `rounded-full` instead of `rounded-md`
-- Sizing controlled by className passed from ProfileHero (e.g., `w-28 h-28`)
-- White border (`border-background`) instead of `border-border` for contrast against cover
-- No box-shadow (clean circle look)
-- Avatar image uses `object-cover rounded-full` for photos, keeps `object-contain` for the placeholder
+Major changes from the current 150px banner:
 
-## 4. File Summary
+- **Cover**: `h-[65vh]` with tribe gradient background and subtle SVG pattern overlay at low opacity. Caldi logo watermark centered with ~40% opacity.
+- **White card overlap**: A `div` with `bg-background rounded-t-3xl -mt-10 relative z-10` that creates the smooth transition into content (like the reference image).
+- **Avatar**: Circular, positioned at the boundary using `-mt-16` inside the white card, left-aligned with padding.
+- **Identity block** (inside white card, below avatar):
+  - Display name as a Bangers heading (no label)
+  - Email in muted Inter text (no label)
+  - Tribe emoji + name + title as a tagline
+  - Pencil icon button (top-right of identity area)
+- **Edit mode** (toggled by pencil):
+  - Name becomes an `Input` field (no label, placeholder "Your name")
+  - City `Input` appears below email
+  - Avatar shows camera overlay persistently (`showOverlayAlways` prop)
+  - Save (checkmark) and Cancel (X) icon buttons replace the pencil
+  - On save: same Supabase update as `ProfileInfoForm` (`profiles.update`)
+  - On cancel: revert local state, exit edit mode
+
+### 3. Edit: `src/features/profile/components/ProfileAvatar.tsx`
+
+Add optional `showOverlayAlways?: boolean` prop. When true, the camera icon overlay is always visible (full opacity) instead of only on hover. Used during edit mode in ProfileHero.
+
+### 4. Edit: `src/features/profile/ProfilePage.tsx`
+
+On mobile only:
+- Remove `ProfileInfoForm` from the mobile flow (editing is now handled inline in ProfileHero)
+- The mobile content sequence becomes: ProfileHero (with inline edit), TribeSection, Separator, ChangePasswordForm, Separator, RetakeQuizSection, Separator, tables, FeedbackCTA
+
+Desktop layout remains completely untouched.
+
+---
+
+## File Summary
 
 | File | Action | Description |
 |------|--------|-------------|
-| `src/features/profile/components/ProfileHero.tsx` | New | LinkedIn-style cover + avatar + name + tribe tagline for mobile |
-| `src/features/profile/components/ProfileAvatar.tsx` | Edit | Add `variant="circle"` support |
-| `src/features/profile/ProfilePage.tsx` | Edit | Use ProfileHero on mobile, hide old avatar/tribe on mobile |
-| `src/features/profile/components/index.ts` | Edit | Export ProfileHero |
+| `src/features/profile/utils/tribeCoverStyles.ts` | New | Tribe-to-gradient and SVG pattern mapping |
+| `src/features/profile/components/ProfileHero.tsx` | Rewrite | 65vh cover, white card overlap, inline identity with edit mode |
+| `src/features/profile/components/ProfileAvatar.tsx` | Edit | Add `showOverlayAlways` prop |
+| `src/features/profile/ProfilePage.tsx` | Edit | Remove ProfileInfoForm from mobile flow |
 
-## Technical Notes
+---
 
-- The cover banner uses the Caldi logo from `/lovable-uploads/8e78a6bd-5f00-45be-b082-c35b57fa9a7c.png`.
-- The avatar overlap is achieved with a negative top margin (`-mt-14`) on the avatar container relative to the cover.
-- The tribe brief description uses the `title` field from the tribe definition (e.g., "The Tastemaker", "The Explorer") -- short enough for a single line under the name.
-- Upload functionality is fully reused from the existing ProfileAvatar component.
+## Technical Details
+
+- Gradients use inline `style={{ background: 'linear-gradient(...)' }}` with brand HSL values
+- SVG patterns are tiny inline data URIs in `backgroundImage` with `repeat` and 5-8% opacity
+- The white card overlap uses `rounded-t-3xl` (24px radius) and `-mt-10` with `relative z-10`
+- Edit mode uses local `useState` for `isEditing`, `tempName`, and `tempCity`
+- Save calls `supabase.from("profiles").update(...)` then `refreshProfile()` from AuthContext
+- Brand compliance: 4px borders on avatar (border-background for contrast), Bangers font on name, Inter on email, Energy Yellow save button, Bean Black borders
+- No new dependencies required
+

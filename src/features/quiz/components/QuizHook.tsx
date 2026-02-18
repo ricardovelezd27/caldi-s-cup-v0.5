@@ -1,11 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Coffee, Sparkles } from 'lucide-react';
+import { useLanguage } from '@/contexts/language';
 
 interface QuizHookProps {
   onStart: () => void;
 }
 
 export const QuizHook = ({ onStart }: QuizHookProps) => {
+  const { t } = useLanguage();
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 text-center">
       {/* Hero Icon */}
@@ -18,16 +20,16 @@ export const QuizHook = ({ onStart }: QuizHookProps) => {
 
       {/* Headline */}
       <h1 className="font-bangers text-4xl md:text-5xl lg:text-6xl text-foreground mb-4 tracking-wide">
-        DISCOVER YOUR
+        {t("quiz.discoverTitle")}
         <br />
-        <span className="text-primary">COFFEE TRIBE</span>
+        <span className="text-primary">{t("quiz.tribeTitle")}</span>
       </h1>
 
       {/* Subheadline */}
       <p className="text-lg md:text-xl text-muted-foreground max-w-md mb-8">
-        5 quick questions. 4 coffee personalities.
+        {t("quiz.subheadline")}
         <br />
-        Find out which one matches your vibe.
+        {t("quiz.subheadline2")}
       </p>
 
       {/* CTA Button */}
@@ -37,12 +39,12 @@ export const QuizHook = ({ onStart }: QuizHookProps) => {
         className="text-lg px-8 py-6"
       >
         <Sparkles className="w-5 h-5 mr-2" />
-        Decode My Coffee Ritual
+        {t("quiz.cta")}
       </Button>
 
       {/* Time estimate */}
       <p className="text-sm text-muted-foreground mt-4">
-        Takes less than 2 minutes
+        {t("quiz.timeEstimate")}
       </p>
     </div>
   );

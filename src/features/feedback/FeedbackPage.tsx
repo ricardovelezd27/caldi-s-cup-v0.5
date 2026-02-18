@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Container } from "@/components/shared";
@@ -6,7 +6,8 @@ import { CaldiCard } from "@/components/shared/CaldiCard";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Linkedin, Instagram } from "lucide-react";
 import { FeedbackDialog } from "./components/FeedbackDialog";
-import { APP_CONFIG, ROUTES } from "@/constants/app";
+import { ROUTES } from "@/constants/app";
+import { useLanguage } from "@/contexts/language";
 
 import duoGoatImg from "@/assets/characters/ilustration_Duo_and_Goat_NoBG_1.png";
 import ricardoImg from "@/assets/characters/ricardo-profile.png";
@@ -14,6 +15,7 @@ import vibrantImg from "@/assets/illustrations/vibrant-coffee-overwhelm.png";
 
 const FeedbackPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <PageLayout>
@@ -22,24 +24,21 @@ const FeedbackPage = () => {
         <section className="grid md:grid-cols-2 gap-8 items-center">
           <div className="space-y-4">
             <h1 className="text-4xl md:text-5xl font-bangers tracking-wide">
-              The Story Behind Your Next Great Cup
+              {t("ourStory.heroTitle")}
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Ever stood in the coffee aisle, overwhelmed by endless options, wondering which bag
-              will actually taste good tomorrow morning? That's where Caldi's Cup was born.
+              {t("ourStory.heroParagraph1")}
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              We help you scan any coffee bag and instantly understand what's inside. But we're building something bigger, tools that help you discover and enjoy coffee in your own way. Think of us as your AI-powered coffee companion.
-            
-
+              {t("ourStory.heroParagraph2")}
             </p>
           </div>
           <div className="hidden md:flex justify-center">
             <img
               src={vibrantImg}
               alt="Overwhelmed coffee lover surrounded by options"
-              className="w-64 md:w-[80%]" />
-
+              className="w-64 md:w-[80%]"
+            />
           </div>
         </section>
 
@@ -49,23 +48,18 @@ const FeedbackPage = () => {
             <img
               src={duoGoatImg}
               alt="The legend of Kaldi"
-              className="w-64 md:w-[80%]" />
-
+              className="w-64 md:w-[80%]"
+            />
           </div>
           <CaldiCard className="space-y-4">
             <h2 className="text-3xl md:text-4xl font-bangers tracking-wide">
-              Why "Caldi"?
+              {t("ourStory.whyTitle")}
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              Legend has it that Kaldi, an Ethiopian goat herder, discovered coffee centuries ago when he noticed his goats dancing with unusual energy after eating mysterious red berries. Curious, he tried them himself, and the rest is history.
-            
-
+              {t("ourStory.whyParagraph1")}
             </p>
             <p className="text-muted-foreground leading-relaxed">
-              We changed the K to a C as an homage to Colombia, the land of exceptional coffee and
-              the heart of our mission. Caldi's Cup honors both the ancient discovery and the modern
-              mission: helping you discover your perfect coffee while transforming lives in Colombian
-              coffee communities.
+              {t("ourStory.whyParagraph2")}
             </p>
           </CaldiCard>
         </section>
@@ -77,29 +71,29 @@ const FeedbackPage = () => {
               <img
                 src={ricardoImg}
                 alt="Ricardo, Founder of Caldi's Cup"
-                className="w-full h-full object-cover" />
-
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
           <div className="space-y-4">
             <h2 className="text-3xl md:text-4xl font-bangers tracking-wide">
-              Meet the Team
+              {t("ourStory.meetTitle")}
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              I'm Ricardo, and I built Caldi's Cup at the intersection of three passions:
+              {t("ourStory.meetIntro")}
             </p>
             <ul className="space-y-2 text-muted-foreground">
               <li className="flex items-start gap-2">
                 <span className="text-xl">🧠</span>
-                <span><strong className="text-foreground">Understanding people:</strong> Using behavioral science to solve real frustrations</span>
+                <span><strong className="text-foreground">{t("ourStory.passion1Label")}</strong> {t("ourStory.passion1Text")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-xl">💡</span>
-                <span><strong className="text-foreground">Smart technology:</strong> AI that serves you, not complicates your life</span>
+                <span><strong className="text-foreground">{t("ourStory.passion2Label")}</strong> {t("ourStory.passion2Text")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-xl">🇨🇴</span>
-                <span><strong className="text-foreground">Transforming Colombia</strong>Transforming Colombia: One cup at a time</span>
+                <span><strong className="text-foreground">{t("ourStory.passion3Label")}</strong> {t("ourStory.passion3Text")}</span>
               </li>
             </ul>
           </div>
@@ -109,20 +103,17 @@ const FeedbackPage = () => {
         <section>
           <CaldiCard className="bg-secondary/5 space-y-4">
             <h2 className="text-3xl md:text-4xl font-bangers tracking-wide">
-              A Personal Mission
+              {t("ourStory.missionTitle")}
             </h2>
             <blockquote className="border-l-4 border-secondary pl-6 space-y-3">
               <p className="text-muted-foreground leading-relaxed italic">
-                I'm Colombian. Coffee is in my blood, I believe in coffee as the force that will transform my country.
-              
+                {t("ourStory.missionQ1")}
               </p>
               <p className="text-muted-foreground leading-relaxed italic">
-                The farmers growing the world's finest coffee often can't make a living from it.
-                Some turn to coca farming out of desperation. Caldi's Cup will change this story.
+                {t("ourStory.missionQ2")}
               </p>
               <p className="text-muted-foreground leading-relaxed italic">
-                By helping you discover exceptional coffee, we create demand that rewards quality. We
-                build pathways for farmers to earn dignified livelihoods doing what they do best.
+                {t("ourStory.missionQ3")}
               </p>
             </blockquote>
           </CaldiCard>
@@ -131,21 +122,19 @@ const FeedbackPage = () => {
         {/* 5. Our North Star */}
         <section className="space-y-6">
           <h2 className="text-3xl md:text-4xl font-bangers tracking-wide text-center">
-            Our North Star
+            {t("ourStory.northStarTitle")}
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
             <CaldiCard className="space-y-3">
-              <h3 className="text-2xl font-bangers tracking-wide">🎯 Mission</h3>
+              <h3 className="text-2xl font-bangers tracking-wide">{t("ourStory.missionCardTitle")}</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Make discovering exceptional coffee <strong className="text-foreground">effortless</strong>, while
-                creating <strong className="text-foreground">real value</strong> for the farmers behind every bean.
+                {t("ourStory.missionCardText")}
               </p>
             </CaldiCard>
             <CaldiCard className="space-y-3">
-              <h3 className="text-2xl font-bangers tracking-wide">🌟 Vision</h3>
-              <p className="text-muted-foreground leading-relaxed">A world where technology brings you closer to your perfect cup, and every purchase supports farmers building better futures.
-
-
+              <h3 className="text-2xl font-bangers tracking-wide">{t("ourStory.visionCardTitle")}</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {t("ourStory.visionCardText")}
               </p>
             </CaldiCard>
           </div>
@@ -154,55 +143,55 @@ const FeedbackPage = () => {
         {/* 6. The Journey Ahead */}
         <section className="space-y-6">
           <h2 className="text-3xl md:text-4xl font-bangers tracking-wide text-center">
-            The Journey Ahead
+            {t("ourStory.journeyTitle")}
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-            { label: "Today", text: "Scan & Discover", accent: "bg-secondary" },
-            { label: "Tomorrow", text: "Personalized Brewing Guides & AI at every level — send us your ideas!", accent: "bg-accent" },
-            { label: "Future", text: "Your Complete Coffee Companion", accent: "bg-primary" }].
-            map((step) =>
-            <div key={step.label} className="text-center space-y-3">
+              { label: t("ourStory.journeyToday"), text: t("ourStory.journeyTodayText"), accent: "bg-secondary" },
+              { label: t("ourStory.journeyTomorrow"), text: t("ourStory.journeyTomorrowText"), accent: "bg-accent" },
+              { label: t("ourStory.journeyFuture"), text: t("ourStory.journeyFutureText"), accent: "bg-primary" },
+            ].map((step) => (
+              <div key={step.label} className="text-center space-y-3">
                 <span className={`inline-block px-4 py-1 rounded-full text-sm font-semibold ${step.accent} text-foreground`}>
                   {step.label}
                 </span>
                 <p className="text-muted-foreground">{step.text}</p>
               </div>
-            )}
+            ))}
           </div>
         </section>
 
         {/* 7. CTA Section */}
         <section className="text-center space-y-6 py-10 px-6 rounded-lg bg-foreground">
           <h2 className="text-3xl md:text-4xl font-bangers tracking-wide text-background">
-            Ready to discover something extraordinary?
+            {t("ourStory.ctaTitle")}
           </h2>
           <Link to={ROUTES.quiz}>
             <Button size="lg" className="text-lg">
-              {APP_CONFIG.cta.primary}
+              {t("ourStory.ctaButton")}
             </Button>
           </Link>
           <p className="text-background/80 italic mt-6">
-            With purpose and passion,
+            {t("ourStory.ctaSignoff")}
             <br />
-            Ricardo
+            {t("ourStory.ctaFounder")}
             <br />
-            Founder, Caldi's Cup
+            {t("ourStory.ctaFounderRole")}
           </p>
         </section>
 
         {/* 8. Connect / Feedback */}
         <section className="text-center space-y-6">
           <p className="text-muted-foreground">
-            Passionate about coffee, technology, or responsible business? Let's connect.
+            {t("ourStory.connectText")}
           </p>
           <div className="flex justify-center gap-4">
             <a
               href="https://www.linkedin.com/in/ricardo-velez-dominguez/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-secondary transition-colors">
-
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-secondary transition-colors"
+            >
               <Linkedin className="w-6 h-6" />
               <span>LinkedIn</span>
             </a>
@@ -210,8 +199,8 @@ const FeedbackPage = () => {
               href="https://www.instagram.com/caldis_cup/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-secondary transition-colors">
-
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-secondary transition-colors"
+            >
               <Instagram className="w-6 h-6" />
               <span>Instagram</span>
             </a>
@@ -220,17 +209,17 @@ const FeedbackPage = () => {
             size="lg"
             variant="outline"
             onClick={() => setDialogOpen(true)}
-            className="gap-2">
-
+            className="gap-2"
+          >
             <MessageSquare className="w-5 h-5" />
-            Give Us Feedback
+            {t("ourStory.feedbackButton")}
           </Button>
         </section>
 
         <FeedbackDialog open={dialogOpen} onOpenChange={setDialogOpen} />
       </Container>
-    </PageLayout>);
-
+    </PageLayout>
+  );
 };
 
 export default FeedbackPage;

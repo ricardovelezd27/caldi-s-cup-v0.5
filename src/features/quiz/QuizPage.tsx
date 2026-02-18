@@ -4,6 +4,7 @@ import { HelpCircle } from 'lucide-react';
 import { PageLayout } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth';
+import { useLanguage } from '@/contexts/language';
 import { QUIZ_SCENARIOS } from './data/scenarios';
 import { useQuizState } from './hooks/useQuizState';
 import { 
@@ -18,6 +19,7 @@ import {
 export const QuizPage = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { t } = useLanguage();
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [forceShowOnboarding, setForceShowOnboarding] = useState(false);
   
@@ -56,7 +58,6 @@ export const QuizPage = () => {
   const handleComplete = () => {
     const result = getResult();
     if (result) {
-      // Navigate to results page with state
       navigate('/results', { state: { result } });
     }
   };
@@ -93,7 +94,7 @@ export const QuizPage = () => {
                 className="text-muted-foreground hover:text-foreground"
               >
                 <HelpCircle className="w-4 h-4 mr-2" />
-                What is this?
+                {t("quiz.whatIsThis")}
               </Button>
             </div>
             <QuizHook onStart={startQuiz} />

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, ScanLine, PenLine } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
+import { useLanguage } from "@/contexts/language";
 import { useCoffeeScanner } from "./hooks/useCoffeeScanner";
 import { ScanUploader, ScanningTips, ScanProgress, TribeScannerPreview, ManualAddForm } from "./components";
 import { transformToCoffee, extractScanMeta } from "./utils/transformScanData";
@@ -14,6 +15,7 @@ import { FeedbackCTA } from "@/components/shared/FeedbackCTA";
 
 export function ScannerPage() {
   const { user, profile } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { 
     scanCoffee, 
@@ -62,10 +64,10 @@ export function ScannerPage() {
         {/* Page Title */}
         <div className="mb-6">
           <h1 className="font-bangers text-3xl md:text-4xl text-foreground">
-            Coffee Scanner
+            {t("scanner.title")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Scan a coffee bag or add one manually
+            {t("scanner.subtitle")}
           </p>
         </div>
 
@@ -73,12 +75,12 @@ export function ScannerPage() {
           <TabsList className="w-full max-w-xs">
             <TabsTrigger value="scan" className="flex-1 gap-1.5">
               <ScanLine className="h-4 w-4" />
-              Scan
+              {t("scanner.tabScan")}
             </TabsTrigger>
             {user && (
               <TabsTrigger value="manual" className="flex-1 gap-1.5">
                 <PenLine className="h-4 w-4" />
-                Add Manually
+                {t("scanner.tabManual")}
               </TabsTrigger>
             )}
           </TabsList>
@@ -89,13 +91,13 @@ export function ScannerPage() {
             {user && !profile?.coffee_tribe && (
               <Alert className="border-4 border-accent bg-accent/5">
                 <AlertCircle className="h-4 w-4 text-accent" />
-                <AlertTitle className="font-bangers">Take the Quiz First!</AlertTitle>
+                <AlertTitle className="font-bangers">{t("scanner.quizWarningTitle")}</AlertTitle>
                 <AlertDescription>
-                  For personalized match scores, complete the{" "}
+                  {t("scanner.quizWarningBody")}{" "}
                   <a href="/quiz" className="text-primary hover:underline font-medium">
-                    Coffee Personality Quiz
+                    {t("scanner.quizWarningLink")}
                   </a>{" "}
-                  to discover your coffee tribe.
+                  {t("scanner.quizWarningEnd")}
                 </AlertDescription>
               </Alert>
             )}
@@ -112,11 +114,11 @@ export function ScannerPage() {
               <div className="max-w-xl mx-auto space-y-4">
                 <Alert className="border-4 border-destructive bg-destructive/5">
                   <AlertCircle className="h-4 w-4 text-destructive" />
-                  <AlertTitle className="font-bangers">Scan Failed</AlertTitle>
+                  <AlertTitle className="font-bangers">{t("scanner.scanFailedTitle")}</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
                 <div className="flex justify-center">
-                  <Button onClick={resetScan}>Try Again</Button>
+                  <Button onClick={resetScan}>{t("scanner.tryAgain")}</Button>
                 </div>
               </div>
             )}

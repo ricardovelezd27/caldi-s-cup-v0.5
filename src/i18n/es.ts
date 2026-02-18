@@ -1,0 +1,140 @@
+export const es = {
+  nav: {
+    scanner: "Escáner de Etiquetas",
+    profile: "Mi Perfil",
+    ourStory: "Nuestra Historia",
+    brewLog: "El Diario del Café",
+    signIn: "Iniciar Sesión",
+    signOut: "Cerrar Sesión",
+    feedback: "Comentarios",
+    menu: "Abrir menú",
+  },
+  hero: {
+    badge: "DESCUBRIMIENTO DE CAFÉ CON IA",
+    headlinePart1: "El Café Se ",
+    headlineCrossed: "Complicó",
+    headlinePart2: "Caldi Lo Simplifica.",
+    body: "Sin más adivinanzas. Sin jerga confusa. Descubre cafés que se adaptan a tu gusto único.",
+    cta: "¡Prueba Caldi AI!",
+    ctaSecondary: "Cómo funciona",
+    speechBubble: "¡Encontremos tu café ideal!",
+  },
+  features: {
+    sectionTitle: "Lo que Caldi Hace por Ti",
+    scan: {
+      title: "Escanea y Entiende Cualquier Café",
+      description:
+        "Toma una foto del empaque y descifra al instante qué lo hace especial: notas de sabor, historia de origen y toda esa jerga confusa traducida a palabras simples.",
+    },
+    favorites: {
+      title: "Nunca Olvides un Gran Café",
+      description:
+        "¿Probando muestras en una feria o explorando cafés en tu ciudad? Guarda cada café que descubras para recordar lo que te encantó y volver a encontrarlo después.",
+    },
+    tribe: {
+      title: "Encuentra Tu Tribu Cafetera",
+      description:
+        "Olvida la jerga intimidante. Responde unas preguntas divertidas sobre cómo disfrutas tus mañanas y te conectaremos con tu personalidad cafetera perfecta, sin necesitar experiencia.",
+    },
+  },
+  footer: {
+    tagline: "El café se complicó, Caldi te devuelve la claridad.",
+    explore: "Explorar",
+    company: "Empresa",
+    getInTouch: "Contáctanos",
+    followUs: "Síguenos",
+    giveFeedback: "Dar Feedback",
+    copyright: "Preparado con amor.",
+    rights: "Todos los derechos reservados.",
+    scanner: "Escáner de Etiquetas",
+    quiz: "Quiz del Café",
+    brewLog: "El Diario del Café",
+    ourStory: "Nuestra Historia",
+  },
+  scanner: {
+    title: "Escáner de Café",
+    subtitle: "Escanea un empaque de café o agrégalo manualmente",
+    tabScan: "Escanear",
+    tabManual: "Agregar Manualmente",
+    quizWarningTitle: "¡Haz el Quiz Primero!",
+    quizWarningBody: "Para puntuaciones personalizadas, completa el",
+    quizWarningLink: "Quiz de Personalidad Cafetera",
+    quizWarningEnd: "para descubrir tu tribu cafetera.",
+    scanFailedTitle: "Escaneo Fallido",
+    tryAgain: "Intentar de Nuevo",
+  },
+  quiz: {
+    whatIsThis: "¿Qué es esto?",
+    discoverTitle: "DESCUBRE TU",
+    tribeTitle: "TRIBU CAFETERA",
+    subheadline: "5 preguntas rápidas. 4 personalidades cafeteras.",
+    subheadline2: "Descubre cuál coincide con tu estilo.",
+    cta: "Descifra Mi Ritual Cafetero",
+    timeEstimate: "Toma menos de 2 minutos",
+  },
+  ourStory: {
+    heroTitle: "La Historia Detrás de Tu Próxima Gran Taza",
+    heroParagraph1:
+      "¿Alguna vez te has parado frente al pasillo del café, abrumado por las opciones, preguntándote qué empaque sabrá bien mañana por la mañana? Ahí nació Caldi's Cup.",
+    heroParagraph2:
+      "Te ayudamos a escanear cualquier empaque de café y entender al instante qué hay dentro. Pero estamos construyendo algo más grande: herramientas que te ayudan a descubrir y disfrutar el café a tu manera. Piensa en nosotros como tu compañero de café con IA.",
+    whyTitle: "¿Por qué \"Caldi\"?",
+    whyParagraph1:
+      "Cuenta la leyenda que Kaldi, un pastor de cabras etíope, descubrió el café hace siglos cuando notó que sus cabras bailaban con energía inusual tras comer unas misteriosas bayas rojas. Curioso, las probó él mismo y el resto es historia.",
+    whyParagraph2:
+      "Cambiamos la K por una C como homenaje a Colombia, la tierra del café excepcional y el corazón de nuestra misión. Caldi's Cup honra tanto el descubrimiento ancestral como la misión moderna: ayudarte a encontrar tu café perfecto mientras transforma vidas en las comunidades cafeteras colombianas.",
+    meetTitle: "Conoce al Equipo",
+    meetIntro: "Soy Ricardo, y construí Caldi's Cup en la intersección de tres pasiones:",
+    passion1Label: "Entender a las personas:",
+    passion1Text: "Usando ciencias del comportamiento para resolver frustraciones reales",
+    passion2Label: "Tecnología inteligente:",
+    passion2Text: "IA que te sirve a ti, no complica tu vida",
+    passion3Label: "Transformar Colombia",
+    passion3Text: "Una taza a la vez",
+    missionTitle: "Una Misión Personal",
+    missionQ1:
+      "Soy colombiano. El café está en mi sangre. Creo que el café es la fuerza que transformará mi país.",
+    missionQ2:
+      "Los agricultores que cultivan el mejor café del mundo a menudo no pueden vivir de ello. Algunos recurren al cultivo de coca por desesperación. Caldi's Cup cambiará esta historia.",
+    missionQ3:
+      "Al ayudarte a descubrir café excepcional, creamos demanda que recompensa la calidad. Construimos caminos para que los agricultores ganen medios de vida dignos haciendo lo que mejor saben.",
+    northStarTitle: "Nuestra Estrella del Norte",
+    missionCardTitle: "🎯 Misión",
+    missionCardText:
+      "Hacer que descubrir café excepcional sea sencillo, mientras se crea valor real para los agricultores detrás de cada grano.",
+    visionCardTitle: "🌟 Visión",
+    visionCardText:
+      "Un mundo donde la tecnología te acerca a tu taza perfecta, y cada compra apoya a los agricultores que construyen mejores futuros.",
+    journeyTitle: "El Camino por Recorrer",
+    journeyToday: "Hoy",
+    journeyTodayText: "Escanear y Descubrir",
+    journeyTomorrow: "Mañana",
+    journeyTomorrowText: "Guías de Preparación Personalizadas e IA en cada nivel — ¡envíanos tus ideas!",
+    journeyFuture: "Futuro",
+    journeyFutureText: "Tu Compañero de Café Completo",
+    ctaTitle: "¿Listo para descubrir algo extraordinario?",
+    ctaButton: "¡Prueba Caldi AI!",
+    ctaSignoff: "Con propósito y pasión,",
+    ctaFounder: "Ricardo",
+    ctaFounderRole: "Fundador, Caldi's Cup",
+    connectText: "¿Apasionado por el café, la tecnología o los negocios responsables? Conectemos.",
+    feedbackButton: "Danos tu Opinión",
+  },
+  blog: {
+    title: "El Diario del Café",
+    subtitle: "Historias, consejos y curiosidades del mundo del café.",
+    comingSoon: "En preparación — ¡pronto estará listo!",
+  },
+  profile: {
+    title: "Mi Perfil",
+    tribeHeading: "Tú experimentas el café como...",
+  },
+  common: {
+    loading: "Cargando...",
+    error: "Algo salió mal",
+    tryAgain: "Intentar de Nuevo",
+    save: "Guardar",
+    cancel: "Cancelar",
+    comingSoon: "Pronto",
+  },
+} as const;

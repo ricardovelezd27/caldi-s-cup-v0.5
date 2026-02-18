@@ -4,6 +4,7 @@ import { FeedbackTrigger } from "@/features/feedback";
 import { Mail, Instagram, Youtube, Facebook } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/language";
 
 /** Simple SVG icons for platforms Lucide doesn't cover */
 const XIcon = ({ className }: { className?: string }) => (
@@ -26,28 +27,30 @@ const socialLinks = [
   { label: "Facebook", href: "#", icon: Facebook, comingSoon: true },
 ];
 
-const footerNav = {
-  explore: [
-    { label: "Label Scanner", path: ROUTES.scanner },
-    { label: "Coffee Quiz", path: ROUTES.quiz },
-    { label: "The Brew Log", path: ROUTES.blog },
-  ],
-  company: [
-    { label: "Our Story", path: ROUTES.contactFeedback },
-  ],
-};
-
 interface FooterProps {
   compact?: boolean;
 }
 
 export const Footer = ({ compact = false }: FooterProps) => {
+  const { t } = useLanguage();
+
+  const footerNav = {
+    explore: [
+      { label: t("footer.scanner"), path: ROUTES.scanner },
+      { label: t("footer.quiz"), path: ROUTES.quiz },
+      { label: t("footer.brewLog"), path: ROUTES.blog },
+    ],
+    company: [
+      { label: t("footer.ourStory"), path: ROUTES.contactFeedback },
+    ],
+  };
+
   if (compact) {
     return (
       <footer className="border-t-4 border-border bg-foreground text-background">
         <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-background/50 font-inter">
-            © {APP_CONFIG.year} {APP_CONFIG.name}. Brewed with love.
+            © {APP_CONFIG.year} {APP_CONFIG.name}. {t("footer.copyright")}
           </p>
           <a
             href="mailto:r.velez@caldi.coffee"
@@ -71,13 +74,13 @@ export const Footer = ({ compact = false }: FooterProps) => {
               {APP_CONFIG.name}
             </h2>
             <p className="text-sm text-background/70 font-inter leading-relaxed max-w-xs">
-              {APP_CONFIG.tagline}
+              {t("footer.tagline")}
             </p>
           </div>
 
           {/* Explore Column */}
           <div>
-            <h3 className="font-bangers text-lg tracking-wide text-primary mb-4">Explore</h3>
+            <h3 className="font-bangers text-lg tracking-wide text-primary mb-4">{t("footer.explore")}</h3>
             <ul className="space-y-2.5">
               {footerNav.explore.map((link) => (
                 <li key={link.path}>
@@ -91,7 +94,7 @@ export const Footer = ({ compact = false }: FooterProps) => {
 
           {/* Company Column */}
           <div>
-            <h3 className="font-bangers text-lg tracking-wide text-primary mb-4">Company</h3>
+            <h3 className="font-bangers text-lg tracking-wide text-primary mb-4">{t("footer.company")}</h3>
             <ul className="space-y-2.5">
               {footerNav.company.map((link) => (
                 <li key={link.path}>
@@ -104,7 +107,7 @@ export const Footer = ({ compact = false }: FooterProps) => {
                 <FeedbackTrigger>
                   {(open) => (
                     <button onClick={open} className="text-sm text-background/70 hover:text-primary font-inter transition-colors">
-                      Give Feedback
+                      {t("footer.giveFeedback")}
                     </button>
                   )}
                 </FeedbackTrigger>
@@ -114,7 +117,7 @@ export const Footer = ({ compact = false }: FooterProps) => {
 
           {/* Contact & Socials Column */}
           <div>
-            <h3 className="font-bangers text-lg tracking-wide text-primary mb-4">Get in Touch</h3>
+            <h3 className="font-bangers text-lg tracking-wide text-primary mb-4">{t("footer.getInTouch")}</h3>
             <ul className="space-y-2.5">
               <li>
                 <a href="mailto:r.velez@caldi.coffee" className="flex items-center gap-2 text-sm text-background/70 hover:text-primary font-inter transition-colors">
@@ -124,7 +127,7 @@ export const Footer = ({ compact = false }: FooterProps) => {
               </li>
             </ul>
             <div className="mt-5">
-              <p className="text-xs text-background/50 font-inter mb-2.5">Follow us</p>
+              <p className="text-xs text-background/50 font-inter mb-2.5">{t("footer.followUs")}</p>
               <div className="flex flex-wrap gap-3">
                 {socialLinks.map((social) => (
                   <div key={social.label} className="relative group">
@@ -141,7 +144,7 @@ export const Footer = ({ compact = false }: FooterProps) => {
                     </a>
                     {social.comingSoon && (
                       <Badge variant="outline" className="absolute -top-2.5 -right-2.5 text-[8px] px-1 py-0 leading-tight border-primary/50 text-primary bg-foreground whitespace-nowrap pointer-events-none">
-                        Soon
+                        {t("common.comingSoon")}
                       </Badge>
                     )}
                   </div>
@@ -155,9 +158,9 @@ export const Footer = ({ compact = false }: FooterProps) => {
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-background/50 font-inter">
-            © {APP_CONFIG.year} {APP_CONFIG.name}. Brewed with love.
+            © {APP_CONFIG.year} {APP_CONFIG.name}. {t("footer.copyright")}
           </p>
-          <p className="text-xs text-background/50 font-inter">All rights reserved.</p>
+          <p className="text-xs text-background/50 font-inter">{t("footer.rights")}</p>
         </div>
       </div>
     </footer>

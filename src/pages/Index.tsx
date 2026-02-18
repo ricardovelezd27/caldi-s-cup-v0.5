@@ -2,8 +2,9 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PageLayout } from "@/components/layout";
 import { Container, SectionHeading, CaldiCard } from "@/components/shared";
-import { APP_CONFIG, ROUTES } from "@/constants/app";
+import { ROUTES } from "@/constants/app";
 import { Coffee } from "lucide-react";
+import { useLanguage } from "@/contexts/language";
 
 // Import assets
 import pathToClarity from "@/assets/backgrounds/path-to-clarity.svg";
@@ -13,6 +14,7 @@ import illustrationFavorites from "@/assets/illustrations/illustration-search-fa
 import illustrationTribe from "@/assets/illustrations/illustration-coffee-tribe.png";
 
 const HeroSection = () => {
+  const { t } = useLanguage();
   return (
     <section className="relative overflow-hidden py-4 md:py-16 lg:py-20">
       {/* Path of Clarity background */}
@@ -31,36 +33,36 @@ const HeroSection = () => {
             />
             {/* Badge */}
             <span className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-1.5 text-xs font-inter font-semibold tracking-wider mb-6 relative z-20">
-              <Coffee className="w-4 h-4" />
-              AI-POWERED COFFEE DISCOVERY
+              <Coffee className="w-4 h-4 shrink-0" />
+              {t("hero.badge")}
             </span>
 
             {/* Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bangers leading-tight mb-4">
-              <span className="text-foreground">Coffee Got </span>
+              <span className="text-foreground">{t("hero.headlinePart1")}</span>
               <span className="text-foreground relative inline-block">
-                Complicated
+                {t("hero.headlineCrossed")}
                 <span className="absolute left-0 top-1/2 h-[6px] bg-accent animate-strikethrough" />
               </span>
               <br />
-              <span className="text-secondary">Caldi Makes It Simple.</span>
+              <span className="text-secondary">{t("hero.headlinePart2")}</span>
             </h1>
 
             {/* Body text */}
             <p className="text-lg lg:text-xl text-muted-foreground font-inter max-w-md mb-8">
-              {APP_CONFIG.description}
+              {t("hero.body")}
             </p>
 
             {/* CTA row */}
             <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto">
               <Button size="lg" className="text-xl font-bangers px-8 py-6 tracking-wide w-full md:w-auto" asChild>
-                <Link to={ROUTES.scanner}>Give Caldi AI a Try!</Link>
+                <Link to={ROUTES.scanner}>{t("hero.cta")}</Link>
               </Button>
               <button
                 onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
                 className="text-foreground hover:text-secondary font-inter text-sm font-medium underline underline-offset-4 transition-colors"
               >
-                How it works
+                {t("hero.ctaSecondary")}
               </button>
             </div>
           </div>
@@ -70,7 +72,7 @@ const HeroSection = () => {
             {/* Speech bubble */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10 animate-float">
               <div className="relative bg-background rounded-2xl border-2 border-secondary/30 px-5 py-3 shadow-md">
-                <p className="text-secondary font-bangers text-lg whitespace-nowrap">Let's find your match!</p>
+                <p className="text-secondary font-bangers text-lg">{t("hero.speechBubble")}</p>
                 {/* Bubble tail */}
                 <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-background border-b-2 border-r-2 border-secondary/30 rotate-45" />
               </div>
@@ -89,32 +91,30 @@ const HeroSection = () => {
   );
 };
 
-const features = [
-  {
-    image: illustrationScan,
-    title: "Scan & Understand Any Coffee",
-    description:
-      "Snap a photo of the bag and instantly decode what makes it special: flavor notes, origin story, and all that confusing jargon translated into plain English.",
-  },
-  {
-    image: illustrationFavorites,
-    title: "Never Forget a Great Coffee",
-    description:
-      "Trying samples at a fair or exploring cafés in your city? Save every coffee you discover so you can remember what you loved and actually find it again later.",
-  },
-  {
-    image: illustrationTribe,
-    title: "Find Your Coffee Tribe",
-    description:
-      "Skip the intimidating jargon. Answer a few fun questions about how you like your mornings, and we'll match you to your perfect coffee personality, no expertise required.",
-  },
-] as const;
-
 const FeaturesSection = () => {
+  const { t } = useLanguage();
+  const features = [
+    {
+      image: illustrationScan,
+      title: t("features.scan.title"),
+      description: t("features.scan.description"),
+    },
+    {
+      image: illustrationFavorites,
+      title: t("features.favorites.title"),
+      description: t("features.favorites.description"),
+    },
+    {
+      image: illustrationTribe,
+      title: t("features.tribe.title"),
+      description: t("features.tribe.description"),
+    },
+  ];
+
   return (
     <section id="features" className="py-16 md:py-20 bg-secondary/5 scroll-mt-16">
       <Container>
-        <SectionHeading title="What Caldi Does For You" color="secondary" className="mb-12" />
+        <SectionHeading title={t("features.sectionTitle")} color="secondary" className="mb-12" />
         <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
           {features.map((feature, index) => (
             <CaldiCard key={feature.title} className="text-center px-4" style={{ animationDelay: `${index * 100}ms` }}>
@@ -132,11 +132,12 @@ const FeaturesSection = () => {
 };
 
 const CTASection = () => {
+  const { t } = useLanguage();
   return (
     <section className="py-16 md:py-24">
       <Container className="flex justify-center">
         <Button size="lg" className="text-2xl md:text-3xl font-bangers px-12 py-8 tracking-wide" asChild>
-          <Link to={ROUTES.scanner}>Give Caldi a Try!</Link>
+          <Link to={ROUTES.scanner}>{t("hero.cta")}</Link>
         </Button>
       </Container>
     </section>

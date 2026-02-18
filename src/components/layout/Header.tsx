@@ -61,6 +61,11 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
       <header className="py-4 sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-between gap-4">
+            {/* Language Selector — far left, desktop only */}
+            <div className="hidden md:flex items-center shrink-0">
+              <LanguageSelector />
+            </div>
+
             {/* Logo */}
             <Link
               to={ROUTES.home}
@@ -77,8 +82,6 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-4 lg:gap-6 flex-wrap justify-end">
-              {/* Language Selector — desktop */}
-              <LanguageSelector />
 
               <NavLink
                 to={ROUTES.scanner}
@@ -144,9 +147,8 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
               )}
             </div>
 
-            {/* Mobile: Language selector + Hamburger */}
-            <div className="md:hidden flex items-center gap-3">
-              <LanguageSelector />
+            {/* Mobile: Hamburger only */}
+            <div className="md:hidden flex items-center">
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
                   <button
@@ -170,6 +172,10 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                       />
                     </Link>
                   </SheetHeader>
+                  {/* Language Selector — inside mobile menu */}
+                  <div className="mb-4">
+                    <LanguageSelector />
+                  </div>
                   <nav className="flex flex-col gap-4">
                     <NavLink
                       to={ROUTES.scanner}

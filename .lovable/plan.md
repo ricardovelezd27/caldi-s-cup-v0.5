@@ -1,76 +1,157 @@
 
-
-# Codebase Optimization -- Clean Up Without Deleting Future Features
+# Bilingual Support: Spanish & English with Language Selector
 
 ## Approach
 
-Instead of deleting dormant features (marketplace, cart, recipes), this plan focuses on fixing broken references, silencing console warnings, and removing only truly orphaned files that belong to no feature.
+Build a lightweight, custom i18n system using React Context — no external library needed. This avoids adding a heavy dependency and keeps full control over layout safety. The language preference is persisted to `localStorage` so it survives page reloads.
+
+The language selector (ES / EN toggle) will sit in the top-left of the header, between the logo and the nav links on desktop, and at the top of the mobile sheet menu.
 
 ---
 
-## Fix 1: Footer Broken Link
+## Architecture
 
-The Footer (line 33) links to "Recipes" via `ROUTES.recipes` (`/recipes`), but there is no route for `/recipes` in `App.tsx`. Clicking it sends users to the 404 page.
-
-**Action**: Remove the "Recipes" entry from the `footerNav.explore` array in `src/components/layout/Footer.tsx` (line 33). The other 3 links (Label Scanner, Coffee Quiz, The Brew Log) all have active routes.
-
----
-
-## Fix 2: Clean Up ROUTES Constants
-
-`src/constants/app.ts` has 4 route entries pointing to pages with no active route in `App.tsx`:
-- `marketplace: "/marketplace"` -- dormant feature
-- `recipes: "/recipes"` -- dormant feature  
-- `cart: "/cart"` -- dormant feature
-- `about: "/about"` -- no page exists at all
-
-These are referenced inside the dormant feature files themselves (which is fine) and in the Footer (which we fix above). But `about` has zero references anywhere.
-
-**Action**: Remove only the `about` route entry since it has no page and no references. Keep `marketplace`, `recipes`, and `cart` since the dormant features reference them internally.
-
----
-
-## Fix 3: UserMenu forwardRef Warning
-
-The console shows: *"Function components cannot be given refs. Check the render method of UserMenu."*
-
-The `UserMenu` component is a plain function component, but Radix's `DropdownMenu` internally tries to pass a ref. Wrapping it with `React.forwardRef` silences this warning.
-
-**Action**: Wrap `UserMenu` in `React.forwardRef` in `src/components/auth/UserMenu.tsx`.
+```text
+src/
+  contexts/
+    language/
+      LanguageContext.tsx   <-- NEW: context + hook + provider
+      index.ts              <-- NEW: exports
+  i18n/
+    en.ts                   <-- NEW: all English strings
+    es.ts                   <-- NEW: all Spanish strings
+    index.ts                <-- NEW: type + union export
+  components/
+    layout/
+      Header.tsx            <-- EDIT: add LanguageSelector + useLanguage
+      Footer.tsx            <-- EDIT: translate static strings
+  pages/
+    Index.tsx               <-- EDIT: translate hero, features, CTA
+  features/
+    feedback/FeedbackPage.tsx    <-- EDIT: translate Our Story page
+    blog/BlogPage.tsx            <-- EDIT: translate
+    scanner/ScannerPage.tsx      <-- EDIT: translate
+    quiz/QuizPage.tsx            <-- EDIT: translate
+    quiz/components/QuizHook.tsx <-- EDIT: translate
+    profile/ProfilePage.tsx      <-- EDIT: translate section headings
+  App.tsx                        <-- EDIT: wrap with LanguageProvider
+```
 
 ---
 
-## Fix 4: Delete Truly Orphaned Files
+## Step 1: New Files
 
-These 2 files are not part of any feature (active or dormant) and have zero imports anywhere:
+### `src/i18n/en.ts` — Master English dictionary
 
-| File | Reason |
+All strings currently hardcoded across the active pages, grouped by section. This becomes the source of truth.
+
+Key sections:
+- `nav` — Label Scanner, My Profile, Our Story, The Brew Log, Sign In, Sign Out, Feedback
+- `hero` — badge, headline, body, CTA buttons
+- `features` — section title + 3 feature cards (title + description each)
+- `footer` — Explore, Company, Get in Touch, social, copyright
+- `scanner` — page title, tab labels, alert messages, tips
+- `quiz` — hook screen, progress, navigation, scenario categories
+- `ourStory` — all sections of the Feedback/Story page
+- `blog` — coming soon text
+- `profile` — section headings, form labels
+- `common` — shared strings (Loading, Error, Try Again, etc.)
+
+### `src/i18n/es.ts` — Spanish translations
+
+All the same keys, translated to natural Spanish (not machine-translated tone). Example highlights:
+- `"Label Scanner"` → `"Escáner de Etiquetas"`
+- `"Coffee Got Complicated"` → `"El Café Se Complicó"`
+- `"Caldi Makes It Simple."` → `"Caldi Lo Simplifica."`
+- `"Give Caldi AI a Try!"` → `"¡Prueba Caldi AI!"`
+- `"Find Your Coffee Tribe"` → `"Encuentra Tu Tribu Cafetera"`
+- `"Scan & Understand Any Coffee"` → `"Escanea y Entiende Cualquier Café"`
+- `"Our Story"` → `"Nuestra Historia"`
+- `"The Brew Log"` → `"El Diario del Café"`
+- `"Sign In"` → `"Iniciar Sesión"`
+- `"Sign Out"` → `"Cerrar Sesión"`
+
+### `src/contexts/language/LanguageContext.tsx`
+
+```typescript
+type Language = 'en' | 'es';
+
+interface LanguageContextValue {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string; // nested key accessor e.g. t('nav.scanner')
+}
+```
+
+- Initializes from `localStorage.getItem('caldi_lang')` or browser's `navigator.language` (defaults to `'en'` if not `'es'`)
+- Persists changes back to `localStorage`
+- Exposes `t()` helper that resolves dot-notation keys from the active dictionary
+
+---
+
+## Step 2: Language Selector Component (inside Header)
+
+A compact, pill-shaped toggle rendered in the header nav between logo and nav items on desktop, and at the top of the mobile sheet:
+
+```
+[ ES | EN ]
+```
+
+- Active language shown in `text-primary font-bold`
+- Inactive in `text-muted-foreground`
+- Separated by a `|` divider
+- Uses `border-2 border-border` and the existing `shadow-[4px_4px_0px...]` style to match the design system
+- On mobile: shown at the top of the Sheet nav, full-width pill
+
+---
+
+## Step 3: Apply Translations to Active Pages
+
+Each page will import `useLanguage()` and replace hardcoded strings with `t('key')` calls.
+
+### Layout safety notes for Spanish:
+Spanish strings are generally 20-40% longer than English. To prevent overflow:
+- All nav items already use `text-sm` — safe
+- Hero headline uses `font-bangers` with `leading-tight` — will remain responsive
+- Feature card descriptions use `max-w` constraints — will naturally wrap
+- Footer nav items are short labels — safe
+- No `whitespace-nowrap` used on translatable text (the speech bubble in the hero already has `whitespace-nowrap` — that specific string `"Let's find your match!"` will also be translated and the bubble will auto-expand since it has no fixed width)
+- Mobile sheet items use `text-lg` with `py-2` flex rows — adequate space for longer Spanish labels
+
+---
+
+## Files to Create
+
+| File | Purpose |
+|------|---------|
+| `src/i18n/en.ts` | English string dictionary |
+| `src/i18n/es.ts` | Spanish string dictionary |
+| `src/i18n/index.ts` | Type exports |
+| `src/contexts/language/LanguageContext.tsx` | Context + provider + hook |
+| `src/contexts/language/index.ts` | Barrel export |
+
+## Files to Edit
+
+| File | Change |
 |------|--------|
-| `src/components/NavLink.tsx` | Custom NavLink wrapper, zero imports in entire codebase |
-| `src/App.css` | Vite boilerplate CSS (logo-spin, .read-the-docs), never imported |
-
-**Action**: Delete both files.
+| `src/App.tsx` | Wrap app in `<LanguageProvider>` |
+| `src/components/layout/Header.tsx` | Add `LanguageSelector`, replace all strings with `t()` |
+| `src/components/layout/Footer.tsx` | Replace all static strings with `t()` |
+| `src/pages/Index.tsx` | Replace hero/features/CTA strings with `t()` |
+| `src/features/feedback/FeedbackPage.tsx` | Replace all page content with `t()` |
+| `src/features/blog/BlogPage.tsx` | Replace strings with `t()` |
+| `src/features/scanner/ScannerPage.tsx` | Replace UI strings with `t()` |
+| `src/features/quiz/QuizPage.tsx` | Replace nav/progress strings with `t()` |
+| `src/features/quiz/components/QuizHook.tsx` | Replace hook screen strings with `t()` |
+| `src/features/profile/ProfilePage.tsx` | Replace section headings with `t()` |
+| `src/constants/app.ts` | `APP_CONFIG.description` becomes a key, description moves to i18n |
 
 ---
 
-## Fix 5: Update .gitkeep Placeholder
+## What is NOT translated (by design)
 
-`src/features/.gitkeep` contains an outdated comment referencing "quiz/, results/, profile/" as future modules -- these already exist.
-
-**Action**: Remove this file since the `features/` directory is well-populated.
-
----
-
-## Summary
-
-| Item | File | Change |
-|------|------|--------|
-| Broken footer link | `src/components/layout/Footer.tsx` | Remove "Recipes" from explore nav |
-| Dead route constant | `src/constants/app.ts` | Remove `about` route entry |
-| Console warning | `src/components/auth/UserMenu.tsx` | Add `forwardRef` wrapper |
-| Orphan file | `src/components/NavLink.tsx` | Delete |
-| Orphan file | `src/App.css` | Delete |
-| Stale placeholder | `src/features/.gitkeep` | Delete |
-
-**Zero impact** on any active or dormant feature. All marketplace, cart, and recipes code stays untouched.
+- Coffee names, flavor notes, origin names — these are proper nouns and stay in English
+- Quiz tribe names (Fox, Owl, etc.) — brand identifiers
+- Dynamic content returned from the AI scanner backend — that is AI-generated text, outside scope
+- Email addresses and social links
 

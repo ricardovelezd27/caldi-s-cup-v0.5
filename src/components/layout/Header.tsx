@@ -95,20 +95,6 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                 {t("nav.scanner")}
               </NavLink>
 
-              {user && (
-                <NavLink
-                  to={ROUTES.profile}
-                  className={({ isActive }) =>
-                    `flex items-center gap-1 text-sm font-medium transition-colors whitespace-nowrap ${
-                      isActive ? "text-primary font-bold" : "text-foreground hover:text-primary"
-                    }`
-                  }
-                >
-                  <User className="w-5 h-5 shrink-0" />
-                  {t("nav.profile")}
-                </NavLink>
-              )}
-
               <NavLink
                 to={ROUTES.contactFeedback}
                 className={({ isActive }) =>

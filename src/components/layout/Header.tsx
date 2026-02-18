@@ -61,12 +61,7 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
       <header className="py-4 sticky top-0 z-50 bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <nav className="flex items-center justify-between gap-4">
-            {/* Language Selector — far left, desktop only */}
-            <div className="hidden md:flex items-center shrink-0">
-              <LanguageSelector />
-            </div>
-
-            {/* Logo */}
+            {/* Logo — far left */}
             <Link
               to={ROUTES.home}
               className={`flex items-center shrink-0 transition-opacity duration-300 ${

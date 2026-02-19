@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
+import { useLanguage } from "@/contexts/language";
 
 const profileSchema = z.object({
   display_name: z.string().min(1, "Name is required").max(50),
@@ -25,6 +26,7 @@ interface ProfileInfoFormProps {
 
 export function ProfileInfoForm({ displayName, city, email, userId }: ProfileInfoFormProps) {
   const { refreshProfile } = useAuth();
+  const { t } = useLanguage();
 
   const {
     register,
@@ -48,18 +50,18 @@ export function ProfileInfoForm({ displayName, city, email, userId }: ProfileInf
       .eq("id", userId);
 
     if (error) {
-      toast.error("Failed to save profile");
+      toast.error(t("profile.failedSave"));
       return;
     }
 
     await refreshProfile();
-    toast.success("Profile saved!");
+    toast.success(t("profile.profileSaved"));
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <Label htmlFor="display_name">Display Name</Label>
+        <Label htmlFor="display_name">{t("profile.displayName")}</Label>
         <Input id="display_name" {...register("display_name")} />
         {errors.display_name && (
           <p className="text-destructive text-xs mt-1">{errors.display_name.message}</p>
@@ -67,19 +69,19 @@ export function ProfileInfoForm({ displayName, city, email, userId }: ProfileInf
       </div>
 
       <div>
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t("profile.emailLabel")}</Label>
         <Input id="email" value={email} disabled className="opacity-60" />
-        <p className="text-muted-foreground text-xs mt-1">Email cannot be changed</p>
+        <p className="text-muted-foreground text-xs mt-1">{t("profile.emailNoChange")}</p>
       </div>
 
       <div>
-        <Label htmlFor="city">City (optional)</Label>
-        <Input id="city" placeholder="e.g. Barcelona" {...register("city")} />
+        <Label htmlFor="city">{t("profile.cityLabel")}</Label>
+        <Input id="city" placeholder={t("profile.cityPlaceholder")} {...register("city")} />
       </div>
 
       <Button type="submit" disabled={isSubmitting}>
         <Save className="mr-2 h-4 w-4" />
-        {isSubmitting ? "Saving..." : "Save Profile"}
+        {isSubmitting ? t("profile.savingProfile") : t("profile.saveProfile")}
       </Button>
     </form>
   );

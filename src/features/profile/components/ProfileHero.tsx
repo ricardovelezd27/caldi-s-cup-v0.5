@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Pencil, Check, X, Camera, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/language";
 import caldiLogo from "/lovable-uploads/8e78a6bd-5f00-45be-b082-c35b57fa9a7c.png";
 
 export function ProfileHero() {
   const { user, profile, refreshProfile } = useAuth();
+  const { t } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState("");
   const [tempCity, setTempCity] = useState("");
@@ -37,7 +39,7 @@ export function ProfileHero() {
 
   const saveEdit = async () => {
     if (!tempName.trim()) {
-      toast.error("Name is required");
+      toast.error(t("profile.nameRequired"));
       return;
     }
     setSaving(true);
@@ -50,10 +52,10 @@ export function ProfileHero() {
       .eq("id", user.id);
 
     if (error) {
-      toast.error("Failed to save profile");
+      toast.error(t("profile.failedSave"));
     } else {
       await refreshProfile();
-      toast.success("Profile saved!");
+      toast.success(t("profile.profileSaved"));
       setIsEditing(false);
     }
     setSaving(false);
@@ -88,9 +90,9 @@ export function ProfileHero() {
       if (updateError) throw updateError;
 
       await refreshProfile();
-      toast.success("Cover updated!");
+      toast.success(t("profile.coverUpdated"));
     } catch (err: any) {
-      toast.error(err.message || "Failed to upload cover");
+      toast.error(err.message || t("profile.failedSave"));
     } finally {
       setUploadingCover(false);
       if (coverInputRef.current) coverInputRef.current.value = "";
@@ -99,6 +101,10 @@ export function ProfileHero() {
 
   const hasCoverImage = !!profile.cover_url;
 
+  // Get translated tribe name/title
+  const tribeName = tribe ? t(`tribes.${tribe}.name`) : null;
+  const tribeTitle = tribe ? t(`tribes.${tribe}.title`) : null;
+
   return (
     <div className="md:hidden w-full">
       {/* Cover gradient with SVG pattern or custom image */}
@@ -106,7 +112,6 @@ export function ProfileHero() {
         className="relative w-full h-[33vh] flex items-center justify-center overflow-hidden"
         style={{ background: hasCoverImage ? undefined : coverStyle.gradient }}
       >
-        {/* Custom cover image */}
         {hasCoverImage && (
           <img
             src={profile.cover_url!}
@@ -115,7 +120,6 @@ export function ProfileHero() {
           />
         )}
 
-        {/* SVG pattern overlay (only when no custom cover) */}
         {!hasCoverImage && coverStyle.patternSvg && (
           <div
             className="absolute inset-0 opacity-[0.07]"
@@ -123,7 +127,6 @@ export function ProfileHero() {
           />
         )}
 
-        {/* Caldi watermark (only when no custom cover) */}
         {!hasCoverImage && (
           <img
             src={caldiLogo}
@@ -133,18 +136,17 @@ export function ProfileHero() {
           />
         )}
 
-        {/* Cover camera button — always visible, bottom-right */}
         <button
           onClick={() => !uploadingCover && coverInputRef.current?.click()}
           className="absolute bottom-14 right-4 flex items-center gap-2 rounded-full bg-foreground/60 backdrop-blur-sm text-background px-3 py-2 text-xs font-medium transition-colors active:bg-foreground/80"
-          aria-label="Change cover photo"
+          aria-label={t("profile.editCover")}
         >
           {uploadingCover ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Camera className="h-4 w-4" />
           )}
-          <span>Edit cover</span>
+          <span>{t("profile.editCover")}</span>
         </button>
 
         <input
@@ -158,7 +160,6 @@ export function ProfileHero() {
 
       {/* White content card overlapping cover */}
       <div className="bg-background rounded-t-3xl -mt-10 relative z-10 px-5 pt-0 pb-2">
-        {/* Avatar overlapping the boundary */}
         <div className="-mt-16">
           <ProfileAvatar
             avatarUrl={profile.avatar_url}
@@ -170,7 +171,6 @@ export function ProfileHero() {
           />
         </div>
 
-        {/* Identity + edit toggle */}
         <div className="flex items-start justify-between pt-3 pb-4">
           <div className="flex-1 min-w-0">
             {isEditing ? (
@@ -178,7 +178,7 @@ export function ProfileHero() {
                 <Input
                   value={tempName}
                   onChange={(e) => setTempName(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t("profile.yourName")}
                   className="text-xl font-bold !border-2"
                   style={{ fontFamily: "'Bangers', cursive" }}
                   autoFocus
@@ -186,14 +186,14 @@ export function ProfileHero() {
                 <Input
                   value={tempCity}
                   onChange={(e) => setTempCity(e.target.value)}
-                  placeholder="City (optional)"
+                  placeholder={t("profile.cityOptional")}
                   className="!border-2"
                 />
               </div>
             ) : (
               <>
                 <h1 className="text-2xl truncate">
-                  {profile.display_name || "Coffee Lover"}
+                  {profile.display_name || t("profile.coffeeLover")}
                 </h1>
                 <p className="text-sm text-muted-foreground truncate">
                   {user.email}
@@ -201,15 +201,14 @@ export function ProfileHero() {
               </>
             )}
 
-            {tribeDef && !isEditing && (
+            {tribeDef && !isEditing && tribeName && tribeTitle && (
               <p className="text-sm text-muted-foreground mt-1">
                 <span className="mr-1">{tribeDef.emoji}</span>
-                {tribeDef.name} — {tribeDef.title}
+                {tribeName} — {tribeTitle}
               </p>
             )}
           </div>
 
-          {/* Pencil / Save+Cancel buttons */}
           <div className="flex items-center gap-1 ml-2 pt-1">
             {isEditing ? (
               <>

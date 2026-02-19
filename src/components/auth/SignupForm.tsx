@@ -6,6 +6,7 @@ import { signupSchema, type SignupFormData } from "@/schemas/auth.schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useLanguage } from "@/contexts/language";
 
 interface SignupFormProps {
   onSubmit: (data: SignupFormData) => Promise<{ error: Error | null }>;
@@ -15,6 +16,7 @@ interface SignupFormProps {
 export const SignupForm = ({ onSubmit, onSwitchToLogin }: SignupFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   const {
     register,
@@ -31,18 +33,17 @@ export const SignupForm = ({ onSubmit, onSwitchToLogin }: SignupFormProps) => {
     try {
       const result = await onSubmit(data);
       if (result.error) {
-        // Map common error messages to user-friendly ones
         const errorMessage = result.error.message;
         if (errorMessage.includes("User already registered")) {
-          setError("An account with this email already exists. Please sign in instead.");
+          setError(t("auth.userExists"));
         } else if (errorMessage.includes("Password should be at least")) {
-          setError("Password must be at least 8 characters long.");
+          setError(t("auth.passwordTooShort"));
         } else {
           setError(errorMessage);
         }
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+      setError(t("auth.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
@@ -57,11 +58,11 @@ export const SignupForm = ({ onSubmit, onSwitchToLogin }: SignupFormProps) => {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="displayName">Display Name (optional)</Label>
+        <Label htmlFor="displayName">{t("auth.displayName")}</Label>
         <Input
           id="displayName"
           type="text"
-          placeholder="Your name"
+          placeholder={t("auth.yourName")}
           autoComplete="name"
           {...register("displayName")}
           aria-invalid={!!errors.displayName}
@@ -72,7 +73,7 @@ export const SignupForm = ({ onSubmit, onSwitchToLogin }: SignupFormProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="signup-email">Email</Label>
+        <Label htmlFor="signup-email">{t("auth.email")}</Label>
         <Input
           id="signup-email"
           type="email"
@@ -87,7 +88,7 @@ export const SignupForm = ({ onSubmit, onSwitchToLogin }: SignupFormProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="signup-password">Password</Label>
+        <Label htmlFor="signup-password">{t("auth.password")}</Label>
         <Input
           id="signup-password"
           type="password"
@@ -109,21 +110,21 @@ export const SignupForm = ({ onSubmit, onSwitchToLogin }: SignupFormProps) => {
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Creating account...
+            {t("auth.creatingAccount")}
           </>
         ) : (
-          "Create Account"
+          t("auth.createAccount")
         )}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        {t("auth.hasAccount")}{" "}
         <button
           type="button"
           onClick={onSwitchToLogin}
           className="text-primary hover:underline font-medium"
         >
-          Sign in
+          {t("auth.signInLink")}
         </button>
       </p>
     </form>

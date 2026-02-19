@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/auth";
 import { Heart, ChevronDown, ChevronUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/language";
 
 const INITIAL_SHOW = 5;
 
@@ -17,6 +18,7 @@ interface FavoriteCoffee {
 
 export function FavoritesTable() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [items, setItems] = useState<FavoriteCoffee[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
@@ -63,20 +65,20 @@ export function FavoritesTable() {
     <div>
       <h3 className="text-xl flex items-center gap-2 mb-4">
         <Heart className="h-5 w-5 text-destructive" />
-        Favorites ({items.length})
+        {t("profile.favorites")} ({items.length})
       </h3>
 
       {items.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No favorites yet. Scan a coffee and hit the heart!</p>
+        <p className="text-muted-foreground text-sm">{t("profile.noFavorites")}</p>
       ) : (
         <>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b-2 border-border text-left">
-                  <th className="py-2 pr-4 font-medium">Coffee</th>
-                  <th className="py-2 pr-4 font-medium">Brand</th>
-                  <th className="py-2 font-medium">Added</th>
+                  <th className="py-2 pr-4 font-medium">{t("profile.coffee")}</th>
+                  <th className="py-2 pr-4 font-medium">{t("profile.brand")}</th>
+                  <th className="py-2 font-medium">{t("profile.added")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -108,9 +110,9 @@ export function FavoritesTable() {
               onClick={() => setExpanded(!expanded)}
             >
               {expanded ? (
-                <>Show less <ChevronUp className="ml-1 h-4 w-4" /></>
+                <>{t("profile.showLess")} <ChevronUp className="ml-1 h-4 w-4" /></>
               ) : (
-                <>View more ({items.length - INITIAL_SHOW} more) <ChevronDown className="ml-1 h-4 w-4" /></>
+                <>{t("profile.viewMore")} ({items.length - INITIAL_SHOW} {t("profile.more")}) <ChevronDown className="ml-1 h-4 w-4" /></>
               )}
             </Button>
           )}

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import type { Coffee } from "../types";
+import { useLanguage } from "@/contexts/language";
 
 interface CoffeeFlavorNotesProps {
   coffee: Coffee;
@@ -24,6 +25,7 @@ export function CoffeeFlavorNotes({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
 
   const displayNotes = userFlavorNotes && userFlavorNotes.length > 0
     ? userFlavorNotes
@@ -103,16 +105,18 @@ export function CoffeeFlavorNotes({
   return (
     <div className="border-4 border-border rounded-lg p-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card space-y-3">
       <h3 className="font-bangers text-lg text-foreground tracking-wide">
-        Flavor Notes
+        {t('coffee.flavorNotes')}
       </h3>
       {isAuthenticated && (
         <p className="text-xs text-muted-foreground italic -mt-1">
-          Add or remove tags to describe the flavors you taste.
+          {t('coffee.addFlavorTags')}
         </p>
       )}
 
       {displayNotes.length === 0 && !isAuthenticated && (
-        <p className="text-sm text-muted-foreground italic">No flavor notes detected for this coffee.</p>
+        <p className="text-sm text-muted-foreground italic">
+          {t('coffee.noFlavorNotes')}
+        </p>
       )}
 
       <div className="flex flex-wrap gap-2">
@@ -149,7 +153,7 @@ export function CoffeeFlavorNotes({
             }}
             onKeyDown={handleKeyDown}
             onFocus={() => setShowSuggestions(true)}
-            placeholder="Add a flavor note…"
+            placeholder={t('coffee.addFlavorNote')}
             className="text-sm"
           />
           {showSuggestions && suggestions.length > 0 && (

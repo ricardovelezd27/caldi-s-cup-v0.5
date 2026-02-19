@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/auth";
 import { ShoppingBag, ChevronDown, ChevronUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/language";
 
 const INITIAL_SHOW = 5;
 
@@ -18,6 +19,7 @@ interface InventoryCoffee {
 
 export function InventoryTable() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [items, setItems] = useState<InventoryCoffee[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
@@ -65,21 +67,21 @@ export function InventoryTable() {
     <div>
       <h3 className="text-xl flex items-center gap-2 mb-4">
         <ShoppingBag className="h-5 w-5 text-accent" />
-        Inventory ({items.length})
+        {t("profile.inventory")} ({items.length})
       </h3>
 
       {items.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No coffees in your inventory yet.</p>
+        <p className="text-muted-foreground text-sm">{t("profile.noInventory")}</p>
       ) : (
         <>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b-2 border-border text-left">
-                  <th className="py-2 pr-4 font-medium">Coffee</th>
-                  <th className="py-2 pr-4 font-medium">Brand</th>
-                  <th className="py-2 pr-4 font-medium">Qty (g)</th>
-                  <th className="py-2 font-medium">Purchased</th>
+                  <th className="py-2 pr-4 font-medium">{t("profile.coffee")}</th>
+                  <th className="py-2 pr-4 font-medium">{t("profile.brand")}</th>
+                  <th className="py-2 pr-4 font-medium">{t("profile.qty")}</th>
+                  <th className="py-2 font-medium">{t("profile.purchased")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -112,9 +114,9 @@ export function InventoryTable() {
               onClick={() => setExpanded(!expanded)}
             >
               {expanded ? (
-                <>Show less <ChevronUp className="ml-1 h-4 w-4" /></>
+                <>{t("profile.showLess")} <ChevronUp className="ml-1 h-4 w-4" /></>
               ) : (
-                <>View more ({items.length - INITIAL_SHOW} more) <ChevronDown className="ml-1 h-4 w-4" /></>
+                <>{t("profile.viewMore")} ({items.length - INITIAL_SHOW} {t("profile.more")}) <ChevronDown className="ml-1 h-4 w-4" /></>
               )}
             </Button>
           )}

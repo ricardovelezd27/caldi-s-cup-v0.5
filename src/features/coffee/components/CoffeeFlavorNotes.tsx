@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef, type KeyboardEvent } from "react";
+import { useState, useEffect, useRef, useMemo, type KeyboardEvent } from "react";
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import type { Coffee } from "../types";
+import { useLanguage } from "@/contexts/language";
 
 interface CoffeeFlavorNotesProps {
   coffee: Coffee;
@@ -24,10 +25,11 @@ export function CoffeeFlavorNotes({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
 
-  const displayNotes = userFlavorNotes && userFlavorNotes.length > 0
-    ? userFlavorNotes
-    : coffee.flavorNotes;
+  const aiNotes = coffee.flavorNotes ?? [];
+  const userOnlyNotes = (userFlavorNotes ?? []).filter((n) => !aiNotes.includes(n));
+  const displayNotes = useMemo(() => [...aiNotes, ...userOnlyNotes], [aiNotes.join(","), userOnlyNotes.join(",")]);
 
   // Fetch all known flavor notes from the database for autocomplete
   useEffect(() => {
@@ -103,38 +105,47 @@ export function CoffeeFlavorNotes({
   return (
     <div className="border-4 border-border rounded-lg p-4 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card space-y-3">
       <h3 className="font-bangers text-lg text-foreground tracking-wide">
-        Flavor Notes
+        {t('coffee.flavorNotes')}
       </h3>
       {isAuthenticated && (
         <p className="text-xs text-muted-foreground italic -mt-1">
-          Add or remove tags to describe the flavors you taste.
+          {t('coffee.addFlavorTags')}
         </p>
       )}
 
       {displayNotes.length === 0 && !isAuthenticated && (
-        <p className="text-sm text-muted-foreground italic">No flavor notes detected for this coffee.</p>
+        <p className="text-sm text-muted-foreground italic">
+          {t('coffee.noFlavorNotes')}
+        </p>
       )}
 
       <div className="flex flex-wrap gap-2">
-        {displayNotes.map((note, index) => (
-          <Badge
-            key={index}
-            variant="secondary"
-            className="text-sm capitalize gap-1"
-          >
-            {note}
-            {isAuthenticated && (
-              <button
-                type="button"
-                onClick={() => removeNote(note)}
-                className="ml-1 hover:text-destructive"
-                aria-label={`Remove ${note}`}
-              >
-                <X className="h-3 w-3" />
-              </button>
-            )}
-          </Badge>
-        ))}
+        {displayNotes.map((note, index) => {
+          const isAiNote = aiNotes.includes(note);
+          return (
+            <Badge
+              key={index}
+              variant="secondary"
+              className={`text-sm capitalize gap-1 ${
+                isAiNote
+                  ? "bg-primary/20 text-primary-foreground border-primary/40"
+                  : "bg-secondary/20 text-secondary-foreground border-secondary/40"
+              }`}
+            >
+              {note}
+              {isAuthenticated && (
+                <button
+                  type="button"
+                  onClick={() => removeNote(note)}
+                  className="ml-1 hover:text-destructive"
+                  aria-label={`Remove ${note}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </Badge>
+          );
+        })}
       </div>
 
       {/* User input for adding flavor notes */}
@@ -149,7 +160,7 @@ export function CoffeeFlavorNotes({
             }}
             onKeyDown={handleKeyDown}
             onFocus={() => setShowSuggestions(true)}
-            placeholder="Add a flavor note…"
+            placeholder={t('coffee.addFlavorNote')}
             className="text-sm"
           />
           {showSuggestions && suggestions.length > 0 && (

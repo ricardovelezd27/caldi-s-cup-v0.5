@@ -285,8 +285,10 @@ Choose **Supabase + Stripe** if:
 
 ## Recommendation
 
-**For Phase 2B (Q1 2025):** Start with Shopify + Webkul to validate the marketplace concept quickly. The monthly costs are manageable for early validation, and the faster time-to-market allows gathering real user feedback sooner.
+**For Phase 8 (2026):** Start with Shopify + Webkul to validate the marketplace concept quickly. The monthly costs are manageable for early validation, and the faster time-to-market allows gathering real user feedback sooner.
 
-**For Phase 4+ (Q3 2025+):** If the marketplace proves successful and scale justifies it, evaluate migrating to Supabase + Stripe for cost optimization and deeper AI integration capabilities.
+**Long-term:** If the marketplace proves successful and scale justifies it, evaluate migrating to Supabase + Stripe for cost optimization and deeper AI integration capabilities.
 
 The current backend-agnostic architecture ensures this migration is straightforward when needed.
+
+> **Note (2026-02-20):** The platform now includes full i18n support (EN/ES), recipes, user ratings, feedback, and scan error reporting — all running on Lovable Cloud. The cart remains local-first pending marketplace backend selection.

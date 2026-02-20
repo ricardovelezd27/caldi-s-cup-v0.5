@@ -6,6 +6,7 @@ import { loginSchema, type LoginFormData } from "@/schemas/auth.schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useLanguage } from "@/contexts/language";
 
 interface LoginFormProps {
   onSubmit: (data: LoginFormData) => Promise<{ error: Error | null }>;
@@ -15,6 +16,7 @@ interface LoginFormProps {
 export const LoginForm = ({ onSubmit, onSwitchToSignup }: LoginFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   const {
     register,
@@ -31,18 +33,17 @@ export const LoginForm = ({ onSubmit, onSwitchToSignup }: LoginFormProps) => {
     try {
       const result = await onSubmit(data);
       if (result.error) {
-        // Map common error messages to user-friendly ones
         const errorMessage = result.error.message;
         if (errorMessage.includes("Invalid login credentials")) {
-          setError("Invalid email or password. Please try again.");
+          setError(t("auth.invalidCredentials"));
         } else if (errorMessage.includes("Email not confirmed")) {
-          setError("Please verify your email address before signing in.");
+          setError(t("auth.emailNotConfirmed"));
         } else {
           setError(errorMessage);
         }
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+      setError(t("auth.unexpectedError"));
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +58,7 @@ export const LoginForm = ({ onSubmit, onSwitchToSignup }: LoginFormProps) => {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t("auth.email")}</Label>
         <Input
           id="email"
           type="email"
@@ -72,7 +73,7 @@ export const LoginForm = ({ onSubmit, onSwitchToSignup }: LoginFormProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">{t("auth.password")}</Label>
         <Input
           id="password"
           type="password"
@@ -94,21 +95,21 @@ export const LoginForm = ({ onSubmit, onSwitchToSignup }: LoginFormProps) => {
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Signing in...
+            {t("auth.signingIn")}
           </>
         ) : (
-          "Sign In"
+          t("auth.signIn")
         )}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        Don't have an account?{" "}
+        {t("auth.noAccount")}{" "}
         <button
           type="button"
           onClick={onSwitchToSignup}
           className="text-primary hover:underline font-medium"
         >
-          Sign up
+          {t("auth.signUp")}
         </button>
       </p>
     </form>

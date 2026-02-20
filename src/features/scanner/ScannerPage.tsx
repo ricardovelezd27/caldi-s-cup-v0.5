@@ -1,10 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, ScanLine, PenLine } from "lucide-react";
+import { AlertCircle, ScanLine, PenLine, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
+import { useLanguage } from "@/contexts/language";
 import { useCoffeeScanner } from "./hooks/useCoffeeScanner";
 import { ScanUploader, ScanningTips, ScanProgress, TribeScannerPreview, ManualAddForm } from "./components";
 import { transformToCoffee, extractScanMeta } from "./utils/transformScanData";
+import { stitchImages } from "./utils/stitchImages";
+import { uploadScanImages } from "./utils/uploadScanImages";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -14,6 +17,7 @@ import { FeedbackCTA } from "@/components/shared/FeedbackCTA";
 
 export function ScannerPage() {
   const { user, profile } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { 
     scanCoffee, 
@@ -26,7 +30,8 @@ export function ScannerPage() {
     isError,
   } = useCoffeeScanner();
 
-  const imageBase64Ref = useRef<string | null>(null);
+  const individualImagesRef = useRef<string[]>([]);
+  const [isStitching, setIsStitching] = useState(false);
 
   // Navigate to coffee profile page on scan completion
   useEffect(() => {
@@ -36,24 +41,51 @@ export function ScannerPage() {
       const isNewCoffee = scanResult.isNewCoffee ?? false;
       const coffeeId = scanResult.coffeeId || scanResult.id;
 
-      // If no image URL from backend (anonymous), use the original base64
+      // If no image URL from backend (anonymous), use the first original photo
       let isTemporaryImage = false;
-      if (!coffee.imageUrl && imageBase64Ref.current) {
-        const base64 = imageBase64Ref.current;
+      if (!coffee.imageUrl && individualImagesRef.current.length > 0) {
+        const base64 = individualImagesRef.current[0];
         coffee.imageUrl = base64.startsWith("data:") ? base64 : `data:image/jpeg;base64,${base64}`;
         isTemporaryImage = true;
       }
 
+      // Upload individual images to storage in background (authenticated only)
+      if (user && individualImagesRef.current.length > 1) {
+        uploadScanImages(user.id, coffeeId, individualImagesRef.current);
+      }
+
       navigate(`/coffee/${coffeeId}`, {
-        state: { coffee, scanMeta, isNewCoffee, isTemporaryImage },
+        state: {
+          coffee,
+          scanMeta,
+          isNewCoffee,
+          isTemporaryImage,
+          additionalImages: individualImagesRef.current,
+        },
         replace: true,
       });
     }
-  }, [isComplete, scanResult, navigate]);
+  }, [isComplete, scanResult, navigate, user]);
 
-  const handleImageSelected = (imageBase64: string) => {
-    imageBase64Ref.current = imageBase64;
-    scanCoffee(imageBase64);
+  const handleImagesReady = async (images: string[]) => {
+    individualImagesRef.current = images;
+
+    if (images.length === 1) {
+      scanCoffee(images[0]);
+      return;
+    }
+
+    // Stitch multiple images into a single composite
+    setIsStitching(true);
+    try {
+      const stitched = await stitchImages(images);
+      setIsStitching(false);
+      scanCoffee(stitched);
+    } catch {
+      setIsStitching(false);
+      // Fallback: send just the first image
+      scanCoffee(images[0]);
+    }
   };
 
   return (
@@ -62,10 +94,10 @@ export function ScannerPage() {
         {/* Page Title */}
         <div className="mb-6">
           <h1 className="font-bangers text-3xl md:text-4xl text-foreground">
-            Coffee Scanner
+            {t("scanner.title")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Scan a coffee bag or add one manually
+            {t("scanner.subtitle")}
           </p>
         </div>
 
@@ -73,12 +105,12 @@ export function ScannerPage() {
           <TabsList className="w-full max-w-xs">
             <TabsTrigger value="scan" className="flex-1 gap-1.5">
               <ScanLine className="h-4 w-4" />
-              Scan
+              {t("scanner.tabScan")}
             </TabsTrigger>
             {user && (
               <TabsTrigger value="manual" className="flex-1 gap-1.5">
                 <PenLine className="h-4 w-4" />
-                Add Manually
+                {t("scanner.tabManual")}
               </TabsTrigger>
             )}
           </TabsList>
@@ -89,19 +121,35 @@ export function ScannerPage() {
             {user && !profile?.coffee_tribe && (
               <Alert className="border-4 border-accent bg-accent/5">
                 <AlertCircle className="h-4 w-4 text-accent" />
-                <AlertTitle className="font-bangers">Take the Quiz First!</AlertTitle>
+                <AlertTitle className="font-bangers">{t("scanner.quizWarningTitle")}</AlertTitle>
                 <AlertDescription>
-                  For personalized match scores, complete the{" "}
+                  {t("scanner.quizWarningBody")}{" "}
                   <a href="/quiz" className="text-primary hover:underline font-medium">
-                    Coffee Personality Quiz
+                    {t("scanner.quizWarningLink")}
                   </a>{" "}
-                  to discover your coffee tribe.
+                  {t("scanner.quizWarningEnd")}
                 </AlertDescription>
               </Alert>
             )}
 
+            {/* Stitching in progress */}
+            {isStitching && (
+              <div className="max-w-xl mx-auto">
+                <div className="border-4 border-dashed border-primary rounded-lg p-8 text-center">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                    </div>
+                    <div>
+                      <h3 className="font-bangers text-2xl text-foreground mb-1">{t('scanner.stitching')}</h3>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Scanning in Progress */}
-            {isScanning && (
+            {isScanning && !isStitching && (
               <div className="max-w-xl mx-auto">
                 <ScanProgress progress={progress} />
               </div>
@@ -112,24 +160,24 @@ export function ScannerPage() {
               <div className="max-w-xl mx-auto space-y-4">
                 <Alert className="border-4 border-destructive bg-destructive/5">
                   <AlertCircle className="h-4 w-4 text-destructive" />
-                  <AlertTitle className="font-bangers">Scan Failed</AlertTitle>
+                  <AlertTitle className="font-bangers">{t("scanner.scanFailedTitle")}</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
                 <div className="flex justify-center">
-                  <Button onClick={resetScan}>Try Again</Button>
+                  <Button onClick={resetScan}>{t("scanner.tryAgain")}</Button>
                 </div>
               </div>
             )}
 
             {/* Initial State - Upload Zone */}
-            {!isScanning && !isComplete && !isError && (
+            {!isScanning && !isStitching && !isComplete && !isError && (
               <div className="space-y-8">
                 {profile?.coffee_tribe && (
                   <TribeScannerPreview tribe={profile.coffee_tribe} />
                 )}
                 <div className="max-w-xl mx-auto">
                   <ScanUploader 
-                    onImageSelected={handleImageSelected}
+                    onImagesReady={handleImagesReady}
                     disabled={isScanning}
                   />
                 </div>

@@ -1,4 +1,7 @@
 /**
+ * @dormant — Part of the inactive cart/marketplace pipeline.
+ * Retained for future Shopify integration. No active consumers.
+ *
  * Rate Limiter - Token Bucket Algorithm
  * 
  * Prevents excessive operations (spam clicking add/remove).

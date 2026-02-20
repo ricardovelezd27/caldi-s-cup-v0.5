@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth";
 import { AuthCard, LoginForm, SignupForm } from "@/components/auth";
 import { ROUTES } from "@/constants/app";
+import { useLanguage } from "@/contexts/language";
 import type { LoginFormData, SignupFormData } from "@/schemas/auth.schema";
 
 type AuthMode = "login" | "signup";
@@ -13,8 +14,8 @@ const Auth = () => {
   const { user, isLoading, signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
 
-  // Redirect authenticated users to where they came from (or scanner)
   useEffect(() => {
     if (user && !isLoading) {
       const from = (location.state as { from?: string })?.from || ROUTES.scanner;
@@ -30,18 +31,16 @@ const Auth = () => {
     return signUp(data.email, data.password, data.displayName);
   };
 
-  // Show loading while checking auth state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <div className="animate-pulse text-muted-foreground">{t("common.loading")}</div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header with logo */}
       <header className="py-4">
         <div className="container mx-auto px-4">
           <Link to={ROUTES.home} className="inline-block">
@@ -54,14 +53,13 @@ const Auth = () => {
         </div>
       </header>
 
-      {/* Main content */}
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <AuthCard
-          title={mode === "login" ? "Welcome Back" : "Join Caldi's Cup"}
+          title={mode === "login" ? t("auth.welcomeBack") : t("auth.joinCaldi")}
           subtitle={
             mode === "login"
-              ? "Sign in to your account"
-              : "Create your account to get started"
+              ? t("auth.signInSubtitle")
+              : t("auth.signUpSubtitle")
           }
         >
           {mode === "login" ? (

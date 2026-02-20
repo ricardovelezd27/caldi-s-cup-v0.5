@@ -14,13 +14,15 @@ export const APP_CONFIG = {
 
 export const ROUTES = {
   home: "/",
-  marketplace: "/marketplace",
+  // Active routes
   quiz: "/quiz",
   results: "/results",
   dashboard: "/dashboard",
   scanner: "/scanner",
+
+  // @dormant — Reserved for future marketplace/cart/recipes features
+  marketplace: "/marketplace",
   recipes: "/recipes",
-  
   cart: "/cart",
   auth: "/auth",
   coffeeProfile: "/coffee",

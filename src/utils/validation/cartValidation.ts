@@ -1,3 +1,7 @@
+/**
+ * @dormant — Part of the inactive cart/marketplace pipeline.
+ * Retained for future Shopify integration. No active consumers.
+ */
 import {
   CartItemSchema,
   LocalCartStateSchema,

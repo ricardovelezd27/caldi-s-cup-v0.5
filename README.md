@@ -21,7 +21,7 @@
 ## Project Status
 
 **Architecture:** Modular Monolith (React + Vite + Tailwind CSS + TypeScript + Lovable Cloud)  
-**Phase:** Phase 6 Complete (AI Scanner + Marketplace Integration)  
+**Phase:** Phase 7+ Complete (Multi-Image Scanner, i18n, Recipes, Feedback, User Ratings)  
 **Model:** B2B2C Platform (Consumers + Roasters + Admins)
 
 ### Feature Completion
@@ -44,6 +44,14 @@
 | Unified Coffee Catalog | ✅ Complete | 6 |
 | Auto Roaster Creation | ✅ Complete | 6 |
 | Marketplace DB Integration | ✅ Complete | 6 |
+| Recipes (CRUD) | ✅ Complete | 7 |
+| User Coffee Ratings | ✅ Complete | 7 |
+| Feedback System | ✅ Complete | 7 |
+| i18n (EN/ES) | ✅ Complete | 7 |
+| Manual Coffee Add | ✅ Complete | 7 |
+| Scan Error Reports | ✅ Complete | 7 |
+| Multi-Image Scanner | ✅ Complete | 7+ |
+| Coffee Profile Gallery | ✅ Complete | 7+ |
 
 ---
 
@@ -97,10 +105,14 @@
 │  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐    │  │
 │  │  │ coffees │ │ profiles│ │ roasters│ │ recipes │ │brew_logs│    │  │
 │  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘    │  │
-│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐                             │  │
-│  │  │ coffee_ │ │ user_   │ │dashboard│                             │  │
-│  │  │ scans   │ │ roles   │ │_widgets │                             │  │
-│  │  └─────────┘ └─────────┘ └─────────┘                             │  │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐    │  │
+│  │  │ coffee_ │ │ user_   │ │dashboard│ │user_cof │ │scan_err │    │  │
+│  │  │ scans   │ │ roles   │ │_widgets │ │_ratings │ │_reports │    │  │
+│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘    │  │
+│  │  ┌─────────┐ ┌─────────┐                                         │  │
+│  │  │feedback │ │user_cof │                                         │  │
+│  │  │         │ │_inv/fav │                                         │  │
+│  │  └─────────┘ └─────────┘                                         │  │
 │  └──────────────────────────────────────────────────────────────────┘  │
 │                                                                         │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
@@ -248,11 +260,11 @@ The architecture is a **Modular Monolith** as mandated by V03 guidelines:
                           └─────────┘
 ```
 
-### 3. Coffee Scanner Flow
+### 3. Coffee Scanner Flow (Multi-Image)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                     SCANNER SEQUENCE DIAGRAM                            │
+│                 MULTI-IMAGE SCANNER SEQUENCE DIAGRAM                     │
 └─────────────────────────────────────────────────────────────────────────┘
 
  ┌──────┐    ┌─────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
@@ -260,53 +272,89 @@ The architecture is a **Modular Monolith** as mandated by V03 guidelines:
  │      │    │   Page  │    │ Function │    │ AI       │    │          │
  └──┬───┘    └────┬────┘    └────┬─────┘    └────┬─────┘    └────┬─────┘
     │             │              │               │               │
-    │ 1. Upload   │              │               │               │
-    │    Image    │              │               │               │
+    │ 1. Add 1-4  │              │               │               │
+    │    photos   │              │               │               │
     │ ───────────>│              │               │               │
     │             │              │               │               │
-    │             │ 2. Compress  │               │               │
-    │             │    image     │               │               │
+    │ 2. Click    │              │               │               │
+    │   "Scan Now"│              │               │               │
+    │ ───────────>│              │               │               │
+    │             │              │               │               │
+    │             │ 3. Stitch    │               │               │
+    │             │    images    │               │               │
+    │             │    (canvas)  │               │               │
+    │             │              │               │               │
+    │             │ 4. Compress  │               │               │
+    │             │    composite │               │               │
     │             │    (max 800KB)               │               │
     │             │              │               │               │
-    │             │ 3. POST      │               │               │
+    │             │ 5. POST      │               │               │
     │             │    /scan-    │               │               │
     │             │    coffee    │               │               │
     │             │ ────────────>│               │               │
     │             │              │               │               │
-    │             │              │ 4. Upload to  │               │
+    │             │              │ 6. Upload to  │               │
     │             │              │    Storage    │               │
     │             │              │ ─────────────────────────────>│
     │             │              │               │               │
-    │             │              │ 5. Analyze    │               │
-    │             │              │    Image      │               │
+    │             │              │ 7. Analyze    │               │
+    │             │              │    composite  │               │
     │             │              │ ─────────────>│               │
     │             │              │               │               │
-    │             │              │ 6. Structured │               │
+    │             │              │ 8. Structured │               │
     │             │              │    JSON       │               │
     │             │              │<─────────────│               │
     │             │              │               │               │
-    │             │              │ 7. Find/Create│               │
+    │             │              │ 9. Find/Create│               │
     │             │              │    Roaster    │               │
     │             │              │ ─────────────────────────────>│
     │             │              │               │               │
-    │             │              │ 8. INSERT     │               │
-    │             │              │    coffees    │               │
+    │             │              │ 10. INSERT    │               │
+    │             │              │     coffees   │               │
     │             │              │ ─────────────────────────────>│
     │             │              │               │               │
-    │             │              │ 9. INSERT     │               │
-    │             │              │    coffee_    │               │
-    │             │              │    scans      │               │
+    │             │              │ 11. INSERT    │               │
+    │             │              │     coffee_   │               │
+    │             │              │     scans     │               │
     │             │              │ ─────────────────────────────>│
     │             │              │               │               │
-    │             │ 10. Scan     │               │               │
+    │             │ 12. Scan     │               │               │
     │             │     Result   │               │               │
     │             │<────────────│               │               │
     │             │              │               │               │
-    │ 11. Display │              │               │               │
+    │ 13. Display │              │               │               │
     │     Coffee  │              │               │               │
     │     Profile │              │               │               │
+    │     + Gallery              │               │               │
     │<────────────│              │               │               │
     │             │              │               │               │
+```
+
+### Multi-Image Stitching Pipeline
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                   CLIENT-SIDE IMAGE STITCHING                           │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  1 image:   Pass-through (no stitching)
+  2 images:  ┌─────┬─────┐   2×1 horizontal grid
+             │  1  │  2  │
+             └─────┴─────┘
+  3 images:  ┌─────┬─────┐   2×2 grid (blank cell)
+             │  1  │  2  │
+             ├─────┼─────┤
+             │  3  │     │
+             └─────┴─────┘
+  4 images:  ┌─────┬─────┐   2×2 grid
+             │  1  │  2  │
+             ├─────┼─────┤
+             │  3  │  4  │
+             └─────┴─────┘
+
+  - Each cell: 960×960px max
+  - Output: JPEG compressed to ≤1.5MB
+  - Credit cost: Always 1 AI call per scan
 ```
 
 ### 4. Marketplace Browse Flow
@@ -509,6 +557,36 @@ src/features/
     │   ├── CartPreview.tsx          # Header preview
     │   └── OrderSummary.tsx         # Totals calculation
     └── CartPage.tsx                 # Full cart page
+
+├── recipes/                         # Brew Recipes
+│   ├── components/
+│   │   ├── RecipeCard.tsx           # Recipe listing card
+│   │   ├── RecipeGrid.tsx           # Grid layout
+│   │   ├── RecipeForm.tsx           # Create/edit form
+│   │   └── RecipeDetail.tsx         # Full recipe view
+│   ├── services/
+│   │   └── recipeService.ts         # Database CRUD
+│   └── types/
+│       └── recipe.ts                # Recipe types
+
+├── feedback/                        # User Feedback
+│   ├── components/
+│   │   ├── FeedbackDialog.tsx       # Feedback modal
+│   │   ├── FeedbackTrigger.tsx      # CTA button
+│   │   └── StarRating.tsx           # Rating stars
+│   └── hooks/
+│       └── useUsageSummary.ts       # Collect usage context
+
+└── profile/                         # User Profile
+    ├── components/
+    │   ├── ProfileHero.tsx          # Avatar + cover
+    │   ├── TribeSection.tsx         # Coffee tribe display
+    │   ├── FavoritesTable.tsx       # Favorite coffees
+    │   ├── InventoryTable.tsx       # Coffee inventory
+    │   ├── ProfileInfoForm.tsx      # Edit profile
+    │   ├── ChangePasswordForm.tsx   # Password update
+    │   └── RetakeQuizSection.tsx    # Retake quiz CTA
+    └── ProfilePage.tsx              # Full profile page
 ```
 
 ### Authentication Flow
@@ -733,6 +811,17 @@ npm run dev
 | `docs/ERROR_HANDLING.md` | Error handling architecture |
 | `docs/BACKEND_OPTIONS.md` | Backend technology comparison |
 
+### Internationalization (i18n)
+
+The app supports **English** and **Spanish** with full bilingual coverage:
+
+- **Auto-detection**: Language defaults to browser locale (`navigator.language`)
+- **Dictionary files**: `src/i18n/en.ts` and `src/i18n/es.ts` (~400 keys each)
+- **Context**: `LanguageContext` provides `t()` translation helper and `setLanguage()`
+- **Coverage**: All user-facing pages (Auth, Quiz, Scanner, Coffee Profile, Dashboard, Profile, Marketplace)
+- **Dynamic data**: Tribe names, quiz scenarios, and scanner tips are translated via i18n keys
+- **Selector**: Language toggle in UserMenu (desktop) and burger menu (mobile)
+
 ---
 
-*Last Updated: 2026-02-02*
+*Last Updated: 2026-02-20*

@@ -10,6 +10,7 @@ export function transformToCoffee(data: ScannedCoffee): Coffee {
     name: data.coffeeName ?? "Unknown Coffee",
     brand: data.brand,
     imageUrl: data.imageUrl,
+    additionalImageUrls: null,
     originCountry: data.originCountry,
     originRegion: data.originRegion,
     originFarm: data.originFarm,

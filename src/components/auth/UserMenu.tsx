@@ -1,7 +1,8 @@
 import { forwardRef } from "react";
 import { Link } from "react-router-dom";
-import { User, LogOut, LayoutDashboard } from "lucide-react";
+import { User, LogOut, LayoutDashboard, Globe } from "lucide-react";
 import { ROUTES } from "@/constants/app";
+import { useLanguage } from "@/contexts/language";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +22,8 @@ interface UserMenuProps {
 
 export const UserMenu = forwardRef<HTMLDivElement, UserMenuProps>(
   ({ displayName, avatarUrl, email, onSignOut }, ref) => {
+    const { language, setLanguage } = useLanguage();
+
     const initials = displayName
       ? displayName.slice(0, 2).toUpperCase()
       : email?.slice(0, 2).toUpperCase() || "U";
@@ -72,6 +75,39 @@ export const UserMenu = forwardRef<HTMLDivElement, UserMenuProps>(
               Profile
             </Link>
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          {/* Language Toggle */}
+          <div className="flex items-center justify-between px-2 py-1.5">
+            <div className="flex items-center gap-2 text-sm">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Language</span>
+            </div>
+            <div className="inline-flex items-center border-2 border-border rounded-full overflow-hidden text-xs font-semibold select-none shadow-[2px_2px_0px_0px_hsl(var(--border))]">
+              <button
+                onClick={() => setLanguage("es")}
+                className={`px-2 py-0.5 transition-colors ${
+                  language === "es"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background text-muted-foreground hover:text-foreground"
+                }`}
+                aria-label="Switch to Spanish"
+              >
+                ES
+              </button>
+              <span className="text-border px-0.5">|</span>
+              <button
+                onClick={() => setLanguage("en")}
+                className={`px-2 py-0.5 transition-colors ${
+                  language === "en"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background text-muted-foreground hover:text-foreground"
+                }`}
+                aria-label="Switch to English"
+              >
+                EN
+              </button>
+            </div>
+          </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={onSignOut}

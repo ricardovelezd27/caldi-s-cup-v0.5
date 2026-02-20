@@ -12,6 +12,7 @@ export interface Coffee {
   name: string;
   brand: string | null;
   imageUrl: string | null;
+  additionalImageUrls: string[] | null;
   
   // Origin details
   originCountry: string | null;
@@ -115,6 +116,7 @@ export function transformCoffeeRow(
     name: row.name,
     brand: row.brand,
     imageUrl: row.image_url,
+    additionalImageUrls: (row as any).additional_image_urls ?? null,
     originCountry: row.origin_country,
     originRegion: row.origin_region,
     originFarm: row.origin_farm,

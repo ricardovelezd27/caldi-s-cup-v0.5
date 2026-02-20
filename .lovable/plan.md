@@ -1,103 +1,143 @@
 
 
-## Code Audit and Optimization Plan
+# Multi-Image Scanner with Coffee Profile Gallery
 
-### Audit Summary
+## Overview
 
-After a thorough review of the codebase, I identified several categories of dead or orphaned code that can be safely cleaned up without touching any dormant features (marketplace, recipes, cart files are preserved per your standing rule).
+This plan implements two connected features:
+1. **Multi-image scanner** -- users can add up to 4 photos of a coffee bag before scanning
+2. **Thumbnail gallery on Coffee Profile page** -- Amazon-style image display with main image + horizontal thumbnails
 
----
-
-### Category 1: Orphaned Utility Files (zero active consumers)
-
-These files exist only to serve the dormant cart/marketplace system and have **no imports from any active feature**:
-
-| File | Why Orphaned |
-|------|-------------|
-| `src/hooks/useOptimisticCart.ts` | Only self-referencing. Never imported anywhere. Cart system is dormant. |
-| `src/utils/rateLimit.ts` | Only imported by `useOptimisticCart.ts` (orphaned). No other consumer. |
-| `src/utils/formatters.ts` | Only imported by dormant `CartItemRow.tsx` and `OrderSummary.tsx`. No active feature uses it. |
-| `src/schemas/cart.schema.ts` | Only imported by `src/utils/validation/cartValidation.ts`, which itself is only imported by `localCartService.ts` (dormant cart chain). |
-| `src/utils/validation/cartValidation.ts` | Same -- only used by the dormant cart service. |
-
-**Decision**: These are NOT dormant features themselves -- they are orphaned utilities. Per the standing rule, dormant **features** (marketplace, recipes, cart pages/components) are preserved. But these standalone utility hooks and validators have zero active consumers and should be flagged.
-
-**Recommendation**: Leave them in place but add a `@dormant` JSDoc tag at the top of each file indicating they belong to the inactive cart pipeline. This keeps the code clean without deleting it.
+The core optimization is **client-side canvas stitching**: all user photos are composited into a single image before the AI call, so credit cost stays at exactly 1 call per scan regardless of photo count.
 
 ---
 
-### Category 2: Duplicate Toast System
+## Part 1: Client-Side Image Stitching Utility
 
-The app runs **two parallel toast systems**:
-- **shadcn/ui Toaster** (`src/hooks/use-toast.ts` + `src/components/ui/toaster.tsx` + `src/components/ui/toast.tsx`)
-- **Sonner** (`sonner` package + `src/components/ui/sonner.tsx`)
+**New file: `src/features/scanner/utils/stitchImages.ts`**
 
-Both are mounted in `App.tsx`. Active components are split between them -- some use `import { toast } from "sonner"` and others use `import { useToast } from "@/hooks/use-toast"`.
-
-Additionally, `src/components/ui/use-toast.ts` is a **dead re-export wrapper** -- it imports from `@/hooks/use-toast` and re-exports, but nothing imports from it.
-
-**Action**:
-- Delete `src/components/ui/use-toast.ts` (dead file, zero consumers).
-- No other toast consolidation needed right now -- both systems are actively used by different components.
+A canvas-based utility that takes 1-4 base64 images and composites them into one:
+- 1 image: pass through (no stitching)
+- 2 images: 2x1 horizontal grid
+- 3-4 images: 2x2 grid (blank cell if 3)
+- Each sub-image scaled to fit its grid cell proportionally
+- Output compressed to JPEG under 1.5MB
 
 ---
 
-### Category 3: Unused Auth Guard Components
+## Part 2: Multi-Image ScanUploader
 
-`RequireRole` and `ShowForRole` are exported from `src/components/auth/index.ts` and defined in `RequireRole.tsx`, but **never imported or used anywhere** in the app's routes or components.
+**Modified: `src/features/scanner/components/ScanUploader.tsx`**
 
-**Action**: Remove the export line from `src/components/auth/index.ts`. Keep the file `RequireRole.tsx` itself (it's a useful guard for future roaster/admin routes, so it falls under "dormant feature infrastructure"). Just clean the barrel export so it doesn't advertise unused components.
-
----
-
-### Category 4: Stale ROUTES Constants
-
-`src/constants/app.ts` defines `ROUTES.marketplace`, `ROUTES.recipes`, and `ROUTES.cart`, but these routes are not registered in `App.tsx` and have no active navigation links.
-
-**Action**: Add a comment block marking these as reserved for dormant features, improving clarity for future developers.
+Transform from single-image picker to multi-slot collector:
+- After adding first photo, show it as a thumbnail with a "+" slot to add more (up to 4)
+- Thumbnail grid: `grid grid-cols-4 gap-2` -- each thumbnail is square with a remove (X) button
+- A "Scan Now" button appears once at least 1 image is present
+- Scanning is NO LONGER auto-triggered on first image -- user controls when to scan
+- The upload/camera buttons remain the same, just add to the array instead of replacing
+- The callback changes from `onImageSelected(base64)` to `onImagesReady(base64[])`
 
 ---
 
-### Category 5: Redundant OfflineIndicator Text
+## Part 3: ScannerPage Orchestration
 
-`src/components/error/OfflineIndicator.tsx` has a hardcoded English string ("You're offline...") that was missed during the i18n sweep.
+**Modified: `src/features/scanner/ScannerPage.tsx`**
 
-**Action**: Replace with `t('shared.offlineMessage')` and add the key to both dictionaries.
-
----
-
-### Category 6: Minor Code Quality Improvements
-
-1. **`AuthCard.tsx`**: Missing `font-bangers` class on the `h1` (all other headings use it per style guide).
-2. **`src/features/coffee/types/coffee.ts` line 132-133**: Uses `(row as any)` cast for `brand_story`, `jargon_explanations`, `ai_confidence`. If these columns exist in the DB schema, we should use proper typing. If not, these are dead code paths.
+- Receives `base64[]` array from the updated ScanUploader
+- Calls `stitchImages()` to produce a single composite for the AI
+- Stores the individual images array in a ref for passing to the coffee profile
+- Passes the stitched composite to `scanCoffee()` (hook unchanged)
+- When navigating to coffee profile on completion, passes `additionalImages: string[]` (all original photos) via route state
 
 ---
 
-### Files to Modify
+## Part 4: Edge Function Prompt Update
 
-| File | Change |
+**Modified: `supabase/functions/scan-coffee/index.ts`**
+
+Single line addition to the AI prompt:
+```
+This image may contain multiple views of the same coffee bag arranged in a grid. 
+Analyze ALL visible panels together as one coffee product.
+```
+
+No structural changes -- it still receives and processes one image.
+
+---
+
+## Part 5: Coffee Profile Image Gallery
+
+**Modified: `src/features/coffee/components/CoffeeImage.tsx`**
+
+Add an optional `additionalImages?: string[]` prop. When present:
+- Main image displays as today (large, aspect-square)
+- Below it, a horizontal row of small square thumbnails (the original individual photos)
+- Clicking a thumbnail swaps it into the main display
+- First image is selected by default
+- Thumbnails use `flex gap-2 overflow-x-auto` for horizontal scroll on mobile
+- Selected thumbnail gets a highlighted border (primary color)
+- Each thumbnail is ~60px square on mobile, ~72px on desktop
+
+**Modified: `src/features/coffee/components/CoffeeProfile.tsx`**
+
+Pass the new `additionalImages` prop through to `CoffeeImage`.
+
+**Modified: `src/features/coffee/CoffeeProfilePage.tsx`**
+
+Read `additionalImages` from route state and pass it down to `CoffeeProfile`.
+
+---
+
+## Part 6: Type & State Updates
+
+**Modified: `src/features/coffee/types/coffee.ts`**
+
+No changes needed -- `additionalImages` flows through route state and component props only (not persisted to DB).
+
+**Modified: `src/features/coffee/CoffeeProfilePage.tsx` (route state interface)**
+
+Add `additionalImages?: string[]` to `CoffeeRouteState`.
+
+---
+
+## Part 7: i18n Keys
+
+**Modified: `src/i18n/en.ts` and `src/i18n/es.ts`**
+
+Add ~8 new keys:
+- `scanner.addUpTo4` -- "Add up to 4 photos of different sides"
+- `scanner.scanNow` -- "Scan Now"
+- `scanner.addAnother` -- "Add another side"
+- `scanner.photosAdded` -- "{{count}} photo(s) added"
+- `scanner.removePhoto` -- "Remove photo"
+- `scanner.stitching` -- "Combining images..."
+
+---
+
+## Files Summary
+
+| File | Action |
 |------|--------|
-| `src/components/ui/use-toast.ts` | Delete (dead re-export, zero consumers) |
-| `src/hooks/useOptimisticCart.ts` | Add `@dormant` JSDoc marker |
-| `src/utils/rateLimit.ts` | Add `@dormant` JSDoc marker |
-| `src/utils/formatters.ts` | Add `@dormant` JSDoc marker |
-| `src/schemas/cart.schema.ts` | Add `@dormant` JSDoc marker |
-| `src/utils/validation/cartValidation.ts` | Add `@dormant` JSDoc marker |
-| `src/components/auth/index.ts` | Remove `RequireRole`/`ShowForRole` from barrel export |
-| `src/constants/app.ts` | Add "dormant" comment on unused ROUTES |
-| `src/components/error/OfflineIndicator.tsx` | Replace hardcoded string with `t()` |
-| `src/i18n/en.ts` | Add `shared.offlineMessage` key |
-| `src/i18n/es.ts` | Add `shared.offlineMessage` key |
-| `src/components/auth/AuthCard.tsx` | Add `font-bangers` to heading |
+| `src/features/scanner/utils/stitchImages.ts` | **Create** -- canvas compositing utility |
+| `src/features/scanner/components/ScanUploader.tsx` | **Modify** -- multi-image collection UI |
+| `src/features/scanner/ScannerPage.tsx` | **Modify** -- orchestrate stitching + pass images to profile |
+| `supabase/functions/scan-coffee/index.ts` | **Modify** -- add multi-panel instruction to prompt |
+| `src/features/coffee/components/CoffeeImage.tsx` | **Modify** -- add thumbnail gallery below main image |
+| `src/features/coffee/components/CoffeeProfile.tsx` | **Modify** -- pass `additionalImages` prop |
+| `src/features/coffee/CoffeeProfilePage.tsx` | **Modify** -- read `additionalImages` from route state |
+| `src/i18n/en.ts` | **Modify** -- add scanner gallery keys |
+| `src/i18n/es.ts` | **Modify** -- add Spanish translations |
 
-### What This Does NOT Touch
-- Marketplace, recipes, cart feature folders (preserved per standing rule)
-- Any active routes, components, or services
-- Database schema or migrations
-- Edge functions
+## What Does NOT Change
+- `useCoffeeScanner.ts` -- still receives a single base64 string
+- Scanner types (`scanner.ts`) -- no structural changes
+- Database schema -- no new tables or columns
+- Credit consumption -- identical to current (1 AI call per scan)
+- Firecrawl enrichment -- unchanged
+- Anonymous/authenticated flow split -- unchanged
 
-### Estimated Impact
-- 1 dead file deleted
-- ~6 files annotated with dormant markers
-- 5 files with minor targeted improvements
-- Zero risk of breaking active functionality
+## Credit Optimization Summary
+- Current: 1 photo = 1 AI call
+- New: 1-4 photos = still 1 AI call (stitched client-side)
+- Zero additional backend cost regardless of photo count
+

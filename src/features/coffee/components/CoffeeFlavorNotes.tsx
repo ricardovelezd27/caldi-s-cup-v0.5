@@ -126,10 +126,10 @@ export function CoffeeFlavorNotes({
             <Badge
               key={index}
               variant="secondary"
-              className={`text-sm capitalize gap-1 border-2 ${
+              className={`text-sm capitalize gap-1 ${
                 isAiNote
-                  ? "bg-primary/20 text-foreground border-primary"
-                  : "bg-secondary/20 text-foreground border-secondary"
+                  ? "bg-primary/20 text-primary-foreground border-primary/40"
+                  : "bg-secondary/20 text-secondary-foreground border-secondary/40"
               }`}
             >
               {note}

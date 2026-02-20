@@ -7,6 +7,7 @@ import { useCoffeeScanner } from "./hooks/useCoffeeScanner";
 import { ScanUploader, ScanningTips, ScanProgress, TribeScannerPreview, ManualAddForm } from "./components";
 import { transformToCoffee, extractScanMeta } from "./utils/transformScanData";
 import { stitchImages } from "./utils/stitchImages";
+import { uploadScanImages } from "./utils/uploadScanImages";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -48,6 +49,11 @@ export function ScannerPage() {
         isTemporaryImage = true;
       }
 
+      // Upload individual images to storage in background (authenticated only)
+      if (user && individualImagesRef.current.length > 1) {
+        uploadScanImages(user.id, coffeeId, individualImagesRef.current);
+      }
+
       navigate(`/coffee/${coffeeId}`, {
         state: {
           coffee,
@@ -59,7 +65,7 @@ export function ScannerPage() {
         replace: true,
       });
     }
-  }, [isComplete, scanResult, navigate]);
+  }, [isComplete, scanResult, navigate, user]);
 
   const handleImagesReady = async (images: string[]) => {
     individualImagesRef.current = images;

@@ -4,6 +4,35 @@ All notable changes to Caldi's Cup are documented here.
 
 ---
 
+## [1.0.0] - 2026-02-20 - Full i18n Coverage (EN/ES)
+
+### Added
+- **Internationalization (i18n)**:
+  - Full bilingual support: English and Spanish
+  - ~400 translation keys per language across all user-facing pages
+  - Auto-detection from browser locale (`navigator.language`)
+  - Language toggle in UserMenu (desktop) and burger menu (mobile)
+  
+- **Translated Pages**:
+  - Auth (Login/Signup forms, error messages)
+  - Quiz (Onboarding slides, scenarios, tribe reveal, results)
+  - Scanner (Uploader, progress steps, tips, manual add form)
+  - Coffee Profile (Attributes, flavor notes, actions, jargon buster, match score)
+  - Profile (Tribe section, password form, favorites/inventory tables, retake quiz)
+  - Shared (Feedback CTA, navigation)
+
+- **Dynamic Data Translation**:
+  - Tribe names, titles, descriptions resolved via i18n keys instead of static data
+  - Quiz scenarios and options translated per language
+  - Scanner tips (generic + tribe-specific) translated
+
+### Changed
+- `LanguageContext` initializes from `navigator.language`
+- Language selector moved from header to UserMenu/burger menu
+- Logo restored to far-left position with scroll animation
+
+---
+
 ## [0.9.0] - 2026-02-02 - Unified Coffee Catalog & Marketplace Integration
 
 ### Added
@@ -263,4 +292,4 @@ All notable changes to Caldi's Cup are documented here.
 
 ---
 
-*Last Updated: 2026-02-02*
+*Last Updated: 2026-02-20*

@@ -210,7 +210,18 @@ This file tracks all discussed but unimplemented features, organized by priority
 - ✅ Auto roaster creation
 - ✅ Marketplace database integration
 
-### Phase 7: Shopify Integration (Future)
+### Phase 7: Recipes, Ratings, Feedback & i18n ✅
+
+- ✅ Recipes CRUD (create, edit, view, list)
+- ✅ User coffee ratings (acidity, body, sweetness, flavor notes)
+- ✅ Feedback system (rating + message)
+- ✅ Manual coffee add (form-based entry)
+- ✅ Scan error reports
+- ✅ Full i18n (English + Spanish, ~400 keys)
+- ✅ Browser locale auto-detection
+- ✅ Dashboard customizable widgets
+
+### Phase 8: Shopify Integration (Future)
 
 - Enable Shopify Basic + Webkul Multi-Vendor
 - Onboard 3-5 pilot roasters
@@ -246,18 +257,26 @@ This file tracks all discussed but unimplemented features, organized by priority
 | Unified Catalog | 6 | Single coffees table |
 | Auto Roaster | 6 | Create on new brand scan |
 | DB Integration | 6 | Marketplace pulls from database |
+| Recipes CRUD | 7 | Create, edit, view, list brew recipes |
+| User Coffee Ratings | 7 | Personal acidity/body/sweetness scores |
+| Feedback System | 7 | In-app feedback with rating |
+| Manual Coffee Add | 7 | Form-based coffee entry |
+| Scan Error Reports | 7 | Report AI scan inaccuracies |
+| i18n (EN/ES) | 7 | Full bilingual support (~400 keys) |
+| Dashboard Widgets | 7 | Customizable widget grid |
 
 ### Upcoming Features
 
 | Priority | Feature | Phase | Description |
 |----------|---------|-------|-------------|
-| 🔴 High | Shopify Enable | 7 | Connect Shopify Basic with Webkul |
-| 🔴 High | Checkout Flow | 7 | Shopify checkout integration |
-| 🔴 High | Vendor Onboarding | 7 | Guide for roasters to join |
-| 🟡 Medium | AI Recommendations | 8 | "You might like" suggestions |
-| 🟡 Medium | Search Ranking | 8 | Personalized results |
+| 🔴 High | Shopify Enable | 8 | Connect Shopify Basic with Webkul |
+| 🔴 High | Checkout Flow | 8 | Shopify checkout integration |
+| 🔴 High | Vendor Onboarding | 8 | Guide for roasters to join |
+| 🟡 Medium | AI Recommendations | 9 | "You might like" suggestions |
+| 🟡 Medium | Search Ranking | 9 | Personalized results |
 | 🟡 Medium | Wishlist | - | Save products for later |
-| 🟡 Medium | Order Confirmation | 7 | Post-purchase page |
+| 🟡 Medium | Order Confirmation | 8 | Post-purchase page |
+| 🟡 Medium | Additional Languages | - | PT-BR, FR, IT support |
 | 🟢 Low | Animations | - | Bouncy micro-interactions |
 | 🟢 Low | Dark Mode Toggle | - | UI toggle with persistence |
 | 🟢 Low | Testing Suite | - | Unit tests per TDD mandate |
@@ -280,8 +299,14 @@ This file tracks all discussed but unimplemented features, organized by priority
 | `/dashboard` | DashboardPage | 6 | ✅ Complete |
 | `/scanner` | ScannerPage | 6 | ✅ Complete |
 | `/coffee/:id` | CoffeeProfilePage | 6 | ✅ Complete |
-| `/recipes` | RecipesPage | 6 | ✅ Complete |
-| `/checkout` | CheckoutRedirect | 7 | 🔲 Planned |
+| `/recipes` | RecipesPage | 7 | ✅ Complete |
+| `/recipes/new` | CreateRecipePage | 7 | ✅ Complete |
+| `/recipes/:id` | RecipeViewPage | 7 | ✅ Complete |
+| `/recipes/:id/edit` | EditRecipePage | 7 | ✅ Complete |
+| `/profile` | ProfilePage | 5 | ✅ Complete |
+| `/feedback` | FeedbackPage | 7 | ✅ Complete |
+| `/blog` | BlogPage | 7 | ✅ Complete |
+| `/checkout` | CheckoutRedirect | 8 | 🔲 Planned |
 
 ---
 
@@ -338,4 +363,4 @@ The project follows a B2B2C architectural model:
 
 ---
 
-*Last Updated: 2026-02-02*
+*Last Updated: 2026-02-20*

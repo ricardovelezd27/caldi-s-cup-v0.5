@@ -21,7 +21,7 @@
 ## Project Status
 
 **Architecture:** Modular Monolith (React + Vite + Tailwind CSS + TypeScript + Lovable Cloud)  
-**Phase:** Phase 6 Complete (AI Scanner + Marketplace Integration)  
+**Phase:** Phase 7 Complete (i18n, Recipes, Feedback, User Ratings)  
 **Model:** B2B2C Platform (Consumers + Roasters + Admins)
 
 ### Feature Completion
@@ -44,6 +44,12 @@
 | Unified Coffee Catalog | ✅ Complete | 6 |
 | Auto Roaster Creation | ✅ Complete | 6 |
 | Marketplace DB Integration | ✅ Complete | 6 |
+| Recipes (CRUD) | ✅ Complete | 7 |
+| User Coffee Ratings | ✅ Complete | 7 |
+| Feedback System | ✅ Complete | 7 |
+| i18n (EN/ES) | ✅ Complete | 7 |
+| Manual Coffee Add | ✅ Complete | 7 |
+| Scan Error Reports | ✅ Complete | 7 |
 
 ---
 
@@ -97,10 +103,14 @@
 │  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐    │  │
 │  │  │ coffees │ │ profiles│ │ roasters│ │ recipes │ │brew_logs│    │  │
 │  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘    │  │
-│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐                             │  │
-│  │  │ coffee_ │ │ user_   │ │dashboard│                             │  │
-│  │  │ scans   │ │ roles   │ │_widgets │                             │  │
-│  │  └─────────┘ └─────────┘ └─────────┘                             │  │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐    │  │
+│  │  │ coffee_ │ │ user_   │ │dashboard│ │user_cof │ │scan_err │    │  │
+│  │  │ scans   │ │ roles   │ │_widgets │ │_ratings │ │_reports │    │  │
+│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘    │  │
+│  │  ┌─────────┐ ┌─────────┐                                         │  │
+│  │  │feedback │ │user_cof │                                         │  │
+│  │  │         │ │_inv/fav │                                         │  │
+│  │  └─────────┘ └─────────┘                                         │  │
 │  └──────────────────────────────────────────────────────────────────┘  │
 │                                                                         │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
@@ -509,6 +519,36 @@ src/features/
     │   ├── CartPreview.tsx          # Header preview
     │   └── OrderSummary.tsx         # Totals calculation
     └── CartPage.tsx                 # Full cart page
+
+├── recipes/                         # Brew Recipes
+│   ├── components/
+│   │   ├── RecipeCard.tsx           # Recipe listing card
+│   │   ├── RecipeGrid.tsx           # Grid layout
+│   │   ├── RecipeForm.tsx           # Create/edit form
+│   │   └── RecipeDetail.tsx         # Full recipe view
+│   ├── services/
+│   │   └── recipeService.ts         # Database CRUD
+│   └── types/
+│       └── recipe.ts                # Recipe types
+
+├── feedback/                        # User Feedback
+│   ├── components/
+│   │   ├── FeedbackDialog.tsx       # Feedback modal
+│   │   ├── FeedbackTrigger.tsx      # CTA button
+│   │   └── StarRating.tsx           # Rating stars
+│   └── hooks/
+│       └── useUsageSummary.ts       # Collect usage context
+
+└── profile/                         # User Profile
+    ├── components/
+    │   ├── ProfileHero.tsx          # Avatar + cover
+    │   ├── TribeSection.tsx         # Coffee tribe display
+    │   ├── FavoritesTable.tsx       # Favorite coffees
+    │   ├── InventoryTable.tsx       # Coffee inventory
+    │   ├── ProfileInfoForm.tsx      # Edit profile
+    │   ├── ChangePasswordForm.tsx   # Password update
+    │   └── RetakeQuizSection.tsx    # Retake quiz CTA
+    └── ProfilePage.tsx              # Full profile page
 ```
 
 ### Authentication Flow
@@ -733,6 +773,17 @@ npm run dev
 | `docs/ERROR_HANDLING.md` | Error handling architecture |
 | `docs/BACKEND_OPTIONS.md` | Backend technology comparison |
 
+### Internationalization (i18n)
+
+The app supports **English** and **Spanish** with full bilingual coverage:
+
+- **Auto-detection**: Language defaults to browser locale (`navigator.language`)
+- **Dictionary files**: `src/i18n/en.ts` and `src/i18n/es.ts` (~400 keys each)
+- **Context**: `LanguageContext` provides `t()` translation helper and `setLanguage()`
+- **Coverage**: All user-facing pages (Auth, Quiz, Scanner, Coffee Profile, Dashboard, Profile, Marketplace)
+- **Dynamic data**: Tribe names, quiz scenarios, and scanner tips are translated via i18n keys
+- **Selector**: Language toggle in UserMenu (desktop) and burger menu (mobile)
+
 ---
 
-*Last Updated: 2026-02-02*
+*Last Updated: 2026-02-20*

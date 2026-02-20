@@ -10,9 +10,9 @@ interface CoffeeImageProps {
 }
 
 export function CoffeeImage({ src, alt, className, isTemporaryImage, additionalImages }: CoffeeImageProps) {
-  const hasGallery = additionalImages && additionalImages.length > 1;
+  const galleryImages = additionalImages && additionalImages.length > 0 ? additionalImages : null;
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const mainSrc = hasGallery ? additionalImages[selectedIndex] : src;
+  const mainSrc = galleryImages ? galleryImages[selectedIndex] : src;
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -43,7 +43,7 @@ export function CoffeeImage({ src, alt, className, isTemporaryImage, additionalI
       </div>
 
       {/* Thumbnail gallery */}
-      {hasGallery && (
+      {galleryImages && galleryImages.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1">
           {additionalImages.map((img, i) => (
             <button

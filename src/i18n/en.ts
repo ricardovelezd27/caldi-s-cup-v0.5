@@ -412,6 +412,7 @@ export const en = {
     feedbackTitle: "Got thoughts? We're all ears ☕",
     feedbackBody: "Help us brew a better experience — your feedback shapes what comes next.",
     feedbackCta: "Share Your Feedback",
+    offlineMessage: "You're offline. Changes will sync when you're back online.",
   },
   ourStory: {
     heroTitle: "The Story Behind Your Next Great Cup",

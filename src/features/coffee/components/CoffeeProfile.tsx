@@ -16,6 +16,7 @@ interface CoffeeProfileProps {
   actions?: ReactNode;
   accordionContent?: ReactNode;
   isTemporaryImage?: boolean;
+  additionalImages?: string[];
 }
 
 /**
@@ -29,6 +30,7 @@ export function CoffeeProfile({
   actions,
   accordionContent,
   isTemporaryImage = false,
+  additionalImages,
 }: CoffeeProfileProps) {
   const { profile } = useAuth();
   const { rating, updateField, isAuthenticated } = useUserCoffeeRating(coffee.id);
@@ -44,6 +46,7 @@ export function CoffeeProfile({
               src={coffee.imageUrl}
               alt={coffee.name}
               isTemporaryImage={isTemporaryImage}
+              additionalImages={additionalImages}
             />
           </div>
 

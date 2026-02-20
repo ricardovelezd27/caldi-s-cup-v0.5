@@ -55,6 +55,24 @@ This file tracks all discussed but unimplemented features, organized by priority
 **Date**: 2026-02-02  
 **Status**: Implemented
 
+---
+
+### ADR-004: Client-Side Multi-Image Stitching
+
+**Date**: 2026-02-20  
+**Status**: Implemented
+
+**Decision**: Stitch up to 4 user photos into a single composite image client-side before sending to AI.
+
+**Context**: Users need to capture multiple surfaces of a coffee bag (front, back, sides) for better AI analysis, but each AI call costs credits.
+
+**Implementation**:
+- Canvas-based utility composites 1-4 base64 images into a 2×1 or 2×2 grid
+- Each cell scaled to 960×960px max, output compressed to JPEG ≤1.5MB
+- AI prompt updated to analyze all panels in the grid as a single product
+- Individual photos preserved in route state for gallery display on coffee profile
+- Credit cost remains exactly 1 AI call per scan regardless of photo count
+
 **Decision**: Automatically create roaster profiles when new brands are detected during scanning.
 
 **Context**: To populate the marketplace with roaster data as coffees are scanned.
@@ -264,6 +282,9 @@ This file tracks all discussed but unimplemented features, organized by priority
 | Scan Error Reports | 7 | Report AI scan inaccuracies |
 | i18n (EN/ES) | 7 | Full bilingual support (~400 keys) |
 | Dashboard Widgets | 7 | Customizable widget grid |
+| Multi-Image Scanner | 7+ | Up to 4 photos per scan, client-side stitching |
+| Coffee Profile Gallery | 7+ | Amazon-style image gallery with thumbnails |
+| Color-Coded Flavor Notes | 7+ | Yellow (AI) vs teal (user) badge colors |
 
 ### Upcoming Features
 

@@ -27,6 +27,7 @@ The Caldi's Cup scanner uses AI vision to analyze coffee bag images and extract 
 
 | Feature | Status | Notes |
 |---------|--------|-------|
+| Multi-image scanner | ✅ Complete | Up to 4 photos, client-side stitching |
 | Image analysis | ✅ Complete | Gemini 2.5 Flash |
 | Structured data extraction | ✅ Complete | Roast 1-5, altitude, origin split |
 | Flavor profile scoring | ✅ Complete | Acidity, body, sweetness (1-5) |
@@ -55,13 +56,23 @@ The Caldi's Cup scanner uses AI vision to analyze coffee bag images and extract 
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                         CLIENT LAYER                                    │
 │  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐      │
-│  │   ScanUploader   │  │   ScanProgress   │  │   ScanResults    │      │
-│  │   - Image input  │  │   - Status bar   │  │   - CoffeeProfile│      │
-│  │   - Compression  │  │   - Step display │  │   - Actions      │      │
-│  │   - Validation   │  │                  │  │   - JargonBuster │      │
+│  │   ScanUploader   │  │   ScanProgress   │  │   CoffeeProfile  │      │
+│  │   - Multi-image  │  │   - Status bar   │  │   - Image Gallery│      │
+│  │     (up to 4)    │  │   - Step display │  │   - Actions      │      │
+│  │   - Thumbnail    │  │                  │  │   - JargonBuster │      │
+│  │     grid + X     │  │                  │  │   - Flavor Notes │      │
+│  │   - "Scan Now"   │  │                  │  │     (color-coded)│      │
 │  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘      │
 │           │                     │                     │                 │
 │           └─────────────────────┼─────────────────────┘                 │
+│                                 │                                       │
+│  ┌──────────────────────────────▼──────────────────────────────────┐   │
+│  │                     ScannerPage Orchestration                    │   │
+│  │   - Receives base64[] from ScanUploader                         │   │
+│  │   - Calls stitchImages() for multi-photo compositing            │   │
+│  │   - Passes single composite to useCoffeeScanner hook            │   │
+│  │   - Preserves individual images for gallery via route state     │   │
+│  └──────────────────────────────┬──────────────────────────────────┘   │
 │                                 │                                       │
 │  ┌──────────────────────────────▼──────────────────────────────────┐   │
 │  │                     useCoffeeScanner Hook                        │   │
@@ -394,6 +405,38 @@ const TRIBE_KEYWORDS = {
 
 ---
 
+## Multi-Image Stitching
+
+### Overview
+
+Users can capture 1-4 photos of different surfaces of a coffee bag. To maintain a 1:1 scan-to-credit ratio, all images are composited client-side into a single grid before sending to the AI.
+
+### Stitching Logic (`src/features/scanner/utils/stitchImages.ts`)
+
+| Photo Count | Grid Layout | Canvas Size |
+|-------------|-------------|-------------|
+| 1 | Pass-through | Original |
+| 2 | 2×1 horizontal | 1920×960 |
+| 3 | 2×2 (1 blank) | 1920×1920 |
+| 4 | 2×2 full | 1920×1920 |
+
+- Each sub-image scaled proportionally to fit its 960×960 cell
+- White background for blank cells
+- Output compressed to JPEG, quality iterated down until ≤1.5MB
+
+### AI Prompt Addendum
+
+The edge function prompt includes: *"This image may contain multiple views of the same coffee bag arranged in a grid. Analyze ALL visible panels together as one coffee product."*
+
+### Coffee Profile Gallery
+
+After scanning, individual photos are passed via React Router state (`additionalImages: string[]`) to the coffee profile page, which renders an Amazon-style gallery:
+- Main image: first individual photo (not the stitched composite)
+- Thumbnail row: horizontal scrollable strip with selection highlight
+- Only available during post-scan session (not persisted to database)
+
+---
+
 ## Current Limitations
 
 ### Technical Limitations
@@ -402,6 +445,7 @@ const TRIBE_KEYWORDS = {
 2. **No Cross-Reference**: Cannot verify claims against external databases
 3. **Image Quality Dependency**: Low-quality images reduce accuracy
 4. **No Taste Calibration**: Scores are inferred, not measured
+5. **Gallery Not Persisted**: Additional scan images only available in post-scan session (route state)
 
 ### Business Limitations
 
@@ -535,6 +579,7 @@ CREATE TYPE coffee_source AS ENUM ('scan', 'admin', 'roaster', 'import', 'manual
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-02-20 | Added multi-image stitching docs, gallery, color-coded flavor notes | Lovable AI |
 | 2026-02-20 | Added user ratings, scan error reports, manual add, i18n notes | Lovable AI |
 | 2026-02-02 | Added UML diagrams and flow charts | Lovable AI |
 | 2026-02-02 | Documented unified coffee catalog | Lovable AI |

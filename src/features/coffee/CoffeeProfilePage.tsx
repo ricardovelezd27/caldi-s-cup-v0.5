@@ -12,7 +12,7 @@ import { useCoffeeScanMeta } from "./hooks/useCoffeeScanMeta";
 import { useLanguage } from "@/contexts/language";
 import type { Coffee, CoffeeScanMeta } from "./types";
 
-interface CoffeeRouteState { coffee?: Coffee; scanMeta?: CoffeeScanMeta; isNewCoffee?: boolean; isTemporaryImage?: boolean; }
+interface CoffeeRouteState { coffee?: Coffee; scanMeta?: CoffeeScanMeta; isNewCoffee?: boolean; isTemporaryImage?: boolean; additionalImages?: string[]; }
 
 export function CoffeeProfilePage() {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +27,7 @@ export function CoffeeProfilePage() {
   const scanMeta = routeState.scanMeta ?? fetchedScanMeta ?? undefined;
   const isNewCoffee = routeState.isNewCoffee ?? false;
   const isTemporaryImage = routeState.isTemporaryImage ?? false;
+  const additionalImages = routeState.additionalImages;
 
   if (!hasScanData && isLoading) {
     return (<PageLayout><Container className="py-6"><div className="space-y-6"><Skeleton className="h-8 w-32" /><div className="grid grid-cols-1 lg:grid-cols-12 gap-6"><div className="lg:col-span-5 space-y-6"><Skeleton className="aspect-square w-full rounded-lg" /><Skeleton className="h-32 w-full rounded-lg" /></div><div className="lg:col-span-7 space-y-6"><Skeleton className="h-12 w-3/4" /><Skeleton className="h-6 w-1/2" /><Skeleton className="h-24 w-full" /></div></div></div></Container></PageLayout>);
@@ -43,7 +44,7 @@ export function CoffeeProfilePage() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           {scanMeta ? t('coffee.backToScanner') : t('coffee.back')}
         </Button>
-        <CoffeeProfile coffee={coffee} scanMeta={scanMeta} isNewCoffee={isNewCoffee} isTemporaryImage={isTemporaryImage} actions={<CoffeeActions coffee={coffee} scanMeta={scanMeta} onScanAgain={scanMeta ? () => navigate("/scanner") : undefined} />} />
+        <CoffeeProfile coffee={coffee} scanMeta={scanMeta} isNewCoffee={isNewCoffee} isTemporaryImage={isTemporaryImage} additionalImages={additionalImages} actions={<CoffeeActions coffee={coffee} scanMeta={scanMeta} onScanAgain={scanMeta ? () => navigate("/scanner") : undefined} />} />
         <div className="mt-12"><FeedbackCTA /></div>
       </Container>
     </PageLayout>

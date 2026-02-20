@@ -388,6 +388,8 @@ serve(async (req) => {
     // Step 3: Call Gemini AI for image analysis
     const prompt = `You are a Coffee Sommelier AI. Analyze this coffee bag image and extract all visible information.
 
+This image may contain multiple views of the same coffee bag arranged in a grid. Analyze ALL visible panels together as one coffee product.
+
 Return a JSON object with the following structure (use null for fields you cannot determine):
 
 {

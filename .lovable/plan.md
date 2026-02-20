@@ -1,134 +1,103 @@
 
-# Complete i18n Coverage: All Remaining Pages
 
-## Problem
-Many pages still have hardcoded English strings that don't switch when Spanish is selected. The screenshot confirms the Profile page shows "THE OWL", "The Optimizer", tribe descriptions, "Change Password", "Retake Coffee Quiz" all in English even when the app is set to Spanish.
+## Code Audit and Optimization Plan
 
-## Scope of Untranslated Content
+### Audit Summary
 
-The following pages/components have hardcoded English strings that need translation:
+After a thorough review of the codebase, I identified several categories of dead or orphaned code that can be safely cleaned up without touching any dormant features (marketplace, recipes, cart files are preserved per your standing rule).
 
-### 1. Profile Page Components
-- **TribeSection.tsx** -- tribe card (name, title, description), "Discover your Coffee Tribe!", "Take the Quiz"
-- **ChangePasswordForm.tsx** -- "Change Password", "New Password", "Confirm Password", "Update Password"
-- **RetakeQuizSection.tsx** -- "Retake Coffee Quiz", "Start Quiz Again", description text
-- **ProfileInfoForm.tsx** -- "Display Name", "Email", "City", "Save Profile", "Email cannot be changed"
-- **ProfileHero.tsx** -- "Edit cover", "Your name", "City (optional)", "Coffee Lover", "Name is required"
-- **FavoritesTable.tsx** -- "Favorites", table headers (Coffee, Brand, Added), empty state, "Show less", "View more"
-- **InventoryTable.tsx** -- "Inventory", table headers (Coffee, Brand, Qty, Purchased), empty state
+---
 
-### 2. Tribe Data (tribes.ts)
-- Tribe names ("The Fox", "The Owl", etc.), titles ("The Tastemaker", "The Optimizer", etc.), descriptions, values, and coffee recommendations all need Spanish variants
-- This requires a structural change: instead of static data, tribe display strings will be resolved through `t()` keys
+### Category 1: Orphaned Utility Files (zero active consumers)
 
-### 3. Quiz Components
-- **OnboardingModal.tsx** -- 5 slide headlines + bodies, "Skip", "Next", "Let's Go!"
-- **ScenarioScreen.tsx** -- category badges, questions, option labels + descriptions (all from scenarios.ts)
-- **QuizNavigation.tsx** -- "Skip", "See My Results", "Next Scenario"
-- **QuizProgress.tsx** -- "Scenario X/Y"
-- **ResultsPreview.tsx** -- "Your Results So Far"
-- **TribeReveal.tsx** -- tribe name/title/description/values (uses tribes.ts data)
-- **ResultsPage.tsx** -- "Coffees Curated For Your Psychology", "Your Coffee Keywords", CTAs, status messages
+These files exist only to serve the dormant cart/marketplace system and have **no imports from any active feature**:
 
-### 4. Auth Pages
-- **Auth.tsx** -- "Welcome Back", "Join Caldi's Cup", "Sign in to your account", "Create your account"
-- **LoginForm.tsx** -- "Email", "Password", "Sign In", "Signing in...", error messages, "Don't have an account?"
-- **SignupForm.tsx** -- "Display Name (optional)", "Create Account", "Creating account...", "Already have an account?"
+| File | Why Orphaned |
+|------|-------------|
+| `src/hooks/useOptimisticCart.ts` | Only self-referencing. Never imported anywhere. Cart system is dormant. |
+| `src/utils/rateLimit.ts` | Only imported by `useOptimisticCart.ts` (orphaned). No other consumer. |
+| `src/utils/formatters.ts` | Only imported by dormant `CartItemRow.tsx` and `OrderSummary.tsx`. No active feature uses it. |
+| `src/schemas/cart.schema.ts` | Only imported by `src/utils/validation/cartValidation.ts`, which itself is only imported by `localCartService.ts` (dormant cart chain). |
+| `src/utils/validation/cartValidation.ts` | Same -- only used by the dormant cart service. |
 
-### 5. Coffee Profile Components
-- **CoffeeInfo.tsx** -- "New Coffee Detected!", "Verified", "by", "Origin not specified", "Roast", "Cupping Score"
-- **CoffeeAttributes.tsx** -- "Coffee Attributes", "Body", "Acidity", "Sweetness", slider labels, "Sign in to rate"
-- **CoffeeFlavorNotes.tsx** -- "Flavor Notes", "Add a flavor note...", helper text
-- **CoffeeDescription.tsx** -- "About This Coffee", "Jargon Buster"
-- **CoffeeScanMatch.tsx** -- "Your Match Score", tribe-aware phrases, "Why this matches/doesn't match", "AI Confidence", "Sign in to rate"
-- **CoffeeActions.tsx** -- "Add to Favorites", "Favorited", "Add to Inventory", "In Inventory", "Scan Another", toast messages
-- **ReportScanErrorDialog.tsx** -- "Report Error", "Report Scan Error", form labels
-- **CoffeeProfilePage.tsx** -- "Coffee Not Found", "Go Back", "Back to Scanner"
+**Decision**: These are NOT dormant features themselves -- they are orphaned utilities. Per the standing rule, dormant **features** (marketplace, recipes, cart pages/components) are preserved. But these standalone utility hooks and validators have zero active consumers and should be flagged.
 
-### 6. Scanner Components
-- **ScanUploader.tsx** -- "Scan Your Coffee Bag", "Take Photo", "Upload", "Change Image", "Processing Image"
-- **ManualAddForm.tsx** -- "Add Coffee Manually", all form labels and placeholders
-- **ScanProgress.tsx** -- step labels ("Uploading", "Analyzing", "Enriching", "Complete"), "Time elapsed"
-- **ScanningTips.tsx** -- all tip titles and descriptions (generic + tribe-specific)
+**Recommendation**: Leave them in place but add a `@dormant` JSDoc tag at the top of each file indicating they belong to the inactive cart pipeline. This keeps the code clean without deleting it.
 
-### 7. Shared Components
-- **FeedbackCTA.tsx** -- "Got thoughts?", "Help us brew...", "Share Your Feedback"
+---
 
-## Technical Approach
+### Category 2: Duplicate Toast System
 
-### Dictionary Expansion
-Add all new keys to both `src/i18n/en.ts` and `src/i18n/es.ts` under new sections:
-- `profile.*` -- expand with all profile sub-components
-- `auth.*` -- new section for login/signup
-- `quiz.onboarding.*`, `quiz.scenarios.*`, `quiz.navigation.*`, `quiz.results.*`
-- `coffee.*` -- new section for coffee profile page
-- `scanner.uploader.*`, `scanner.manual.*`, `scanner.progress.*`, `scanner.tips.*`
-- `tribes.*` -- tribe names, titles, descriptions, values translated per language
-- `shared.*` -- FeedbackCTA and other shared strings
+The app runs **two parallel toast systems**:
+- **shadcn/ui Toaster** (`src/hooks/use-toast.ts` + `src/components/ui/toaster.tsx` + `src/components/ui/toast.tsx`)
+- **Sonner** (`sonner` package + `src/components/ui/sonner.tsx`)
 
-### Tribe Data Architecture Change
-The current `tribes.ts` has hardcoded English strings. To translate tribe content:
-- Add tribe display data to the i18n dictionaries under `tribes.fox.name`, `tribes.fox.title`, `tribes.fox.description`, etc.
-- Components that display tribe info (TribeSection, TribeReveal, ResultsPage, ProfileHero) will use `t()` to resolve tribe strings instead of reading directly from the static TRIBES object
-- The TRIBES object keeps structural data (id, emoji, colorClass, bgClass, keywords, coffeeRecommendations) but display strings come from i18n
+Both are mounted in `App.tsx`. Active components are split between them -- some use `import { toast } from "sonner"` and others use `import { useToast } from "@/hooks/use-toast"`.
 
-### Scenario Data Architecture Change
-Similarly, quiz scenarios (questions, option labels, descriptions, categories) will be moved to i18n dictionaries keyed by scenario ID.
+Additionally, `src/components/ui/use-toast.ts` is a **dead re-export wrapper** -- it imports from `@/hooks/use-toast` and re-exports, but nothing imports from it.
 
-### Component Updates
-Each component listed above will:
-1. Import `useLanguage` from `@/contexts/language`
-2. Destructure `const { t } = useLanguage()`
-3. Replace every hardcoded English string with the corresponding `t('section.key')` call
+**Action**:
+- Delete `src/components/ui/use-toast.ts` (dead file, zero consumers).
+- No other toast consolidation needed right now -- both systems are actively used by different components.
 
-### Layout Safety
-- Spanish text is 20-40% longer than English
-- All containers already use responsive layouts (flex-wrap, truncate, max-w constraints)
-- Button labels like "Agregar a Favoritos" or "Agregar al Inventario" are longer but buttons use `flex-1 min-w-[140px]` which accommodates this
-- Table headers are short words in both languages
-- Quiz scenario text uses responsive `text-2xl md:text-3xl` with no fixed widths
+---
 
-## Files to Modify
+### Category 3: Unused Auth Guard Components
 
-| File | Changes |
-|------|---------|
-| `src/i18n/en.ts` | Add ~200 new translation keys |
-| `src/i18n/es.ts` | Add ~200 matching Spanish keys |
-| `src/features/profile/components/TribeSection.tsx` | Use `t()` for all strings |
-| `src/features/profile/components/ChangePasswordForm.tsx` | Use `t()` for all strings |
-| `src/features/profile/components/RetakeQuizSection.tsx` | Use `t()` for all strings |
-| `src/features/profile/components/ProfileInfoForm.tsx` | Use `t()` for all strings |
-| `src/features/profile/components/ProfileHero.tsx` | Use `t()` for all strings |
-| `src/features/profile/components/FavoritesTable.tsx` | Use `t()` for all strings |
-| `src/features/profile/components/InventoryTable.tsx` | Use `t()` for all strings |
-| `src/features/quiz/components/OnboardingModal.tsx` | Use `t()` for slides |
-| `src/features/quiz/components/ScenarioScreen.tsx` | Use `t()` for scenario text |
-| `src/features/quiz/components/QuizNavigation.tsx` | Use `t()` for buttons |
-| `src/features/quiz/components/QuizProgress.tsx` | Use `t()` for labels |
-| `src/features/quiz/components/ResultsPreview.tsx` | Use `t()` for heading |
-| `src/features/quiz/components/TribeReveal.tsx` | Use `t()` for tribe data |
-| `src/features/quiz/ResultsPage.tsx` | Use `t()` for all CTA text |
-| `src/features/quiz/data/scenarios.ts` | Add `i18nKey` fields or move text to i18n |
-| `src/pages/Auth.tsx` | Use `t()` for titles/subtitles |
-| `src/components/auth/LoginForm.tsx` | Use `t()` for all labels |
-| `src/components/auth/SignupForm.tsx` | Use `t()` for all labels |
-| `src/features/coffee/CoffeeProfilePage.tsx` | Use `t()` for error/nav text |
-| `src/features/coffee/components/CoffeeInfo.tsx` | Use `t()` for labels |
-| `src/features/coffee/components/CoffeeAttributes.tsx` | Use `t()` for labels |
-| `src/features/coffee/components/CoffeeFlavorNotes.tsx` | Use `t()` for labels |
-| `src/features/coffee/components/CoffeeDescription.tsx` | Use `t()` for headings |
-| `src/features/coffee/components/CoffeeScanMatch.tsx` | Use `t()` for labels + tribe phrases |
-| `src/features/coffee/components/CoffeeActions.tsx` | Use `t()` for button labels |
-| `src/features/coffee/components/CoffeeJargonBuster.tsx` | Use `t()` for heading |
-| `src/features/coffee/components/ReportScanErrorDialog.tsx` | Use `t()` for all text |
-| `src/features/scanner/components/ScanUploader.tsx` | Use `t()` for all text |
-| `src/features/scanner/components/ManualAddForm.tsx` | Use `t()` for all labels |
-| `src/features/scanner/components/ScanProgress.tsx` | Use `t()` for step labels |
-| `src/features/scanner/components/ScanningTips.tsx` | Use `t()` for tips |
-| `src/components/shared/FeedbackCTA.tsx` | Use `t()` for all text |
+`RequireRole` and `ShowForRole` are exported from `src/components/auth/index.ts` and defined in `RequireRole.tsx`, but **never imported or used anywhere** in the app's routes or components.
 
-## Estimated Impact
-- ~35 files modified
-- ~400 new i18n keys total (200 per language)
-- Zero new dependencies
-- No structural/routing changes
+**Action**: Remove the export line from `src/components/auth/index.ts`. Keep the file `RequireRole.tsx` itself (it's a useful guard for future roaster/admin routes, so it falls under "dormant feature infrastructure"). Just clean the barrel export so it doesn't advertise unused components.
+
+---
+
+### Category 4: Stale ROUTES Constants
+
+`src/constants/app.ts` defines `ROUTES.marketplace`, `ROUTES.recipes`, and `ROUTES.cart`, but these routes are not registered in `App.tsx` and have no active navigation links.
+
+**Action**: Add a comment block marking these as reserved for dormant features, improving clarity for future developers.
+
+---
+
+### Category 5: Redundant OfflineIndicator Text
+
+`src/components/error/OfflineIndicator.tsx` has a hardcoded English string ("You're offline...") that was missed during the i18n sweep.
+
+**Action**: Replace with `t('shared.offlineMessage')` and add the key to both dictionaries.
+
+---
+
+### Category 6: Minor Code Quality Improvements
+
+1. **`AuthCard.tsx`**: Missing `font-bangers` class on the `h1` (all other headings use it per style guide).
+2. **`src/features/coffee/types/coffee.ts` line 132-133**: Uses `(row as any)` cast for `brand_story`, `jargon_explanations`, `ai_confidence`. If these columns exist in the DB schema, we should use proper typing. If not, these are dead code paths.
+
+---
+
+### Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/components/ui/use-toast.ts` | Delete (dead re-export, zero consumers) |
+| `src/hooks/useOptimisticCart.ts` | Add `@dormant` JSDoc marker |
+| `src/utils/rateLimit.ts` | Add `@dormant` JSDoc marker |
+| `src/utils/formatters.ts` | Add `@dormant` JSDoc marker |
+| `src/schemas/cart.schema.ts` | Add `@dormant` JSDoc marker |
+| `src/utils/validation/cartValidation.ts` | Add `@dormant` JSDoc marker |
+| `src/components/auth/index.ts` | Remove `RequireRole`/`ShowForRole` from barrel export |
+| `src/constants/app.ts` | Add "dormant" comment on unused ROUTES |
+| `src/components/error/OfflineIndicator.tsx` | Replace hardcoded string with `t()` |
+| `src/i18n/en.ts` | Add `shared.offlineMessage` key |
+| `src/i18n/es.ts` | Add `shared.offlineMessage` key |
+| `src/components/auth/AuthCard.tsx` | Add `font-bangers` to heading |
+
+### What This Does NOT Touch
+- Marketplace, recipes, cart feature folders (preserved per standing rule)
+- Any active routes, components, or services
+- Database schema or migrations
+- Edge functions
+
+### Estimated Impact
+- 1 dead file deleted
+- ~6 files annotated with dormant markers
+- 5 files with minor targeted improvements
+- Zero risk of breaking active functionality

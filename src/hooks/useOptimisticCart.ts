@@ -1,3 +1,7 @@
+/**
+ * @dormant — Part of the inactive cart/marketplace pipeline.
+ * Retained for future Shopify integration. No active consumers.
+ */
 import { useCallback, useRef } from "react";
 import { useCart } from "@/contexts/cart";
 import { getItemOperationKey, type CartItemOperationState } from "@/types/cart";

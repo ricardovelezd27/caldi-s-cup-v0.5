@@ -1,4 +1,7 @@
 /**
+ * @dormant — Part of the inactive cart/marketplace pipeline.
+ * Retained for future Shopify integration. No active consumers.
+ *
  * Shared formatting utilities
  * Centralized to ensure consistency across the app (DRY principle)
  */

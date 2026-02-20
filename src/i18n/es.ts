@@ -400,6 +400,7 @@ export const es = {
     feedbackTitle: "¿Tienes opiniones? Te escuchamos ☕",
     feedbackBody: "Ayúdanos a mejorar la experiencia — tu opinión define lo que viene.",
     feedbackCta: "Comparte Tu Opinión",
+    offlineMessage: "Estás sin conexión. Los cambios se sincronizarán cuando vuelvas a estar en línea.",
   },
   ourStory: {
     heroTitle: "La Historia Detrás de Tu Próxima Gran Taza",

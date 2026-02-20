@@ -21,7 +21,7 @@
 ## Project Status
 
 **Architecture:** Modular Monolith (React + Vite + Tailwind CSS + TypeScript + Lovable Cloud)  
-**Phase:** Phase 7 Complete (i18n, Recipes, Feedback, User Ratings)  
+**Phase:** Phase 7+ Complete (Multi-Image Scanner, i18n, Recipes, Feedback, User Ratings)  
 **Model:** B2B2C Platform (Consumers + Roasters + Admins)
 
 ### Feature Completion
@@ -50,6 +50,8 @@
 | i18n (EN/ES) | ✅ Complete | 7 |
 | Manual Coffee Add | ✅ Complete | 7 |
 | Scan Error Reports | ✅ Complete | 7 |
+| Multi-Image Scanner | ✅ Complete | 7+ |
+| Coffee Profile Gallery | ✅ Complete | 7+ |
 
 ---
 
@@ -258,11 +260,11 @@ The architecture is a **Modular Monolith** as mandated by V03 guidelines:
                           └─────────┘
 ```
 
-### 3. Coffee Scanner Flow
+### 3. Coffee Scanner Flow (Multi-Image)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                     SCANNER SEQUENCE DIAGRAM                            │
+│                 MULTI-IMAGE SCANNER SEQUENCE DIAGRAM                     │
 └─────────────────────────────────────────────────────────────────────────┘
 
  ┌──────┐    ┌─────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
@@ -270,53 +272,89 @@ The architecture is a **Modular Monolith** as mandated by V03 guidelines:
  │      │    │   Page  │    │ Function │    │ AI       │    │          │
  └──┬───┘    └────┬────┘    └────┬─────┘    └────┬─────┘    └────┬─────┘
     │             │              │               │               │
-    │ 1. Upload   │              │               │               │
-    │    Image    │              │               │               │
+    │ 1. Add 1-4  │              │               │               │
+    │    photos   │              │               │               │
     │ ───────────>│              │               │               │
     │             │              │               │               │
-    │             │ 2. Compress  │               │               │
-    │             │    image     │               │               │
+    │ 2. Click    │              │               │               │
+    │   "Scan Now"│              │               │               │
+    │ ───────────>│              │               │               │
+    │             │              │               │               │
+    │             │ 3. Stitch    │               │               │
+    │             │    images    │               │               │
+    │             │    (canvas)  │               │               │
+    │             │              │               │               │
+    │             │ 4. Compress  │               │               │
+    │             │    composite │               │               │
     │             │    (max 800KB)               │               │
     │             │              │               │               │
-    │             │ 3. POST      │               │               │
+    │             │ 5. POST      │               │               │
     │             │    /scan-    │               │               │
     │             │    coffee    │               │               │
     │             │ ────────────>│               │               │
     │             │              │               │               │
-    │             │              │ 4. Upload to  │               │
+    │             │              │ 6. Upload to  │               │
     │             │              │    Storage    │               │
     │             │              │ ─────────────────────────────>│
     │             │              │               │               │
-    │             │              │ 5. Analyze    │               │
-    │             │              │    Image      │               │
+    │             │              │ 7. Analyze    │               │
+    │             │              │    composite  │               │
     │             │              │ ─────────────>│               │
     │             │              │               │               │
-    │             │              │ 6. Structured │               │
+    │             │              │ 8. Structured │               │
     │             │              │    JSON       │               │
     │             │              │<─────────────│               │
     │             │              │               │               │
-    │             │              │ 7. Find/Create│               │
+    │             │              │ 9. Find/Create│               │
     │             │              │    Roaster    │               │
     │             │              │ ─────────────────────────────>│
     │             │              │               │               │
-    │             │              │ 8. INSERT     │               │
-    │             │              │    coffees    │               │
+    │             │              │ 10. INSERT    │               │
+    │             │              │     coffees   │               │
     │             │              │ ─────────────────────────────>│
     │             │              │               │               │
-    │             │              │ 9. INSERT     │               │
-    │             │              │    coffee_    │               │
-    │             │              │    scans      │               │
+    │             │              │ 11. INSERT    │               │
+    │             │              │     coffee_   │               │
+    │             │              │     scans     │               │
     │             │              │ ─────────────────────────────>│
     │             │              │               │               │
-    │             │ 10. Scan     │               │               │
+    │             │ 12. Scan     │               │               │
     │             │     Result   │               │               │
     │             │<────────────│               │               │
     │             │              │               │               │
-    │ 11. Display │              │               │               │
+    │ 13. Display │              │               │               │
     │     Coffee  │              │               │               │
     │     Profile │              │               │               │
+    │     + Gallery              │               │               │
     │<────────────│              │               │               │
     │             │              │               │               │
+```
+
+### Multi-Image Stitching Pipeline
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                   CLIENT-SIDE IMAGE STITCHING                           │
+└─────────────────────────────────────────────────────────────────────────┘
+
+  1 image:   Pass-through (no stitching)
+  2 images:  ┌─────┬─────┐   2×1 horizontal grid
+             │  1  │  2  │
+             └─────┴─────┘
+  3 images:  ┌─────┬─────┐   2×2 grid (blank cell)
+             │  1  │  2  │
+             ├─────┼─────┤
+             │  3  │     │
+             └─────┴─────┘
+  4 images:  ┌─────┬─────┐   2×2 grid
+             │  1  │  2  │
+             ├─────┼─────┤
+             │  3  │  4  │
+             └─────┴─────┘
+
+  - Each cell: 960×960px max
+  - Output: JPEG compressed to ≤1.5MB
+  - Credit cost: Always 1 AI call per scan
 ```
 
 ### 4. Marketplace Browse Flow

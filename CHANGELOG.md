@@ -4,6 +4,35 @@ All notable changes to Caldi's Cup are documented here.
 
 ---
 
+## [1.1.0] - 2026-02-20 - Multi-Image Scanner & Coffee Profile Gallery
+
+### Added
+- **Multi-Image Scanner**:
+  - Users can add up to 4 photos of different sides of a coffee bag before scanning
+  - Thumbnail grid with add/remove controls and explicit "Scan Now" button
+  - Client-side canvas stitching composites 1-4 images into a single grid (2×1 or 2×2)
+  - Zero additional AI credit cost: always 1 AI call per scan regardless of photo count
+
+- **Coffee Profile Image Gallery**:
+  - Amazon-style gallery with large main image + horizontal scrollable thumbnail row
+  - Clicking a thumbnail swaps it into the main display
+  - Individual photos passed via route state (not persisted to DB)
+
+- **Color-Coded Flavor Notes**:
+  - AI-generated flavor notes displayed in yellow (primary)
+  - User-submitted flavor notes displayed in teal (secondary)
+
+- **Edge Function Prompt Update**:
+  - AI instructed to analyze all visible panels in composite grid as one product
+
+- **i18n Keys**: Added ~6 new scanner keys (EN/ES) for multi-image controls
+
+### Changed
+- Scanner no longer auto-triggers on first image; user controls when to scan
+- Coffee profile layout reorganized: coffee info on right, roaster info on left (desktop)
+
+---
+
 ## [1.0.0] - 2026-02-20 - Full i18n Coverage (EN/ES)
 
 ### Added

@@ -27,9 +27,9 @@ export function CoffeeFlavorNotes({
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
 
-  const displayNotes = userFlavorNotes && userFlavorNotes.length > 0
-    ? userFlavorNotes
-    : coffee.flavorNotes;
+  const aiNotes = coffee.flavorNotes ?? [];
+  const userOnlyNotes = (userFlavorNotes ?? []).filter((n) => !aiNotes.includes(n));
+  const displayNotes = [...aiNotes, ...userOnlyNotes];
 
   // Fetch all known flavor notes from the database for autocomplete
   useEffect(() => {
@@ -120,25 +120,32 @@ export function CoffeeFlavorNotes({
       )}
 
       <div className="flex flex-wrap gap-2">
-        {displayNotes.map((note, index) => (
-          <Badge
-            key={index}
-            variant="secondary"
-            className="text-sm capitalize gap-1"
-          >
-            {note}
-            {isAuthenticated && (
-              <button
-                type="button"
-                onClick={() => removeNote(note)}
-                className="ml-1 hover:text-destructive"
-                aria-label={`Remove ${note}`}
-              >
-                <X className="h-3 w-3" />
-              </button>
-            )}
-          </Badge>
-        ))}
+        {displayNotes.map((note, index) => {
+          const isAiNote = aiNotes.includes(note);
+          return (
+            <Badge
+              key={index}
+              variant="secondary"
+              className={`text-sm capitalize gap-1 ${
+                isAiNote
+                  ? "bg-primary/20 text-primary-foreground border-primary/40"
+                  : "bg-secondary/20 text-secondary-foreground border-secondary/40"
+              }`}
+            >
+              {note}
+              {isAuthenticated && (
+                <button
+                  type="button"
+                  onClick={() => removeNote(note)}
+                  className="ml-1 hover:text-destructive"
+                  aria-label={`Remove ${note}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </Badge>
+          );
+        })}
       </div>
 
       {/* User input for adding flavor notes */}

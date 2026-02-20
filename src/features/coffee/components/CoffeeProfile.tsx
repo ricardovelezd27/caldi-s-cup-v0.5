@@ -38,7 +38,7 @@ export function CoffeeProfile({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Image, then stacked sections on desktop */}
+        {/* Left Column: Image + Roaster info (About This Coffee) */}
         <div className="lg:col-span-5 flex flex-col gap-6">
           {/* Image — always first */}
           <div className="order-1">
@@ -60,7 +60,7 @@ export function CoffeeProfile({
             <div className="order-3 lg:hidden">{actions}</div>
           )}
 
-          {/* Mobile-only: Match Score — order-4 mobile */}
+          {/* Mobile-only: Match Score */}
           {scanMeta && (
             <div className="order-4 lg:hidden">
               <CoffeeScanMatch
@@ -73,8 +73,8 @@ export function CoffeeProfile({
             </div>
           )}
 
-          {/* Attributes — order-5 mobile, order-2 desktop */}
-          <div className="order-5 lg:order-2">
+          {/* Mobile-only: Attributes */}
+          <div className="order-5 lg:hidden">
             <CoffeeAttributes
               coffee={coffee}
               rating={rating}
@@ -83,13 +83,13 @@ export function CoffeeProfile({
             />
           </div>
 
-          {/* Mobile-only: About This Coffee + Jargon */}
-          <div className="order-6 lg:hidden">
+          {/* About This Coffee + Jargon — order-6 mobile, order-2 desktop (roaster info under image) */}
+          <div className="order-6 lg:order-2">
             <CoffeeDescription coffee={coffee} scanMeta={scanMeta} />
           </div>
 
-          {/* Flavor Notes — order-7 mobile, order-3 desktop */}
-          <div className="order-7 lg:order-3">
+          {/* Mobile-only: Flavor Notes */}
+          <div className="order-7 lg:hidden">
             <CoffeeFlavorNotes
               coffee={coffee}
               isAuthenticated={isAuthenticated}
@@ -104,7 +104,7 @@ export function CoffeeProfile({
           )}
         </div>
 
-        {/* Right Column: Desktop only */}
+        {/* Right Column: Coffee-related info (Match Score, Attributes, Flavor Notes) */}
         <div className="hidden lg:flex lg:col-span-7 flex-col gap-6">
           <CoffeeInfo coffee={coffee} isNewCoffee={isNewCoffee} />
 
@@ -126,8 +126,6 @@ export function CoffeeProfile({
             isAuthenticated={isAuthenticated}
             onRatingChange={updateField}
           />
-
-          <CoffeeDescription coffee={coffee} scanMeta={scanMeta} />
 
           <CoffeeFlavorNotes
             coffee={coffee}

@@ -267,4 +267,12 @@ describe('ErrorBoundary', () => {
 
 ---
 
-*Last Updated: 2025-12-16*
+---
+
+## Internationalization Notes
+
+All user-facing error messages and UI strings in the error handling components support i18n via the `useLanguage` hook and `t()` helper. Error fallback messages, offline indicators, and toast notifications are translated in both English and Spanish.
+
+---
+
+*Last Updated: 2026-02-20*

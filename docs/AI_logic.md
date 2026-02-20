@@ -36,6 +36,10 @@ The Caldi's Cup scanner uses AI vision to analyze coffee bag images and extract 
 | Unified coffee catalog | ✅ Complete | Single source of truth |
 | Web search capability | ⚠️ Not Available | Static training knowledge only |
 | User feedback learning | ⚠️ Not Available | Future enhancement |
+| User coffee ratings | ✅ Complete | Personal acidity/body/sweetness |
+| Scan error reports | ✅ Complete | Users flag AI inaccuracies |
+| Manual coffee add | ✅ Complete | Form-based entry (source: manual) |
+| i18n support | ✅ Complete | Scanner UI in EN/ES |
 
 ---
 
@@ -515,13 +519,14 @@ CREATE TYPE roast_level_enum AS ENUM ('1', '2', '3', '4', '5');
 ### Coffee Source Enum
 
 ```sql
-CREATE TYPE coffee_source AS ENUM ('scan', 'admin', 'roaster', 'import');
+CREATE TYPE coffee_source AS ENUM ('scan', 'admin', 'roaster', 'import', 'manual');
 
 -- Mapping:
 -- scan = User-scanned coffees (AI-generated data)
 -- admin = Admin-verified coffees
 -- roaster = Roaster-uploaded products
 -- import = Bulk-imported catalog
+-- manual = User manually added via form
 ```
 
 ---
@@ -530,6 +535,7 @@ CREATE TYPE coffee_source AS ENUM ('scan', 'admin', 'roaster', 'import');
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-02-20 | Added user ratings, scan error reports, manual add, i18n notes | Lovable AI |
 | 2026-02-02 | Added UML diagrams and flow charts | Lovable AI |
 | 2026-02-02 | Documented unified coffee catalog | Lovable AI |
 | 2024-12-23 | Initial documentation | Lovable AI |
@@ -537,4 +543,4 @@ CREATE TYPE coffee_source AS ENUM ('scan', 'admin', 'roaster', 'import');
 
 ---
 
-*Last Updated: 2026-02-02*
+*Last Updated: 2026-02-20*

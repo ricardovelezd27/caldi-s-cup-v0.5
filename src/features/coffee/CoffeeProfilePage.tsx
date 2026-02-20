@@ -27,7 +27,7 @@ export function CoffeeProfilePage() {
   const scanMeta = routeState.scanMeta ?? fetchedScanMeta ?? undefined;
   const isNewCoffee = routeState.isNewCoffee ?? false;
   const isTemporaryImage = routeState.isTemporaryImage ?? false;
-  const additionalImages = routeState.additionalImages;
+  const additionalImages = routeState.additionalImages ?? coffee?.additionalImageUrls ?? undefined;
 
   if (!hasScanData && isLoading) {
     return (<PageLayout><Container className="py-6"><div className="space-y-6"><Skeleton className="h-8 w-32" /><div className="grid grid-cols-1 lg:grid-cols-12 gap-6"><div className="lg:col-span-5 space-y-6"><Skeleton className="aspect-square w-full rounded-lg" /><Skeleton className="h-32 w-full rounded-lg" /></div><div className="lg:col-span-7 space-y-6"><Skeleton className="h-12 w-3/4" /><Skeleton className="h-6 w-1/2" /><Skeleton className="h-24 w-full" /></div></div></div></Container></PageLayout>);

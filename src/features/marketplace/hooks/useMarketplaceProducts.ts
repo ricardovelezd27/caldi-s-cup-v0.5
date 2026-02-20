@@ -91,6 +91,7 @@ async function fetchAllCoffees(): Promise<Coffee[]> {
     name: row.name,
     brand: row.brand,
     imageUrl: row.image_url,
+    additionalImageUrls: (row as any).additional_image_urls ?? null,
     originCountry: row.origin_country,
     originRegion: row.origin_region,
     originFarm: row.origin_farm,

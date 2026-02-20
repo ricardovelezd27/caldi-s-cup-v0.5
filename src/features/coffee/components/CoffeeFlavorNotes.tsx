@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type KeyboardEvent } from "react";
+import { useState, useEffect, useRef, useMemo, type KeyboardEvent } from "react";
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,7 @@ export function CoffeeFlavorNotes({
 
   const aiNotes = coffee.flavorNotes ?? [];
   const userOnlyNotes = (userFlavorNotes ?? []).filter((n) => !aiNotes.includes(n));
-  const displayNotes = [...aiNotes, ...userOnlyNotes];
+  const displayNotes = useMemo(() => [...aiNotes, ...userOnlyNotes], [aiNotes.join(","), userOnlyNotes.join(",")]);
 
   // Fetch all known flavor notes from the database for autocomplete
   useEffect(() => {

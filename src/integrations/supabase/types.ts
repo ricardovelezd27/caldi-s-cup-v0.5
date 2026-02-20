@@ -97,6 +97,7 @@ export type Database = {
       coffees: {
         Row: {
           acidity_score: number | null
+          additional_image_urls: string[] | null
           ai_confidence: number | null
           altitude_meters: number | null
           awards: string[] | null
@@ -127,6 +128,7 @@ export type Database = {
         }
         Insert: {
           acidity_score?: number | null
+          additional_image_urls?: string[] | null
           ai_confidence?: number | null
           altitude_meters?: number | null
           awards?: string[] | null
@@ -157,6 +159,7 @@ export type Database = {
         }
         Update: {
           acidity_score?: number | null
+          additional_image_urls?: string[] | null
           ai_confidence?: number | null
           altitude_meters?: number | null
           awards?: string[] | null

@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, useEffect } from "react";
 import { Camera, Upload, Image as ImageIcon, Loader2, X, Plus, ScanLine } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -43,6 +44,7 @@ const compressImage = async (base64: string, maxSize: number = MAX_COMPRESSED_SI
 const isMobileDevice = (): boolean => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 export function ScanUploader({ onImagesReady, disabled }: ScanUploaderProps) {
+  const isMobile = useIsMobile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -158,7 +160,7 @@ export function ScanUploader({ onImagesReady, disabled }: ScanUploaderProps) {
             <ScanLine className="h-4 w-4" />
             {t('scanner.scanNow')}
           </Button>
-          {!disabled && images.length < MAX_PHOTOS && (
+          {isMobile && !disabled && images.length < MAX_PHOTOS && (
             <Button variant="outline" onClick={handleCameraClick} disabled={disabled} className="gap-2">
               <Camera className="h-4 w-4" />
               {t('scanner.takePhoto')}
@@ -204,10 +206,12 @@ export function ScanUploader({ onImagesReady, disabled }: ScanUploaderProps) {
             <p className="text-muted-foreground text-sm">{t('scanner.addUpTo4')}</p>
           </div>
           <div className="flex gap-3 mt-2">
-            <Button variant="default" onClick={handleCameraClick} disabled={disabled} className="gap-2">
-              <Camera className="w-4 h-4" />{t('scanner.takePhoto')}
-            </Button>
-            <Button variant="outline" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }} disabled={disabled} className="gap-2">
+            {isMobile && (
+              <Button variant="default" onClick={handleCameraClick} disabled={disabled} className="gap-2">
+                <Camera className="w-4 h-4" />{t('scanner.takePhoto')}
+              </Button>
+            )}
+            <Button variant={isMobile ? "outline" : "default"} onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }} disabled={disabled} className="gap-2">
               <Upload className="w-4 h-4" />{t('scanner.upload')}
             </Button>
           </div>

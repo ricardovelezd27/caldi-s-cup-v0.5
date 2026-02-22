@@ -10,22 +10,24 @@ import { stitchImages } from "./utils/stitchImages";
 import { uploadScanImages } from "./utils/uploadScanImages";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared";
 import { FeedbackCTA } from "@/components/shared/FeedbackCTA";
+
+type ScannerTab = "scan" | "manual";
 
 export function ScannerPage() {
   const { user, profile } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { 
-    scanCoffee, 
-    scanResult, 
-    progress, 
-    error, 
+  const [activeTab, setActiveTab] = useState<ScannerTab>("scan");
+  const {
+    scanCoffee,
+    scanResult,
+    progress,
+    error,
     resetScan,
-    isScanning, 
+    isScanning,
     isComplete,
     isError,
   } = useCoffeeScanner();
@@ -41,7 +43,6 @@ export function ScannerPage() {
       const isNewCoffee = scanResult.isNewCoffee ?? false;
       const coffeeId = scanResult.coffeeId || scanResult.id;
 
-      // If no image URL from backend (anonymous), use the first original photo
       let isTemporaryImage = false;
       if (!coffee.imageUrl && individualImagesRef.current.length > 0) {
         const base64 = individualImagesRef.current[0];
@@ -49,19 +50,12 @@ export function ScannerPage() {
         isTemporaryImage = true;
       }
 
-      // Upload individual images to storage in background (authenticated only)
       if (user && individualImagesRef.current.length > 1) {
         uploadScanImages(user.id, coffeeId, individualImagesRef.current);
       }
 
       navigate(`/coffee/${coffeeId}`, {
-        state: {
-          coffee,
-          scanMeta,
-          isNewCoffee,
-          isTemporaryImage,
-          additionalImages: individualImagesRef.current,
-        },
+        state: { coffee, scanMeta, isNewCoffee, isTemporaryImage, additionalImages: individualImagesRef.current },
         replace: true,
       });
     }
@@ -75,7 +69,6 @@ export function ScannerPage() {
       return;
     }
 
-    // Stitch multiple images into a single composite
     setIsStitching(true);
     try {
       const stitched = await stitchImages(images);
@@ -83,7 +76,6 @@ export function ScannerPage() {
       scanCoffee(stitched);
     } catch {
       setIsStitching(false);
-      // Fallback: send just the first image
       scanCoffee(images[0]);
     }
   };
@@ -96,27 +88,48 @@ export function ScannerPage() {
           <h1 className="font-bangers text-3xl md:text-4xl text-foreground">
             {t("scanner.title")}
           </h1>
-          <p className="text-muted-foreground mt-1">
-            {t("scanner.subtitle")}
-          </p>
+          <p className="text-muted-foreground mt-1">{t("scanner.subtitle")}</p>
         </div>
 
-        <Tabs defaultValue="scan" className="space-y-6">
-          <TabsList className="w-full max-w-xs">
-            <TabsTrigger value="scan" className="flex-1 gap-1.5">
-              <ScanLine className="h-4 w-4" />
+        {/* Pill-style mode toggle */}
+        <div className="mb-6 flex items-center gap-3">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            {t("scanner.modeLabel")}
+          </span>
+          <div className="inline-flex items-center border-2 border-border rounded-full overflow-hidden text-sm font-semibold select-none shadow-[2px_2px_0px_0px_hsl(var(--border))]">
+            <button
+              onClick={() => setActiveTab("scan")}
+              className={`px-4 py-1.5 transition-colors flex items-center gap-1.5 ${
+                activeTab === "scan"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-background text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <ScanLine className="h-3.5 w-3.5" />
               {t("scanner.tabScan")}
-            </TabsTrigger>
+            </button>
             {user && (
-              <TabsTrigger value="manual" className="flex-1 gap-1.5">
-                <PenLine className="h-4 w-4" />
-                {t("scanner.tabManual")}
-              </TabsTrigger>
+              <>
+                <span className="text-border px-0.5">|</span>
+                <button
+                  onClick={() => setActiveTab("manual")}
+                  className={`px-4 py-1.5 transition-colors flex items-center gap-1.5 ${
+                    activeTab === "manual"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-background text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <PenLine className="h-3.5 w-3.5" />
+                  {t("scanner.tabManual")}
+                </button>
+              </>
             )}
-          </TabsList>
+          </div>
+        </div>
 
-          {/* ===== SCAN TAB ===== */}
-          <TabsContent value="scan" className="space-y-8">
+        {/* ===== SCAN TAB ===== */}
+        {activeTab === "scan" && (
+          <div className="space-y-8">
             {/* No Tribe Warning */}
             {user && !profile?.coffee_tribe && (
               <Alert className="border-4 border-accent bg-accent/5">
@@ -140,9 +153,7 @@ export function ScannerPage() {
                     <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
                       <Loader2 className="w-10 h-10 text-primary animate-spin" />
                     </div>
-                    <div>
-                      <h3 className="font-bangers text-2xl text-foreground mb-1">{t('scanner.stitching')}</h3>
-                    </div>
+                    <h3 className="font-bangers text-2xl text-foreground mb-1">{t("scanner.stitching")}</h3>
                   </div>
                 </div>
               </div>
@@ -169,30 +180,23 @@ export function ScannerPage() {
               </div>
             )}
 
-            {/* Initial State - Upload Zone */}
+            {/* Initial State */}
             {!isScanning && !isStitching && !isComplete && !isError && (
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {profile?.coffee_tribe && (
                   <TribeScannerPreview tribe={profile.coffee_tribe} />
                 )}
                 <div className="max-w-xl mx-auto">
-                  <ScanUploader 
-                    onImagesReady={handleImagesReady}
-                    disabled={isScanning}
-                  />
+                  <ScanUploader onImagesReady={handleImagesReady} disabled={isScanning} />
                 </div>
-                <ScanningTips tribe={profile?.coffee_tribe} />
+                <ScanningTips />
               </div>
             )}
-          </TabsContent>
+          </div>
+        )}
 
-          {/* ===== MANUAL ADD TAB ===== */}
-          {user && (
-            <TabsContent value="manual">
-              <ManualAddForm />
-            </TabsContent>
-          )}
-        </Tabs>
+        {/* ===== MANUAL ADD TAB ===== */}
+        {activeTab === "manual" && user && <ManualAddForm />}
 
         <div className="mt-12">
           <FeedbackCTA />

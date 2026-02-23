@@ -264,6 +264,668 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_achievements: {
+        Row: {
+          category: string
+          code: string
+          condition_track:
+            | Database["public"]["Enums"]["learning_track_id"]
+            | null
+          condition_type: string
+          condition_value: number
+          created_at: string
+          description: string
+          description_es: string
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          name_es: string
+          sort_order: number
+          xp_reward: number
+        }
+        Insert: {
+          category?: string
+          code: string
+          condition_track?:
+            | Database["public"]["Enums"]["learning_track_id"]
+            | null
+          condition_type?: string
+          condition_value?: number
+          created_at?: string
+          description?: string
+          description_es?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          name_es: string
+          sort_order?: number
+          xp_reward?: number
+        }
+        Update: {
+          category?: string
+          code?: string
+          condition_track?:
+            | Database["public"]["Enums"]["learning_track_id"]
+            | null
+          condition_type?: string
+          condition_value?: number
+          created_at?: string
+          description?: string
+          description_es?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_es?: string
+          sort_order?: number
+          xp_reward?: number
+        }
+        Relationships: []
+      }
+      learning_exercises: {
+        Row: {
+          audio_url: string | null
+          concept_tags: string[]
+          created_at: string
+          difficulty_score: number
+          exercise_type: Database["public"]["Enums"]["exercise_type"]
+          id: string
+          image_url: string | null
+          is_active: boolean
+          lesson_id: string
+          mascot: string
+          mascot_mood: string
+          question_data: Json
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          audio_url?: string | null
+          concept_tags?: string[]
+          created_at?: string
+          difficulty_score?: number
+          exercise_type: Database["public"]["Enums"]["exercise_type"]
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          lesson_id: string
+          mascot?: string
+          mascot_mood?: string
+          question_data?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          audio_url?: string | null
+          concept_tags?: string[]
+          created_at?: string
+          difficulty_score?: number
+          exercise_type?: Database["public"]["Enums"]["exercise_type"]
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          lesson_id?: string
+          mascot?: string
+          mascot_mood?: string
+          question_data?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_exercises_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "learning_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_leagues: {
+        Row: {
+          color_hex: string
+          created_at: string
+          demote_bottom_n: number
+          icon: string
+          id: string
+          name: string
+          name_es: string
+          promote_top_n: number
+          tier: number
+        }
+        Insert: {
+          color_hex?: string
+          created_at?: string
+          demote_bottom_n?: number
+          icon?: string
+          id?: string
+          name: string
+          name_es: string
+          promote_top_n?: number
+          tier: number
+        }
+        Update: {
+          color_hex?: string
+          created_at?: string
+          demote_bottom_n?: number
+          icon?: string
+          id?: string
+          name?: string
+          name_es?: string
+          promote_top_n?: number
+          tier?: number
+        }
+        Relationships: []
+      }
+      learning_lessons: {
+        Row: {
+          created_at: string
+          estimated_minutes: number
+          exercise_count: number
+          featured_coffee_id: string | null
+          id: string
+          intro_text: string
+          intro_text_es: string
+          is_active: boolean
+          name: string
+          name_es: string
+          sort_order: number
+          unit_id: string
+          updated_at: string
+          xp_reward: number
+        }
+        Insert: {
+          created_at?: string
+          estimated_minutes?: number
+          exercise_count?: number
+          featured_coffee_id?: string | null
+          id?: string
+          intro_text?: string
+          intro_text_es?: string
+          is_active?: boolean
+          name: string
+          name_es: string
+          sort_order?: number
+          unit_id: string
+          updated_at?: string
+          xp_reward?: number
+        }
+        Update: {
+          created_at?: string
+          estimated_minutes?: number
+          exercise_count?: number
+          featured_coffee_id?: string | null
+          id?: string
+          intro_text?: string
+          intro_text_es?: string
+          is_active?: boolean
+          name?: string
+          name_es?: string
+          sort_order?: number
+          unit_id?: string
+          updated_at?: string
+          xp_reward?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_lessons_featured_coffee_id_fkey"
+            columns: ["featured_coffee_id"]
+            isOneToOne: false
+            referencedRelation: "coffees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_lessons_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "learning_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_sections: {
+        Row: {
+          created_at: string
+          description: string
+          description_es: string
+          id: string
+          is_active: boolean
+          learning_goal: string
+          learning_goal_es: string
+          level: Database["public"]["Enums"]["learning_level"]
+          name: string
+          name_es: string
+          requires_section_id: string | null
+          sort_order: number
+          track_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          description_es?: string
+          id?: string
+          is_active?: boolean
+          learning_goal?: string
+          learning_goal_es?: string
+          level: Database["public"]["Enums"]["learning_level"]
+          name: string
+          name_es: string
+          requires_section_id?: string | null
+          sort_order?: number
+          track_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          description_es?: string
+          id?: string
+          is_active?: boolean
+          learning_goal?: string
+          learning_goal_es?: string
+          level?: Database["public"]["Enums"]["learning_level"]
+          name?: string
+          name_es?: string
+          requires_section_id?: string | null
+          sort_order?: number
+          track_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_sections_requires_section_id_fkey"
+            columns: ["requires_section_id"]
+            isOneToOne: false
+            referencedRelation: "learning_sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_sections_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "learning_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_tracks: {
+        Row: {
+          color_hex: string
+          created_at: string
+          description: string
+          description_es: string
+          icon: string
+          id: string
+          is_active: boolean
+          is_bonus: boolean
+          name: string
+          name_es: string
+          sort_order: number
+          track_id: Database["public"]["Enums"]["learning_track_id"]
+          updated_at: string
+        }
+        Insert: {
+          color_hex?: string
+          created_at?: string
+          description: string
+          description_es: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          is_bonus?: boolean
+          name: string
+          name_es: string
+          sort_order?: number
+          track_id: Database["public"]["Enums"]["learning_track_id"]
+          updated_at?: string
+        }
+        Update: {
+          color_hex?: string
+          created_at?: string
+          description?: string
+          description_es?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          is_bonus?: boolean
+          name?: string
+          name_es?: string
+          sort_order?: number
+          track_id?: Database["public"]["Enums"]["learning_track_id"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      learning_units: {
+        Row: {
+          created_at: string
+          description: string
+          description_es: string
+          estimated_minutes: number
+          icon: string
+          id: string
+          is_active: boolean
+          lesson_count: number
+          name: string
+          name_es: string
+          section_id: string
+          sort_order: number
+          tribe_affinity: Database["public"]["Enums"]["coffee_tribe"] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          description_es?: string
+          estimated_minutes?: number
+          icon?: string
+          id?: string
+          is_active?: boolean
+          lesson_count?: number
+          name: string
+          name_es: string
+          section_id: string
+          sort_order?: number
+          tribe_affinity?: Database["public"]["Enums"]["coffee_tribe"] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          description_es?: string
+          estimated_minutes?: number
+          icon?: string
+          id?: string
+          is_active?: boolean
+          lesson_count?: number
+          name?: string
+          name_es?: string
+          section_id?: string
+          sort_order?: number
+          tribe_affinity?: Database["public"]["Enums"]["coffee_tribe"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_units_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "learning_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_user_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "learning_achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_user_daily_goals: {
+        Row: {
+          date: string
+          earned_xp: number
+          goal_xp: number
+          id: string
+          is_achieved: boolean
+          user_id: string
+        }
+        Insert: {
+          date?: string
+          earned_xp?: number
+          goal_xp?: number
+          id?: string
+          is_achieved?: boolean
+          user_id: string
+        }
+        Update: {
+          date?: string
+          earned_xp?: number
+          goal_xp?: number
+          id?: string
+          is_achieved?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
+      learning_user_exercise_history: {
+        Row: {
+          attempted_at: string
+          exercise_id: string
+          id: string
+          is_correct: boolean
+          lesson_attempt_id: string | null
+          time_spent_seconds: number
+          user_answer: Json | null
+          user_id: string
+          was_review: boolean
+        }
+        Insert: {
+          attempted_at?: string
+          exercise_id: string
+          id?: string
+          is_correct?: boolean
+          lesson_attempt_id?: string | null
+          time_spent_seconds?: number
+          user_answer?: Json | null
+          user_id: string
+          was_review?: boolean
+        }
+        Update: {
+          attempted_at?: string
+          exercise_id?: string
+          id?: string
+          is_correct?: boolean
+          lesson_attempt_id?: string | null
+          time_spent_seconds?: number
+          user_answer?: Json | null
+          user_id?: string
+          was_review?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_user_exercise_history_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "learning_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_user_exercise_history_lesson_attempt_id_fkey"
+            columns: ["lesson_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "learning_user_progress"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_user_league: {
+        Row: {
+          created_at: string
+          demoted_at: string | null
+          id: string
+          league_id: string
+          previous_league_id: string | null
+          promoted_at: string | null
+          updated_at: string
+          user_id: string
+          week_start_date: string
+          weekly_xp: number
+        }
+        Insert: {
+          created_at?: string
+          demoted_at?: string | null
+          id?: string
+          league_id: string
+          previous_league_id?: string | null
+          promoted_at?: string | null
+          updated_at?: string
+          user_id: string
+          week_start_date?: string
+          weekly_xp?: number
+        }
+        Update: {
+          created_at?: string
+          demoted_at?: string | null
+          id?: string
+          league_id?: string
+          previous_league_id?: string | null
+          promoted_at?: string | null
+          updated_at?: string
+          user_id?: string
+          week_start_date?: string
+          weekly_xp?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_user_league_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "learning_leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_user_league_previous_league_id_fkey"
+            columns: ["previous_league_id"]
+            isOneToOne: false
+            referencedRelation: "learning_leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_user_progress: {
+        Row: {
+          attempt_count: number
+          best_score_percent: number
+          completed_at: string | null
+          created_at: string
+          exercises_correct: number
+          exercises_total: number
+          id: string
+          is_completed: boolean
+          lesson_id: string
+          score_percent: number
+          time_spent_seconds: number
+          updated_at: string
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          attempt_count?: number
+          best_score_percent?: number
+          completed_at?: string | null
+          created_at?: string
+          exercises_correct?: number
+          exercises_total?: number
+          id?: string
+          is_completed?: boolean
+          lesson_id: string
+          score_percent?: number
+          time_spent_seconds?: number
+          updated_at?: string
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          attempt_count?: number
+          best_score_percent?: number
+          completed_at?: string | null
+          created_at?: string
+          exercises_correct?: number
+          exercises_total?: number
+          id?: string
+          is_completed?: boolean
+          lesson_id?: string
+          score_percent?: number
+          time_spent_seconds?: number
+          updated_at?: string
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_user_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "learning_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_user_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_activity_date: string | null
+          longest_streak: number
+          streak_freeze_used_today: boolean
+          streak_freezes_available: number
+          streak_start_date: string | null
+          total_days_active: number
+          total_lessons_completed: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number
+          streak_freeze_used_today?: boolean
+          streak_freezes_available?: number
+          streak_start_date?: string | null
+          total_days_active?: number
+          total_lessons_completed?: number
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number
+          streak_freeze_used_today?: boolean
+          streak_freezes_available?: number
+          streak_start_date?: string | null
+          total_days_active?: number
+          total_lessons_completed?: number
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -626,6 +1288,30 @@ export type Database = {
       brewing_level: "beginner" | "intermediate" | "expert"
       coffee_source: "scan" | "admin" | "roaster" | "import" | "manual"
       coffee_tribe: "fox" | "owl" | "hummingbird" | "bee"
+      exercise_type:
+        | "multiple_choice"
+        | "fill_in_blank"
+        | "true_false"
+        | "matching_pairs"
+        | "sequencing"
+        | "image_identification"
+        | "categorization"
+        | "troubleshooting"
+        | "recipe_building"
+        | "calculation"
+        | "prediction"
+        | "comparison"
+      learning_level:
+        | "beginner"
+        | "foundation"
+        | "intermediate"
+        | "advanced"
+        | "expert"
+      learning_track_id:
+        | "history_culture"
+        | "bean_knowledge"
+        | "brewing_science"
+        | "sustainability"
       roast_level_enum: "1" | "2" | "3" | "4" | "5"
       widget_type:
         | "welcome_hero"
@@ -769,6 +1455,33 @@ export const Constants = {
       brewing_level: ["beginner", "intermediate", "expert"],
       coffee_source: ["scan", "admin", "roaster", "import", "manual"],
       coffee_tribe: ["fox", "owl", "hummingbird", "bee"],
+      exercise_type: [
+        "multiple_choice",
+        "fill_in_blank",
+        "true_false",
+        "matching_pairs",
+        "sequencing",
+        "image_identification",
+        "categorization",
+        "troubleshooting",
+        "recipe_building",
+        "calculation",
+        "prediction",
+        "comparison",
+      ],
+      learning_level: [
+        "beginner",
+        "foundation",
+        "intermediate",
+        "advanced",
+        "expert",
+      ],
+      learning_track_id: [
+        "history_culture",
+        "bean_knowledge",
+        "brewing_science",
+        "sustainability",
+      ],
       roast_level_enum: ["1", "2", "3", "4", "5"],
       widget_type: [
         "welcome_hero",

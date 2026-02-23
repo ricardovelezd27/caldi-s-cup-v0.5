@@ -1,61 +1,98 @@
-# Scanner Page Cleanup and Refinement
+
+# Phase 1: Caldi Learning Module -- Database Foundation
 
 ## Summary
 
-Reduce clutter, improve clarity, and create consistency across the scanner page by merging components, updating copy, and making the tab selector match the language toggle style.
+Create the full database schema for a Duolingo-style coffee learning system, along with TypeScript types and a basic data service. No UI components in this phase.
 
-## Changes
+## What Gets Built
 
-### 1. Tab Selector -- Match Language Toggle Style
+- 13 new database tables for content hierarchy, user progress, and gamification
+- 3 new enums (`learning_track_id`, `learning_level`, `exercise_type`)
+- RLS policies on every table
+- Seed data for 4 tracks, 7 leagues, and 8 achievements
+- TypeScript types file at `src/features/learning/types/learning.ts`
+- Service file at `src/features/learning/services/learningService.ts`
 
-Replace the current `TabsList` / `TabsTrigger` with a custom pill-style toggle matching the language toggle in the user menu: rounded-full border, active tab gets `bg-primary text-primary-foreground`, inactive gets muted styling. Add a small label above it like "Mode" to give users context.
+## Database Migration
 
-**Design standard to save**: All app toggle selectors (language, scan/manual mode, future toggles) use the same pill-style component: `border-2 border-border rounded-full`, active = `bg-primary text-primary-foreground`, inactive = `bg-background text-muted-foreground`.
+A single migration will be run containing:
 
-### 2. Merge Tribe Box + Tips into One Compact Component
+### 1. Enums
 
-Remove the `ScanningTips` component from the page entirely. Redesign `TribeScannerPreview` as a simplified two-column card:
+Three new enums: `learning_track_id` (4 tracks), `learning_level` (5 tiers), `exercise_type` (12 types).
 
-- **Column 1**: Tribe emoji, name (e.g. "The Owl"), and title (e.g. "The Optimizer")
-- **Column 2**: A single sentence like: "Let's search for a coffee that reflects your character -- we're looking for coffees that are [tribe-specific descriptor]."
+### 2. Content Tables (public read, admin write)
 
-Tribe-specific descriptors:
+| Table | Purpose | Key columns |
+|---|---|---|
+| `learning_tracks` | 4 main paths | track_id (enum, unique), bilingual name/desc, icon, color, is_bonus |
+| `learning_sections` | Difficulty divisions within tracks | FK to tracks, level enum, requires_section_id for gating |
+| `learning_units` | Topic groups within sections | FK to sections, tribe_affinity (nullable, uses existing coffee_tribe enum) |
+| `learning_lessons` | Individual 3-5 min sessions | FK to units, xp_reward, featured_coffee_id FK to coffees |
+| `learning_exercises` | Questions/activities | FK to lessons, exercise_type enum, question_data JSONB, concept_tags for spaced repetition |
 
-- Fox: "rare, award-winning, and exclusive"
-- Owl: "precise, traceable, and data-rich"
-- Hummingbird: "experimental, surprising, and full of flavor adventure"
-- Bee: "consistent, comforting, and reliably delicious"
+### 3. User Progress Tables (user-scoped RLS)
 
-### 3. Hide "Take Photo" Button on Desktop
+| Table | Purpose |
+|---|---|
+| `learning_user_progress` | Completion per lesson, scores, XP, attempts. UNIQUE(user_id, lesson_id) |
+| `learning_user_exercise_history` | Per-exercise attempt log for spaced repetition |
 
-In `ScanUploader`, use the existing `useIsMobile` hook. Only render the camera button (both in the empty state and in the multi-photo state) when on mobile.
+### 4. Gamification Tables
 
-### 4. Copy Updates (i18n `en.ts` and `es.ts`)
+| Table | Purpose |
+|---|---|
+| `learning_user_streaks` | Current/longest streak, total XP, freeze logic. UNIQUE on user_id |
+| `learning_leagues` | 7-tier league definitions |
+| `learning_user_league` | User's current league + weekly XP. UNIQUE on user_id |
+| `learning_achievements` | Badge definitions (code unique) |
+| `learning_user_achievements` | Earned badges. UNIQUE(user_id, achievement_id) |
+| `learning_user_daily_goals` | Daily XP targets. UNIQUE(user_id, date) |
 
+### 5. RLS Policy Strategy
 
-| Key                  | Old Value                                          | New Value                                                |
-| -------------------- | -------------------------------------------------- | -------------------------------------------------------- |
-| `scanner.subtitle`   | "Scan a coffee bag or add one manually"            | "Let's find out if this coffee is your kind of cup"      |
-| `scanner.scanNow`    | "Scan Now"                                         | "Analyze My Coffee"                                      |
-| `scanner.addAnother` | "Add side"                                         | "Add photo"                                              |
-| `scanner.addUpTo4`   | "Add up to 4 photos of different sides of the bag" | "Add photos of the bag's labels -- only sides with info" |
-| `scanner.tabScan`    | "Scan"                                             | "Scan Mode"                                              |
-| `scanner.tabManual`  | "Add Manually"                                     | "Manual Mode"                                            |
+- **Content tables** (tracks, sections, units, lessons, exercises): `SELECT` allowed for all authenticated users where `is_active = true`. Admin full access via `has_role()`.
+- **User progress/history/streaks/goals/achievements**: `SELECT`, `INSERT`, `UPDATE` restricted to `user_id = auth.uid()`. No `DELETE` on progress tables.
+- **Leagues table**: Public `SELECT` for leaderboard. Admin full access.
+- **User league**: Own data for read/write. Public `SELECT` on `weekly_xp` and `league_id` for leaderboard views.
 
+### 6. Indexes
 
-Equivalent translations will be applied to `es.ts`.
+Performance indexes on all FK columns and common query patterns (user_id, lesson_id, exercise_id, week_start_date + weekly_xp DESC).
 
-### 5. Modify ScanningTips Import
+### 7. Triggers
 
-Modify `ScanningTips` from the scanner page imports and the component index file. The component should not have boxes surrounding the tips as they are not buttons or CTAs, the scenning tips should remain, but the version about "Tips for the [tribe]" should be removed and just use tips for the scan. For mobile make these tips in a carrousel rotating every 3 seconds.
+Attach existing `update_updated_at_column()` trigger to all tables with `updated_at`.
 
-## Technical Details
+### 8. Seed Data
 
-### Files Modified
+Insert 4 tracks, 7 leagues, and 8 base achievements (streak milestones + lesson completion milestones) with bilingual names.
 
-1. `src/features/scanner/ScannerPage.tsx` -- Replace TabsList with pill toggle, modify ScanningTips, keep simplified TribeScannerPreview
-2. `**src/features/scanner/components/TribeScannerPreview.tsx**` -- Redesign to two-column layout with tribe descriptor sentence
-3. `**src/features/scanner/components/ScanUploader.tsx**` -- Conditionally render camera buttons using `useIsMobile()`
-4. `**src/i18n/en.ts**` -- Update copy strings
-5. `**src/i18n/es.ts**` -- Update Spanish translations
-6. `src/features/scanner/components/index.ts` -- Modify ScanningTips export if present
+## Frontend Files Created
+
+### `src/features/learning/types/learning.ts`
+
+TypeScript interfaces mirroring every database table, plus union types for the enums. Will follow the same pattern as `src/features/coffee/types/coffee.ts`.
+
+### `src/features/learning/services/learningService.ts`
+
+Read-only service functions following the pattern in `coffeeService.ts`:
+- `getTracks()` -- fetch all active tracks
+- `getSections(trackId)` -- fetch sections for a track
+- `getUnits(sectionId)` -- fetch units for a section
+- `getLessons(unitId)` -- fetch lessons for a unit
+- `getExercises(lessonId)` -- fetch exercises for a lesson
+- `getLeagues()` -- fetch league tiers
+
+### `src/features/learning/types/index.ts` and `src/features/learning/services/index.ts`
+
+Barrel exports following existing conventions.
+
+## Technical Notes
+
+- No FK reference to `auth.users` directly; user_id columns are plain UUID with RLS enforcement
+- The `learning_lessons.featured_coffee_id` FK to `coffees` connects learning content to real catalog entries
+- `learning_units.tribe_affinity` reuses the existing `coffee_tribe` enum for personalization
+- All JSONB columns (`question_data`, `user_answer`) are typed as `Json` from the Supabase types
+- The migration is idempotent-safe with `IF NOT EXISTS` on enum creation

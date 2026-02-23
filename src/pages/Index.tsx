@@ -82,7 +82,7 @@ const HeroSection = () => {
             <img
 
               alt="Caldi scanning coffee illustration"
-              className="w-[28rem] lg:w-[32rem] mt-8 drop-shadow-lg" src="/lovable-uploads/cd9c31ea-b898-492f-8c53-4d5bc1e7afd2.png" />
+              className="w-full max-w-full mt-8 drop-shadow-lg" src="/lovable-uploads/cd9c31ea-b898-492f-8c53-4d5bc1e7afd2.png" />
 
           </div>
         </div>

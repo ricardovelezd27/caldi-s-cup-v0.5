@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, MessageSquare, ScanLine, User, Users, Coffee } from "lucide-react";
+import { Menu, MessageSquare, ScanLine, User, Users, Coffee, GraduationCap } from "lucide-react";
 import { FeedbackDialog } from "@/features/feedback/components/FeedbackDialog";
 import { ROUTES } from "@/constants/app";
 import { useAuth } from "@/contexts/auth";
@@ -91,6 +91,18 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
               </NavLink>
 
               <NavLink
+                to={ROUTES.learn}
+                className={({ isActive }) =>
+                  `flex items-center gap-1 text-sm font-medium transition-colors whitespace-nowrap ${
+                    isActive ? "text-primary font-bold" : "text-foreground hover:text-primary"
+                  }`
+                }
+              >
+                <GraduationCap className="w-5 h-5 shrink-0" />
+                {t("nav.learn")}
+              </NavLink>
+
+              <NavLink
                 to={ROUTES.contactFeedback}
                 className={({ isActive }) =>
                   `flex items-center gap-1 text-sm font-medium transition-colors whitespace-nowrap ${
@@ -169,6 +181,19 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                     >
                       <ScanLine className="w-5 h-5 shrink-0" />
                       {t("nav.scanner")}
+                    </NavLink>
+
+                    <NavLink
+                      to={ROUTES.learn}
+                      onClick={() => setIsOpen(false)}
+                      className={({ isActive }) =>
+                        `text-lg font-medium py-2 transition-colors flex items-center gap-2 ${
+                          isActive ? "text-primary font-bold" : "text-foreground hover:text-primary"
+                        }`
+                      }
+                    >
+                      <GraduationCap className="w-5 h-5 shrink-0" />
+                      {t("nav.learn")}
                     </NavLink>
 
                     {user && (

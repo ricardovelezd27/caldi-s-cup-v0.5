@@ -17,6 +17,13 @@ import { CoffeeProfilePage } from "./features/coffee";
 import { FeedbackPage } from "./features/feedback";
 import { ProfilePage } from "./features/profile";
 import BlogPage from "./features/blog/BlogPage";
+import { lazy, Suspense } from "react";
+import { RequireAuth } from "./components/auth";
+
+const LearnPage = lazy(() => import("./features/learning/pages/LearnPage"));
+const TrackPage = lazy(() => import("./features/learning/pages/TrackPage"));
+const LessonPage = lazy(() => import("./features/learning/pages/LessonPage"));
+const LeaderboardPage = lazy(() => import("./features/learning/pages/LeaderboardPage"));
 
 const queryClient = new QueryClient();
 
@@ -42,6 +49,10 @@ const App = () => (
                 <Route path="/contact_feedback" element={<FeedbackPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/brew-log" element={<BlogPage />} />
+                <Route path="/learn" element={<Suspense fallback={null}><LearnPage /></Suspense>} />
+                <Route path="/learn/:trackId" element={<Suspense fallback={null}><TrackPage /></Suspense>} />
+                <Route path="/learn/:trackId/:lessonId" element={<Suspense fallback={null}><LessonPage /></Suspense>} />
+                <Route path="/leaderboard" element={<Suspense fallback={null}><RequireAuth><LeaderboardPage /></RequireAuth></Suspense>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

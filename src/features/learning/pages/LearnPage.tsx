@@ -4,6 +4,7 @@ import { PageLayout } from "@/components/layout";
 import { TrackGrid } from "../components/track/TrackGrid";
 import { StreakDisplay } from "../components/gamification/StreakDisplay";
 import { DailyGoalRing } from "../components/gamification/DailyGoalRing";
+import { LeagueCard } from "../components/gamification/LeagueCard";
 import { useLearningTracks } from "../hooks/useLearningTracks";
 import { useStreak } from "../hooks/useStreak";
 import { Link } from "react-router-dom";
@@ -42,12 +43,13 @@ export default function LearnPage() {
 
         {/* Gamification bar for logged-in users */}
         {user && (
-          <div className="flex items-center justify-center gap-6 mb-8">
+          <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
             <StreakDisplay currentStreak={streak?.currentStreak ?? 0} />
             <DailyGoalRing
               earnedXp={dailyGoal?.earnedXp ?? 0}
               goalXp={dailyGoal?.goalXp ?? 10}
             />
+            <LeagueCard />
           </div>
         )}
 

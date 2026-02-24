@@ -143,6 +143,9 @@ export interface LearningUserStreak {
   totalDaysActive: number;
   totalXp: number;
   totalLessonsCompleted: number;
+  hearts: number;
+  maxHearts: number;
+  heartsLastRefilledAt: string | null;
   createdAt: string;
   updatedAt: string;
 }

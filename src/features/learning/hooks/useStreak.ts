@@ -3,6 +3,8 @@ import { useAuth } from "@/contexts/auth";
 import { getUserStreak, getDailyGoal } from "../services/streakService";
 import type { LearningUserStreak, LearningUserDailyGoal } from "../types";
 
+const MILESTONES = [7, 30, 100, 365];
+
 export function useStreak() {
   const { user } = useAuth();
 
@@ -18,9 +20,18 @@ export function useStreak() {
     enabled: !!user,
   });
 
+  const streak = streakQuery.data ?? null;
+  const today = new Date().toISOString().split("T")[0];
+  const isStreakAtRisk = !!streak && streak.lastActivityDate !== today;
+  const nextMilestone = streak
+    ? MILESTONES.find((m) => m > streak.currentStreak) ?? null
+    : null;
+
   return {
-    streak: streakQuery.data ?? null,
+    streak,
     dailyGoal: goalQuery.data ?? null,
     isLoading: streakQuery.isLoading,
+    isStreakAtRisk,
+    nextMilestone,
   };
 }

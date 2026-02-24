@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getTracks, getSections, getUnits, getLessons } from "../services/learningService";
+import { getTracks, getSections, getUnitsBySectionIds, getLessonsByUnitIds } from "../services/learningService";
 import { getUserProgress } from "../services/progressService";
 import { useAuth } from "@/contexts/auth";
 import type { LearningSection, LearningUnit, LearningLesson } from "../types";
@@ -19,7 +19,6 @@ export interface TrackPathLesson extends LearningLesson {
 export function useTrackPath(trackIdParam: string) {
   const { user } = useAuth();
 
-  // Get tracks to resolve trackId enum -> UUID
   const tracksQuery = useQuery({
     queryKey: ["learning-tracks"],
     queryFn: getTracks,
@@ -35,6 +34,22 @@ export function useTrackPath(trackIdParam: string) {
     enabled: !!track,
   });
 
+  const sectionIds = (sectionsQuery.data ?? []).map((s) => s.id);
+
+  const unitsQuery = useQuery({
+    queryKey: ["learning-units-batch", sectionIds.join(",")],
+    queryFn: () => getUnitsBySectionIds(sectionIds),
+    enabled: sectionIds.length > 0,
+  });
+
+  const unitIds = (unitsQuery.data ?? []).map((u) => u.id);
+
+  const lessonsQuery = useQuery({
+    queryKey: ["learning-lessons-batch", unitIds.join(",")],
+    queryFn: () => getLessonsByUnitIds(unitIds),
+    enabled: unitIds.length > 0,
+  });
+
   const progressQuery = useQuery({
     queryKey: ["learning-user-progress", user?.id],
     queryFn: () => getUserProgress(user!.id),
@@ -45,22 +60,46 @@ export function useTrackPath(trackIdParam: string) {
     (progressQuery.data ?? []).filter((p) => p.isCompleted).map((p) => p.lessonId),
   );
 
-  // Build nested structure (sections with units fetched inline isn't ideal but works for MVP)
-  const sections: TrackPathSection[] = (sectionsQuery.data ?? []).map((section) => ({
-    ...section,
-    units: [], // Will be populated by TrackPathView via lazy loading
-  }));
+  // Build nested structure with status
+  const allUnits = unitsQuery.data ?? [];
+  const allLessons = lessonsQuery.data ?? [];
 
-  const progressMap = completedLessonIds;
+  let totalLessons = 0;
+  let completedCount = 0;
+  let foundFirstAvailable = false;
 
-  // Calculate overall percent (simplified)
-  const overallPercent = 0; // Will be real when lessons exist
+  const sections: TrackPathSection[] = (sectionsQuery.data ?? []).map((section) => {
+    const sectionUnits = allUnits
+      .filter((u) => u.sectionId === section.id)
+      .map((unit) => {
+        const unitLessons = allLessons
+          .filter((l) => l.unitId === unit.id)
+          .map((lesson): TrackPathLesson => {
+            totalLessons++;
+            if (completedLessonIds.has(lesson.id)) {
+              completedCount++;
+              return { ...lesson, status: "completed" };
+            }
+            if (!foundFirstAvailable) {
+              foundFirstAvailable = true;
+              return { ...lesson, status: "available" };
+            }
+            return { ...lesson, status: "locked" };
+          });
+        return { ...unit, lessons: unitLessons };
+      });
+    return { ...section, units: sectionUnits };
+  });
+
+  const overallPercent = totalLessons > 0
+    ? Math.round((completedCount / totalLessons) * 100)
+    : 0;
 
   return {
     track: track ?? null,
     sections,
-    progressMap,
+    progressMap: completedLessonIds,
     overallPercent,
-    isLoading: tracksQuery.isLoading || sectionsQuery.isLoading,
+    isLoading: tracksQuery.isLoading || sectionsQuery.isLoading || unitsQuery.isLoading || lessonsQuery.isLoading,
   };
 }

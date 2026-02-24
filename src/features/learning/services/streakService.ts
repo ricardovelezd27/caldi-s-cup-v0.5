@@ -14,6 +14,9 @@ function toStreak(row: any): LearningUserStreak {
     totalDaysActive: row.total_days_active,
     totalXp: row.total_xp,
     totalLessonsCompleted: row.total_lessons_completed,
+    hearts: row.hearts ?? 5,
+    maxHearts: row.max_hearts ?? 5,
+    heartsLastRefilledAt: row.hearts_last_refilled_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -52,54 +55,26 @@ export async function initializeStreak(userId: string): Promise<LearningUserStre
   return toStreak(data);
 }
 
-export async function updateStreak(
+export async function updateStreakViaRPC(
   userId: string,
   xpEarned: number,
-): Promise<LearningUserStreak> {
+): Promise<{ action: string; currentStreak: number; longestStreak: number; totalXp: number; totalLessonsCompleted: number }> {
   const today = new Date().toISOString().split("T")[0];
-  let streak = await getUserStreak(userId);
-
-  if (!streak) {
-    streak = await initializeStreak(userId);
-  }
-
-  const lastDate = streak.lastActivityDate;
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
-
-  let newCurrent = streak.currentStreak;
-  let newStart = streak.streakStartDate;
-
-  if (lastDate === today) {
-    // Already active today, just add XP
-  } else if (lastDate === yesterdayStr) {
-    newCurrent += 1;
-  } else {
-    newCurrent = 1;
-    newStart = today;
-  }
-
-  const newLongest = Math.max(streak.longestStreak, newCurrent);
-
-  const { data, error } = await supabase
-    .from("learning_user_streaks")
-    .update({
-      current_streak: newCurrent,
-      longest_streak: newLongest,
-      last_activity_date: today,
-      streak_start_date: newStart ?? today,
-      total_days_active:
-        lastDate === today ? streak.totalDaysActive : streak.totalDaysActive + 1,
-      total_xp: streak.totalXp + xpEarned,
-      total_lessons_completed: streak.totalLessonsCompleted + 1,
-    })
-    .eq("user_id", userId)
-    .select()
-    .single();
+  const { data, error } = await supabase.rpc("update_streak_and_xp", {
+    p_user_id: userId,
+    p_date: today,
+    p_xp_earned: xpEarned,
+  });
 
   if (error) throw error;
-  return toStreak(data);
+  const result = data as any;
+  return {
+    action: result.action,
+    currentStreak: result.current_streak,
+    longestStreak: result.longest_streak,
+    totalXp: result.total_xp,
+    totalLessonsCompleted: result.total_lessons_completed,
+  };
 }
 
 export async function getDailyGoal(

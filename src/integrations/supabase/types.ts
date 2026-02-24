@@ -882,9 +882,12 @@ export type Database = {
         Row: {
           created_at: string
           current_streak: number
+          hearts: number
+          hearts_last_refilled_at: string | null
           id: string
           last_activity_date: string | null
           longest_streak: number
+          max_hearts: number
           streak_freeze_used_today: boolean
           streak_freezes_available: number
           streak_start_date: string | null
@@ -897,9 +900,12 @@ export type Database = {
         Insert: {
           created_at?: string
           current_streak?: number
+          hearts?: number
+          hearts_last_refilled_at?: string | null
           id?: string
           last_activity_date?: string | null
           longest_streak?: number
+          max_hearts?: number
           streak_freeze_used_today?: boolean
           streak_freezes_available?: number
           streak_start_date?: string | null
@@ -912,9 +918,12 @@ export type Database = {
         Update: {
           created_at?: string
           current_streak?: number
+          hearts?: number
+          hearts_last_refilled_at?: string | null
           id?: string
           last_activity_date?: string | null
           longest_streak?: number
+          max_hearts?: number
           streak_freeze_used_today?: boolean
           streak_freezes_available?: number
           streak_start_date?: string | null
@@ -1281,6 +1290,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      update_streak_and_xp: {
+        Args: { p_date: string; p_user_id: string; p_xp_earned: number }
+        Returns: Json
       }
     }
     Enums: {

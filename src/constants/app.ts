@@ -22,6 +22,7 @@ export const ROUTES = {
 
   learn: "/learn",
   leaderboard: "/leaderboard",
+  achievements: "/achievements",
 
   // @dormant — Reserved for future marketplace/cart/recipes features
   marketplace: "/marketplace",

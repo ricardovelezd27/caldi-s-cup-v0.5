@@ -11,7 +11,7 @@ interface ScenarioScreenProps {
 export const ScenarioScreen = ({ scenario, selectedTribe, onSelect }: ScenarioScreenProps) => {
   const { t } = useLanguage();
   const sId = scenario.id;
-  const category = t(`quiz.cat${['Dining','Travel','Tech','HomeScreen','Gift'][sId - 1]}`);
+  const category = t(`quiz.cat${['Dining','Travel','HomeScreen','Gift','Coffee'][sId - 1]}`);
   const question = t(`quiz.q${sId}`);
 
   const optionKeys = ['A', 'B', 'C', 'D'] as const;

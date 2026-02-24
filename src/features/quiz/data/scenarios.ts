@@ -6,176 +6,56 @@ export const QUIZ_SCENARIOS: QuizScenario[] = [
     category: 'Dining Proxy',
     question: "You're at a new restaurant. What do you order?",
     options: [
-      { 
-        id: 'A', 
-        label: "The Chef's Challenge", 
-        description: "You live for surprises—let the kitchen wow you with something you'd never pick yourself.",
-        tribe: 'fox',
-        icon: 'Sparkles'
-      },
-      { 
-        id: 'B', 
-        label: 'The Smart Pick', 
-        description: "You've already checked the reviews. You know exactly which dish has the best value.",
-        tribe: 'owl',
-        icon: 'LineChart'
-      },
-      { 
-        id: 'C', 
-        label: 'The Vibe', 
-        description: "Honestly? Whatever looks best on camera. The aesthetic IS the meal.",
-        tribe: 'hummingbird',
-        icon: 'Camera'
-      },
-      { 
-        id: 'D', 
-        label: 'The Classic', 
-        description: "If it ain't broke, don't fix it. You know what you love and you're sticking with it.",
-        tribe: 'bee',
-        icon: 'Heart'
-      }
-    ]
+      { id: 'A', label: "Chef's Tasting", description: "Avant-garde culinary art.", tribe: 'fox', icon: 'Sparkles' },
+      { id: 'B', label: 'Top Rated', description: "Highly reviewed, trusted classics.", tribe: 'owl', icon: 'LineChart' },
+      { id: 'C', label: 'The Scene', description: "Aesthetic, vibrant, and photogenic.", tribe: 'hummingbird', icon: 'Camera' },
+      { id: 'D', label: 'Comfort Food', description: "Familiar, hearty, and warm.", tribe: 'bee', icon: 'Heart' },
+    ],
   },
   {
     id: 2,
     category: 'Travel Proxy',
     question: "It's vacation time. Where are we going?",
     options: [
-      { 
-        id: 'A', 
-        label: 'Hidden Gems Only', 
-        description: "Off the beaten path, no tourist traps. If it's on a top-10 list, you're not interested.",
-        tribe: 'fox',
-        icon: 'Key'
-      },
-      { 
-        id: 'B', 
-        label: 'The Perfect Itinerary', 
-        description: "Spreadsheet-planned, hour-by-hour. Maximum experiences, zero wasted time.",
-        tribe: 'owl',
-        icon: 'Map'
-      },
-      { 
-        id: 'C', 
-        label: 'Wherever The Party Is', 
-        description: "No plan needed—just good energy, great people, and spontaneous adventures.",
-        tribe: 'hummingbird',
-        icon: 'PartyPopper'
-      },
-      { 
-        id: 'D', 
-        label: 'The Cozy Retreat', 
-        description: "Same cabin by the lake, same book on the porch. Comfort is the destination.",
-        tribe: 'bee',
-        icon: 'Home'
-      }
-    ]
+      { id: 'A', label: 'Off the Grid', description: "Hidden, secret gems.", tribe: 'fox', icon: 'Key' },
+      { id: 'B', label: 'Planned Perfectly', description: "Detailed, optimized itineraries.", tribe: 'owl', icon: 'Map' },
+      { id: 'C', label: 'The Action', description: "Festivals, nightlife, mingling.", tribe: 'hummingbird', icon: 'PartyPopper' },
+      { id: 'D', label: 'Cozy Escape', description: "Relaxing, quiet cabin retreat.", tribe: 'bee', icon: 'Home' },
+    ],
   },
   {
     id: 3,
-    category: 'Tech Proxy',
-    question: 'A revolutionary gadget just dropped.',
-    options: [
-      { 
-        id: 'A', 
-        label: 'Pre-Order Immediately', 
-        description: "Day-one adopter, always. You want to be the first to try what's next.",
-        tribe: 'fox',
-        icon: 'Zap'
-      },
-      { 
-        id: 'B', 
-        label: 'Wait For The Specs', 
-        description: "You need benchmarks, teardowns, and at least three comparison videos first.",
-        tribe: 'owl',
-        icon: 'FileSearch'
-      },
-      { 
-        id: 'C', 
-        label: 'Get It For The Fun', 
-        description: "Who cares about specs? If it looks cool and feels fun, you're in.",
-        tribe: 'hummingbird',
-        icon: 'Smile'
-      },
-      { 
-        id: 'D', 
-        label: 'Stick With What Works', 
-        description: "Your current setup is just fine. Why fix something that isn't broken?",
-        tribe: 'bee',
-        icon: 'Shield'
-      }
-    ]
-  },
-  {
-    id: 4,
     category: 'Home Screen Proxy',
     question: 'What does your phone home screen look like?',
     options: [
-      { 
-        id: 'A', 
-        label: 'Curated & Minimal', 
-        description: "Every icon is intentional. Your wallpaper? Carefully chosen. It's a vibe.",
-        tribe: 'fox',
-        icon: 'Gem'
-      },
-      { 
-        id: 'B', 
-        label: 'Folders For Everything', 
-        description: "Color-coded, labeled, organized. Finding any app takes exactly one second.",
-        tribe: 'owl',
-        icon: 'FolderTree'
-      },
-      { 
-        id: 'C', 
-        label: 'Beautiful Chaos', 
-        description: "Widgets everywhere, random apps, 47 unread notifications. It's YOUR chaos.",
-        tribe: 'hummingbird',
-        icon: 'Palette'
-      },
-      { 
-        id: 'D', 
-        label: 'Standard & Simple', 
-        description: "Default layout, stock wallpaper. The phone is a tool, not a canvas.",
-        tribe: 'bee',
-        icon: 'Grid3x3'
-      }
-    ]
+      { id: 'A', label: 'Minimalist', description: "Curated, aesthetic, distraction-free.", tribe: 'fox', icon: 'Gem' },
+      { id: 'B', label: 'Organized', description: "Neat folders for everything.", tribe: 'owl', icon: 'FolderTree' },
+      { id: 'C', label: 'Chaotic Good', description: "Colorful apps and widgets everywhere.", tribe: 'hummingbird', icon: 'Palette' },
+      { id: 'D', label: 'Factory Default', description: "Standard, simple, out-of-the-box.", tribe: 'bee', icon: 'Grid3x3' },
+    ],
   },
   {
-    id: 5,
+    id: 4,
     category: 'Gift Proxy',
     question: "Best friend's birthday gift?",
     options: [
-      { 
-        id: 'A', 
-        label: 'Something Rare & Special', 
-        description: "A limited-edition find they'd never discover on their own. That's the flex.",
-        tribe: 'fox',
-        icon: 'Gift'
-      },
-      { 
-        id: 'B', 
-        label: 'Something Practical', 
-        description: "A gift they'll actually use every day. Thoughtful = useful in your book.",
-        tribe: 'owl',
-        icon: 'Wrench'
-      },
-      { 
-        id: 'C', 
-        label: 'An Epic Experience', 
-        description: "Concert tickets, skydiving, a surprise trip—memories over things, always.",
-        tribe: 'hummingbird',
-        icon: 'Ticket'
-      },
-      { 
-        id: 'D', 
-        label: 'Something Sentimental', 
-        description: "A handwritten letter, a photo album, something from the heart. Classic you.",
-        tribe: 'bee',
-        icon: 'HeartHandshake'
-      }
-    ]
-  }
+      { id: 'A', label: 'Rare Find', description: "Vintage, obscure, hard to get.", tribe: 'fox', icon: 'Gift' },
+      { id: 'B', label: 'High Utility', description: "Highly practical and useful.", tribe: 'owl', icon: 'Wrench' },
+      { id: 'C', label: 'Live Event', description: "Tickets to a concert or experience.", tribe: 'hummingbird', icon: 'Ticket' },
+      { id: 'D', label: 'Sentimental', description: "Handmade, thoughtful, personal.", tribe: 'bee', icon: 'HeartHandshake' },
+    ],
+  },
+  {
+    id: 5,
+    category: 'Coffee Journey',
+    question: 'Where are you in your coffee journey right now?',
+    options: [
+      { id: 'A', label: 'Exploring the Rare', description: "Chasing exotic origins and wild fermentations.", tribe: 'fox', icon: 'Sparkles' },
+      { id: 'B', label: 'Dialing It In', description: "Perfecting recipes, ratios, and extraction.", tribe: 'owl', icon: 'Target' },
+      { id: 'C', label: 'Cafe Hopping', description: "Discovering trendy spots and aesthetic drinks.", tribe: 'hummingbird', icon: 'MapPin' },
+      { id: 'D', label: 'The Daily Ritual', description: "Enjoying a comforting, reliable everyday cup.", tribe: 'bee', icon: 'Heart' },
+    ],
+  },
 ];
 
 export const TOTAL_SCENARIOS = QUIZ_SCENARIOS.length;

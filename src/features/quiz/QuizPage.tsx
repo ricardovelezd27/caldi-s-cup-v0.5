@@ -12,7 +12,6 @@ import {
   ScenarioScreen, 
   QuizProgress, 
   QuizNavigation,
-  ResultsPreview,
   OnboardingModal
 } from './components';
 
@@ -52,7 +51,6 @@ export const QuizPage = () => {
   const { currentStep, totalSteps, responses, isComplete } = state;
   const currentScenario = QUIZ_SCENARIOS[currentStep - 1];
   const selectedTribe = currentStep > 0 ? responses[currentStep] : undefined;
-  const totalAnswered = Object.keys(responses).length;
 
   // Handle completing the quiz
   const handleComplete = () => {
@@ -120,17 +118,6 @@ export const QuizPage = () => {
                 onSelect={(tribe) => selectAnswer(currentStep, tribe)}
               />
             </div>
-
-            {/* Results Preview */}
-            {totalAnswered > 0 && (
-              <div className="px-4">
-                <ResultsPreview 
-                  scores={scores}
-                  percentages={percentages}
-                  totalAnswered={totalAnswered}
-                />
-              </div>
-            )}
 
             {/* Navigation */}
             <div className="px-4 pb-8">

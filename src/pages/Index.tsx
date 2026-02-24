@@ -27,10 +27,10 @@ const HeroSection = () => {
           <div className="flex flex-col items-center md:items-start text-center md:text-left bg-background/70 backdrop-blur-sm rounded-2xl p-6 md:p-8 relative">
             {/* Mobile-only mini illustration popping out above banner */}
             <img
-              src={caldiScanning}
+
               alt="Caldi scanning coffee"
-              className="block md:hidden w-40 h-auto mx-auto -mb-6 relative z-10"
-            />
+              className="block md:hidden w-40 h-auto mx-auto -mb-6 relative z-10" src="/lovable-uploads/ae1c4319-73ba-420d-9fea-16f127a385de.png" />
+
             {/* Badge */}
             <span className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-1.5 text-xs font-inter font-semibold tracking-wider mb-6 relative z-20">
               <Coffee className="w-4 h-4 shrink-0" />
@@ -60,8 +60,8 @@ const HeroSection = () => {
               </Button>
               <button
                 onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                className="text-foreground hover:text-secondary font-inter text-sm font-medium underline underline-offset-4 transition-colors"
-              >
+                className="text-foreground hover:text-secondary font-inter text-sm font-medium underline underline-offset-4 transition-colors">
+
                 {t("hero.ctaSecondary")}
               </button>
             </div>
@@ -80,55 +80,55 @@ const HeroSection = () => {
 
             {/* Character illustration */}
             <img
-              src={caldiScanning}
+
               alt="Caldi scanning coffee illustration"
-              className="w-[28rem] lg:w-[32rem] mt-8 drop-shadow-lg"
-            />
+              className="w-full max-w-full mt-8 drop-shadow-lg" src="/lovable-uploads/cd9c31ea-b898-492f-8c53-4d5bc1e7afd2.png" />
+
           </div>
         </div>
       </Container>
-    </section>
-  );
+    </section>);
+
 };
 
 const FeaturesSection = () => {
   const { t } = useLanguage();
   const features = [
-    {
-      image: illustrationScan,
-      title: t("features.scan.title"),
-      description: t("features.scan.description"),
-    },
-    {
-      image: illustrationFavorites,
-      title: t("features.favorites.title"),
-      description: t("features.favorites.description"),
-    },
-    {
-      image: illustrationTribe,
-      title: t("features.tribe.title"),
-      description: t("features.tribe.description"),
-    },
-  ];
+  {
+    image: illustrationScan,
+    title: t("features.scan.title"),
+    description: t("features.scan.description")
+  },
+  {
+    image: illustrationFavorites,
+    title: t("features.favorites.title"),
+    description: t("features.favorites.description")
+  },
+  {
+    image: illustrationTribe,
+    title: t("features.tribe.title"),
+    description: t("features.tribe.description")
+  }];
+
 
   return (
     <section id="features" className="py-16 md:py-20 bg-secondary/5 scroll-mt-16">
       <Container>
         <SectionHeading title={t("features.sectionTitle")} color="secondary" className="mb-12" />
         <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-          {features.map((feature, index) => (
-            <CaldiCard key={feature.title} className="text-center px-4" style={{ animationDelay: `${index * 100}ms` }}>
+          {features.map((feature, index) =>
+          <CaldiCard key={feature.title} className="text-center px-4" style={{ animationDelay: `${index * 100}ms` }}>
               <div className="flex justify-center mb-4">
                 <img src={feature.image} alt={feature.title} className="w-40 h-32 object-contain" />
               </div>
               <h3 className="text-2xl lg:text-3xl font-bangers text-foreground mb-3">{feature.title}</h3>
               <p className="text-muted-foreground font-inter text-base lg:text-lg">{feature.description}</p>
             </CaldiCard>
-          ))}
+          )}
         </div>
       </Container>
-    </section>
-  );
+    </section>);
+
 };
 
 const CTASection = () => {
@@ -140,8 +140,8 @@ const CTASection = () => {
           <Link to={ROUTES.scanner}>{t("hero.cta")}</Link>
         </Button>
       </Container>
-    </section>
-  );
+    </section>);
+
 };
 
 const Index = () => {
@@ -150,8 +150,8 @@ const Index = () => {
       <HeroSection />
       <FeaturesSection />
       <CTASection />
-    </PageLayout>
-  );
+    </PageLayout>);
+
 };
 
 export default Index;

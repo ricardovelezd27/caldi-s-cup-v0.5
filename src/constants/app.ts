@@ -20,6 +20,9 @@ export const ROUTES = {
   dashboard: "/dashboard",
   scanner: "/scanner",
 
+  learn: "/learn",
+  leaderboard: "/leaderboard",
+
   // @dormant — Reserved for future marketplace/cart/recipes features
   marketplace: "/marketplace",
   recipes: "/recipes",

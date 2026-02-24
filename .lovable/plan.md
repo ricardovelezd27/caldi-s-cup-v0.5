@@ -1,143 +1,131 @@
 
 
-# Multi-Image Scanner with Coffee Profile Gallery
+# Plan: Set Up Testing Infrastructure and Write Initial Tests
 
-## Overview
+## Summary
 
-This plan implements two connected features:
-1. **Multi-image scanner** -- users can add up to 4 photos of a coffee bag before scanning
-2. **Thumbnail gallery on Coffee Profile page** -- Amazon-style image display with main image + horizontal thumbnails
-
-The core optimization is **client-side canvas stitching**: all user photos are composited into a single image before the AI call, so credit cost stays at exactly 1 call per scan regardless of photo count.
+The project has no testing infrastructure yet. This plan sets up Vitest with React Testing Library and creates a focused suite of tests for the learning module built across Phases 1-3.
 
 ---
 
-## Part 1: Client-Side Image Stitching Utility
+## Step 1: Install Testing Dependencies
 
-**New file: `src/features/scanner/utils/stitchImages.ts`**
+Add to `devDependencies` in `package.json`:
 
-A canvas-based utility that takes 1-4 base64 images and composites them into one:
-- 1 image: pass through (no stitching)
-- 2 images: 2x1 horizontal grid
-- 3-4 images: 2x2 grid (blank cell if 3)
-- Each sub-image scaled to fit its grid cell proportionally
-- Output compressed to JPEG under 1.5MB
+- `vitest` (^3.2.4)
+- `@testing-library/jest-dom` (^6.6.0)
+- `@testing-library/react` (^16.0.0)
+- `jsdom` (^20.0.3)
 
 ---
 
-## Part 2: Multi-Image ScanUploader
+## Step 2: Create Testing Configuration
 
-**Modified: `src/features/scanner/components/ScanUploader.tsx`**
+**`vitest.config.ts`** (new file at project root):
+- Uses `@vitejs/plugin-react-swc`
+- Environment: `jsdom`
+- Globals enabled
+- Setup file: `src/test/setup.ts`
+- Includes: `src/**/*.{test,spec}.{ts,tsx}`
+- Path alias: `@` -> `./src`
 
-Transform from single-image picker to multi-slot collector:
-- After adding first photo, show it as a thumbnail with a "+" slot to add more (up to 4)
-- Thumbnail grid: `grid grid-cols-4 gap-2` -- each thumbnail is square with a remove (X) button
-- A "Scan Now" button appears once at least 1 image is present
-- Scanning is NO LONGER auto-triggered on first image -- user controls when to scan
-- The upload/camera buttons remain the same, just add to the array instead of replacing
-- The callback changes from `onImageSelected(base64)` to `onImagesReady(base64[])`
+**`src/test/setup.ts`** (new file):
+- Imports `@testing-library/jest-dom`
+- Mocks `window.matchMedia`
+- Mocks `AudioContext` (needed because `sounds.ts` uses Web Audio API)
 
----
-
-## Part 3: ScannerPage Orchestration
-
-**Modified: `src/features/scanner/ScannerPage.tsx`**
-
-- Receives `base64[]` array from the updated ScanUploader
-- Calls `stitchImages()` to produce a single composite for the AI
-- Stores the individual images array in a ref for passing to the coffee profile
-- Passes the stitched composite to `scanCoffee()` (hook unchanged)
-- When navigating to coffee profile on completion, passes `additionalImages: string[]` (all original photos) via route state
+**`tsconfig.app.json`** (modify):
+- Add `"vitest/globals"` to `compilerOptions.types`
 
 ---
 
-## Part 4: Edge Function Prompt Update
+## Step 3: Write Tests
 
-**Modified: `supabase/functions/scan-coffee/index.ts`**
+Tests are organized by the testability layers -- pure logic first, then components.
 
-Single line addition to the AI prompt:
-```
-This image may contain multiple views of the same coffee bag arranged in a grid. 
-Analyze ALL visible panels together as one coffee product.
-```
+### 3a. Pure Logic Tests (no React, no mocking needed)
 
-No structural changes -- it still receives and processes one image.
+**`src/features/learning/data/mascotDialogues.test.ts`**:
+- `getRandomDialogue('caldi', 'correct')` returns a string from the caldi correct array
+- `getRandomDialogue('goat', 'greeting')` returns a string from the goat greeting array
+- Template replacement: `getRandomDialogue('caldi', 'streak', { days: 7 })` returns string containing "7"
+- Fallback: unknown category falls back gracefully
+
+**`src/features/learning/styles/exerciseTokens.test.ts`**:
+- Smoke test: `EXERCISE_COLORS` has expected keys (correct, incorrect, selected, etc.)
+- `EXERCISE_TIMING` has expected keys and positive number values
+
+### 3b. Component Tests (with React Testing Library)
+
+**`src/features/learning/components/exercises/base/ExerciseOption.test.tsx`**:
+- Renders children text
+- Shows selected state styling when `isSelected=true`
+- Shows correct state styling when `isCorrect=true`
+- Shows incorrect state styling when `isCorrect=false`
+- Calls `onClick` when clicked
+- Does not call `onClick` when `isDisabled=true`
+- Renders letter prefix (A, B, C) when `letterIndex` is provided
+
+**`src/features/learning/components/exercises/base/CheckButton.test.tsx`**:
+- Renders "Check" text in disabled state
+- Button is disabled when state is "disabled"
+- Button is clickable when state is "ready"
+- Renders "Continue" text in correct/incorrect states
+- Calls `onClick` when clicked in ready state
+
+**`src/features/learning/components/exercises/knowledge/MultipleChoice.test.tsx`**:
+- Renders the question text
+- Renders all option texts
+- Selecting an option enables the check button
+- Submitting a correct answer calls `onSubmit` with `(answerId, true)`
+- Submitting an incorrect answer calls `onSubmit` with `(answerId, false)`
+
+**`src/features/learning/components/exercises/knowledge/TrueFalse.test.tsx`**:
+- Renders the statement text
+- Renders True and False buttons
+- Selecting True and checking with `correct_answer: true` calls `onSubmit` with `(true, true)`
+
+**`src/features/learning/components/exercises/applied/Calculation.test.tsx`**:
+- Renders the question
+- Typing a correct answer and checking calls `onSubmit` with correct=true
+- Typing an answer within tolerance calls `onSubmit` with correct=true
+- Typing an answer outside tolerance calls `onSubmit` with correct=false
+
+### 3c. Test Wrapper Utilities
+
+**`src/test/test-utils.tsx`** (new file):
+- Custom `render` function that wraps components in required providers (LanguageContext, QueryClientProvider, BrowserRouter)
+- Re-exports everything from `@testing-library/react`
+
+This wrapper is needed because exercise components use `useLanguage()` and some components use router hooks.
 
 ---
 
-## Part 5: Coffee Profile Image Gallery
+## Step 4: Run Tests
 
-**Modified: `src/features/coffee/components/CoffeeImage.tsx`**
-
-Add an optional `additionalImages?: string[]` prop. When present:
-- Main image displays as today (large, aspect-square)
-- Below it, a horizontal row of small square thumbnails (the original individual photos)
-- Clicking a thumbnail swaps it into the main display
-- First image is selected by default
-- Thumbnails use `flex gap-2 overflow-x-auto` for horizontal scroll on mobile
-- Selected thumbnail gets a highlighted border (primary color)
-- Each thumbnail is ~60px square on mobile, ~72px on desktop
-
-**Modified: `src/features/coffee/components/CoffeeProfile.tsx`**
-
-Pass the new `additionalImages` prop through to `CoffeeImage`.
-
-**Modified: `src/features/coffee/CoffeeProfilePage.tsx`**
-
-Read `additionalImages` from route state and pass it down to `CoffeeProfile`.
+Use the run-tests tool to execute the suite and verify everything passes.
 
 ---
 
-## Part 6: Type & State Updates
+## Test Count Summary
 
-**Modified: `src/features/coffee/types/coffee.ts`**
-
-No changes needed -- `additionalImages` flows through route state and component props only (not persisted to DB).
-
-**Modified: `src/features/coffee/CoffeeProfilePage.tsx` (route state interface)**
-
-Add `additionalImages?: string[]` to `CoffeeRouteState`.
-
----
-
-## Part 7: i18n Keys
-
-**Modified: `src/i18n/en.ts` and `src/i18n/es.ts`**
-
-Add ~8 new keys:
-- `scanner.addUpTo4` -- "Add up to 4 photos of different sides"
-- `scanner.scanNow` -- "Scan Now"
-- `scanner.addAnother` -- "Add another side"
-- `scanner.photosAdded` -- "{{count}} photo(s) added"
-- `scanner.removePhoto` -- "Remove photo"
-- `scanner.stitching` -- "Combining images..."
+| Category | File | Tests (approx) |
+|---|---|---|
+| Pure logic | mascotDialogues.test.ts | 4 |
+| Pure logic | exerciseTokens.test.ts | 2 |
+| Base component | ExerciseOption.test.tsx | 7 |
+| Base component | CheckButton.test.tsx | 5 |
+| Knowledge exercise | MultipleChoice.test.tsx | 5 |
+| Knowledge exercise | TrueFalse.test.tsx | 3 |
+| Applied exercise | Calculation.test.tsx | 4 |
+| **Total** | | **~30** |
 
 ---
 
-## Files Summary
+## Technical Notes
 
-| File | Action |
-|------|--------|
-| `src/features/scanner/utils/stitchImages.ts` | **Create** -- canvas compositing utility |
-| `src/features/scanner/components/ScanUploader.tsx` | **Modify** -- multi-image collection UI |
-| `src/features/scanner/ScannerPage.tsx` | **Modify** -- orchestrate stitching + pass images to profile |
-| `supabase/functions/scan-coffee/index.ts` | **Modify** -- add multi-panel instruction to prompt |
-| `src/features/coffee/components/CoffeeImage.tsx` | **Modify** -- add thumbnail gallery below main image |
-| `src/features/coffee/components/CoffeeProfile.tsx` | **Modify** -- pass `additionalImages` prop |
-| `src/features/coffee/CoffeeProfilePage.tsx` | **Modify** -- read `additionalImages` from route state |
-| `src/i18n/en.ts` | **Modify** -- add scanner gallery keys |
-| `src/i18n/es.ts` | **Modify** -- add Spanish translations |
-
-## What Does NOT Change
-- `useCoffeeScanner.ts` -- still receives a single base64 string
-- Scanner types (`scanner.ts`) -- no structural changes
-- Database schema -- no new tables or columns
-- Credit consumption -- identical to current (1 AI call per scan)
-- Firecrawl enrichment -- unchanged
-- Anonymous/authenticated flow split -- unchanged
-
-## Credit Optimization Summary
-- Current: 1 photo = 1 AI call
-- New: 1-4 photos = still 1 AI call (stitched client-side)
-- Zero additional backend cost regardless of photo count
+- All component tests mock the `sounds` module to avoid `AudioContext` errors in jsdom
+- The `useLanguage` hook is provided via a test wrapper that defaults to English
+- Tests focus on behavior (user interactions and callback contracts), not implementation details, per the TDD mandate
+- No Supabase calls are made in these tests -- service layer tests would require mocking the Supabase client and are deferred to a separate pass
 

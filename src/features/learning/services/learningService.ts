@@ -167,6 +167,17 @@ export async function getLessons(unitId: string): Promise<LearningLesson[]> {
   return (data ?? []).map(toLesson);
 }
 
+export async function getLessonById(lessonId: string): Promise<LearningLesson | null> {
+  const { data, error } = await supabase
+    .from("learning_lessons")
+    .select("*")
+    .eq("id", lessonId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data ? toLesson(data) : null;
+}
+
 export async function getExercises(lessonId: string): Promise<LearningExercise[]> {
   const { data, error } = await supabase
     .from("learning_exercises")

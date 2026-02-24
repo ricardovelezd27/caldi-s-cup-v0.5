@@ -1,14 +1,17 @@
 import { useLanguage } from "@/contexts/language";
 import { Progress } from "@/components/ui/progress";
+import { HeartsDisplay } from "../gamification/HeartsDisplay";
 import { X } from "lucide-react";
 
 interface LessonProgressProps {
   current: number;
   total: number;
   onExit: () => void;
+  hearts?: number;
+  maxHearts?: number;
 }
 
-export function LessonProgress({ current, total, onExit }: LessonProgressProps) {
+export function LessonProgress({ current, total, onExit, hearts, maxHearts }: LessonProgressProps) {
   const { t } = useLanguage();
   const percent = total > 0 ? (current / total) * 100 : 0;
 
@@ -25,6 +28,9 @@ export function LessonProgress({ current, total, onExit }: LessonProgressProps) 
       <span className="text-xs font-inter text-muted-foreground whitespace-nowrap">
         {current} {t("learn.exerciseOf")} {total}
       </span>
+      {hearts !== undefined && maxHearts !== undefined && (
+        <HeartsDisplay hearts={hearts} maxHearts={maxHearts} />
+      )}
     </div>
   );
 }

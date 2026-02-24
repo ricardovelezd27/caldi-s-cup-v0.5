@@ -1,24 +1,30 @@
 import { useLanguage } from "@/contexts/language";
 import { MascotCharacter } from "../mascot/MascotCharacter";
 import { XPCounter } from "../gamification/XPCounter";
+import { XPGainAnimation } from "../gamification/XPGainAnimation";
 import { Button } from "@/components/ui/button";
+import type { XPCalculation } from "../../services/xpService";
 
 interface LessonCompleteProps {
   correct: number;
   total: number;
   xpEarned: number;
+  xpBreakdown?: XPCalculation;
   timeSpent: number;
   onNext?: () => void;
   onBackToTrack: () => void;
+  isProcessing?: boolean;
 }
 
 export function LessonComplete({
   correct,
   total,
   xpEarned,
+  xpBreakdown,
   timeSpent,
   onNext,
   onBackToTrack,
+  isProcessing,
 }: LessonCompleteProps) {
   const { t } = useLanguage();
   const percent = total > 0 ? Math.round((correct / total) * 100) : 0;
@@ -40,7 +46,44 @@ export function LessonComplete({
       </h2>
       <p className="text-muted-foreground font-inter mb-4">{t("learn.greatJob")}</p>
 
-      <XPCounter xp={xpEarned} className="mb-6" />
+      <div className="relative mb-2">
+        <XPCounter xp={xpEarned} className="mb-2" />
+        <XPGainAnimation amount={xpEarned} />
+      </div>
+
+      {/* XP Breakdown */}
+      {xpBreakdown && (
+        <div className="bg-card border-4 border-border rounded-lg p-3 mb-4 text-sm font-inter text-left w-full max-w-xs shadow-[4px_4px_0px_0px_var(--border)]">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">{t("gamification.baseXP")}</span>
+            <span className="font-bold text-foreground">+{xpBreakdown.baseXP}</span>
+          </div>
+          {xpBreakdown.bonuses.perfect > 0 && (
+            <div className="flex justify-between text-green-600">
+              <span>💯 {t("gamification.perfectBonus")}</span>
+              <span className="font-bold">+{xpBreakdown.bonuses.perfect}</span>
+            </div>
+          )}
+          {xpBreakdown.bonuses.speed > 0 && (
+            <div className="flex justify-between text-blue-600">
+              <span>⚡ {t("gamification.speedBonus")}</span>
+              <span className="font-bold">+{xpBreakdown.bonuses.speed}</span>
+            </div>
+          )}
+          {xpBreakdown.bonuses.streak > 0 && (
+            <div className="flex justify-between text-orange-600">
+              <span>🔥 {t("gamification.streakBonus")}</span>
+              <span className="font-bold">+{xpBreakdown.bonuses.streak}</span>
+            </div>
+          )}
+          {xpBreakdown.bonuses.firstOfDay > 0 && (
+            <div className="flex justify-between text-purple-600">
+              <span>🌅 {t("gamification.firstOfDayBonus")}</span>
+              <span className="font-bold">+{xpBreakdown.bonuses.firstOfDay}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center gap-6 mb-8 text-sm font-inter text-muted-foreground">
         <div>
@@ -66,8 +109,13 @@ export function LessonComplete({
             {t("learn.nextLesson")}
           </Button>
         )}
-        <Button onClick={onBackToTrack} variant="outline" className="font-bangers tracking-wide">
-          {t("learn.backToTrack")}
+        <Button
+          onClick={onBackToTrack}
+          variant="outline"
+          className="font-bangers tracking-wide"
+          disabled={isProcessing}
+        >
+          {isProcessing ? t("common.loading") : t("learn.backToTrack")}
         </Button>
       </div>
     </div>

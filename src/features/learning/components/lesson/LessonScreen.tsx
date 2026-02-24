@@ -1,14 +1,26 @@
+import { useState, useCallback } from "react";
 import { useLesson } from "../../hooks/useLesson";
 import { useAuth } from "@/contexts/auth";
 import { useAnonymousProgress } from "../../hooks/useAnonymousProgress";
+import { useHearts } from "../../hooks/useHearts";
+import { useStreak } from "../../hooks/useStreak";
+import { useDailyGoal } from "../../hooks/useDailyGoal";
+import { useAchievements } from "../../hooks/useAchievements";
+import { calculateLessonXP } from "../../services/xpService";
+import { updateStreakViaRPC, addXPToDaily } from "../../services/streakService";
+import { addWeeklyXP } from "../../services/leagueService";
+import { upsertLessonProgress } from "../../services/progressService";
 import { LessonIntro } from "./LessonIntro";
 import { LessonProgress } from "./LessonProgress";
 import { LessonComplete } from "./LessonComplete";
 import { ExerciseRenderer } from "./ExerciseRenderer";
 import { ExerciseFeedback } from "../exercises/base/ExerciseFeedback";
 import { SignupPrompt } from "../gamification/SignupPrompt";
+import { HeartsEmptyModal } from "../gamification/HeartsEmptyModal";
+import { AchievementUnlock } from "../gamification/AchievementUnlock";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
+import type { XPCalculation } from "../../services/xpService";
+import type { LearningAchievement } from "../../types";
 
 interface LessonScreenProps {
   lessonId: string;
@@ -21,18 +33,113 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
   const { user } = useAuth();
   const lesson = useLesson(lessonId);
   const anonymousProgress = useAnonymousProgress();
-  const [showSignup, setShowSignup] = useState(false);
+  const { hearts, maxHearts, hasHearts, loseHeart, isLoading: heartsLoading } = useHearts();
+  const { streak } = useStreak();
+  const { addXP: addDailyXP } = useDailyGoal();
+  const { checkAndUnlock: checkAndUnlockAchievements } = useAchievements();
 
-  const handleLessonDone = () => {
+  const [showSignup, setShowSignup] = useState(false);
+  const [showHeartsEmpty, setShowHeartsEmpty] = useState(false);
+  const [xpResult, setXpResult] = useState<XPCalculation | null>(null);
+  const [newAchievements, setNewAchievements] = useState<LearningAchievement[]>([]);
+  const [showAchievement, setShowAchievement] = useState<LearningAchievement | null>(null);
+  const [isProcessingComplete, setIsProcessingComplete] = useState(false);
+
+  // Handle wrong answer: deduct heart for authenticated users
+  const handleSubmitAnswer = useCallback(
+    (answer: any, isCorrect: boolean) => {
+      lesson.submitAnswer(isCorrect, answer);
+
+      if (!isCorrect && user) {
+        loseHeart().then(() => {
+          // Check if hearts depleted (use current - 1 since mutation is async)
+          if (hearts <= 1) {
+            setShowHeartsEmpty(true);
+          }
+        });
+      }
+    },
+    [lesson, user, loseHeart, hearts],
+  );
+
+  // Process gamification on lesson completion
+  const handleLessonDone = useCallback(async () => {
     if (!user) {
       anonymousProgress.completeLesson(lessonId, 10);
       if (anonymousProgress.shouldShowSignupPrompt || anonymousProgress.shouldForceSignup) {
         setShowSignup(true);
         return;
       }
+      onComplete();
+      return;
     }
-    onComplete();
-  };
+
+    setIsProcessingComplete(true);
+    try {
+      const baseXpReward = lesson.lesson?.xpReward ?? 10;
+      const currentStreak = streak?.currentStreak ?? 0;
+      const today = new Date().toISOString().split("T")[0];
+      const isFirstToday = streak?.lastActivityDate !== today;
+
+      // 1. Calculate XP
+      const xpCalc = calculateLessonXP(
+        baseXpReward,
+        lesson.score.correct,
+        lesson.score.total,
+        lesson.timeSpent,
+        currentStreak,
+        isFirstToday,
+      );
+      setXpResult(xpCalc);
+
+      // 2-4. Update streak + daily goal + league (parallel)
+      const [streakResult] = await Promise.all([
+        updateStreakViaRPC(user.id, xpCalc.totalXP),
+        addXPToDaily(user.id, xpCalc.totalXP),
+        addWeeklyXP(user.id, xpCalc.totalXP).catch(() => {}), // Non-critical
+      ]);
+
+      // 5. Save lesson progress
+      const scorePercent =
+        lesson.score.total > 0
+          ? Math.round((lesson.score.correct / lesson.score.total) * 100)
+          : 0;
+
+      await upsertLessonProgress({
+        userId: user.id,
+        lessonId,
+        isCompleted: true,
+        scorePercent,
+        exercisesCorrect: lesson.score.correct,
+        exercisesTotal: lesson.score.total,
+        timeSpentSeconds: lesson.timeSpent,
+        xpEarned: xpCalc.totalXP,
+      });
+
+      // 6. Check achievements
+      const unlocked = await checkAndUnlockAchievements({
+        currentStreak: streakResult.currentStreak,
+        totalLessonsCompleted: streakResult.totalLessonsCompleted,
+      } as any);
+      if (unlocked.length > 0) {
+        setNewAchievements(unlocked);
+        setShowAchievement(unlocked[0]);
+      }
+    } catch (err) {
+      console.error("Gamification update failed:", err);
+    } finally {
+      setIsProcessingComplete(false);
+    }
+  }, [
+    user,
+    lesson,
+    lessonId,
+    streak,
+    anonymousProgress,
+    onComplete,
+    addDailyXP,
+    checkAndUnlockAchievements,
+  ]);
 
   if (lesson.state === "loading") {
     return (
@@ -48,19 +155,25 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
   }
 
   if (lesson.state === "exercise" && lesson.currentExercise) {
-    const qd = lesson.currentExercise.questionData as any;
     return (
       <div className="flex flex-col min-h-screen">
         <LessonProgress
           current={lesson.currentIndex + 1}
           total={lesson.exercises.length}
           onExit={onExit}
+          hearts={user ? hearts : undefined}
+          maxHearts={user ? maxHearts : undefined}
         />
         <ExerciseRenderer
           key={lesson.currentExercise.id}
           exercise={lesson.currentExercise}
-          onAnswer={(_answer, isCorrect) => lesson.submitAnswer(isCorrect)}
-          disabled={false}
+          onAnswer={handleSubmitAnswer}
+          disabled={!hasHearts && !!user}
+        />
+        <HeartsEmptyModal
+          open={showHeartsEmpty}
+          onOpenChange={setShowHeartsEmpty}
+          timeUntilNextHeart={null}
         />
       </div>
     );
@@ -70,7 +183,6 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
     const feedbackExercise = lesson.currentExercise;
     const feedbackQd = feedbackExercise?.questionData as any;
     const explanation = feedbackQd?.explanation;
-    const explanationEs = feedbackQd?.explanation_es;
     const mascot = (feedbackExercise?.mascot as "caldi" | "goat") ?? "caldi";
     return (
       <div className="flex flex-col min-h-screen">
@@ -78,6 +190,8 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
           current={lesson.currentIndex + 1}
           total={lesson.exercises.length}
           onExit={onExit}
+          hearts={user ? hearts : undefined}
+          maxHearts={user ? maxHearts : undefined}
         />
         <div className="flex-1 flex items-end">
           <ExerciseFeedback
@@ -97,9 +211,11 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
         <LessonComplete
           correct={lesson.score.correct}
           total={lesson.score.total}
-          xpEarned={10}
+          xpEarned={xpResult?.totalXP ?? lesson.lesson?.xpReward ?? 10}
+          xpBreakdown={xpResult ?? undefined}
           timeSpent={lesson.timeSpent}
           onBackToTrack={handleLessonDone}
+          isProcessing={isProcessingComplete}
         />
         <SignupPrompt
           open={showSignup}
@@ -111,10 +227,24 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
           }}
           forceful={anonymousProgress.shouldForceSignup}
         />
+        {showAchievement && (
+          <AchievementUnlock
+            achievement={showAchievement}
+            open={!!showAchievement}
+            onOpenChange={(open) => {
+              if (!open) {
+                const remaining = newAchievements.filter((a) => a.id !== showAchievement.id);
+                setShowAchievement(remaining[0] ?? null);
+                if (remaining.length === 0) {
+                  onComplete();
+                }
+              }
+            }}
+          />
+        )}
       </>
     );
   }
 
-  // Fallback for intro when no exercises exist
   return <LessonIntro onStart={lesson.startLesson} />;
 }

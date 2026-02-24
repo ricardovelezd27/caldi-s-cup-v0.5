@@ -190,6 +190,32 @@ export async function getExercises(lessonId: string): Promise<LearningExercise[]
   return (data ?? []).map(toExercise);
 }
 
+export async function getUnitsBySectionIds(sectionIds: string[]): Promise<LearningUnit[]> {
+  if (sectionIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("learning_units")
+    .select("*")
+    .in("section_id", sectionIds)
+    .eq("is_active", true)
+    .order("sort_order");
+
+  if (error) throw error;
+  return (data ?? []).map(toUnit);
+}
+
+export async function getLessonsByUnitIds(unitIds: string[]): Promise<LearningLesson[]> {
+  if (unitIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("learning_lessons")
+    .select("*")
+    .in("unit_id", unitIds)
+    .eq("is_active", true)
+    .order("sort_order");
+
+  if (error) throw error;
+  return (data ?? []).map(toLesson);
+}
+
 export async function getLeagues(): Promise<LearningLeague[]> {
   const { data, error } = await supabase
     .from("learning_leagues")

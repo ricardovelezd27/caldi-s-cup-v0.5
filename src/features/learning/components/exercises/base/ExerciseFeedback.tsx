@@ -3,6 +3,8 @@ import { MascotReaction } from "../../mascot/MascotReaction";
 import { getRandomDialogue } from "../../../data/mascotDialogues";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { sounds } from "../../../utils/sounds";
+import { useEffect } from "react";
 
 interface ExerciseFeedbackProps {
   isCorrect: boolean;
@@ -20,12 +22,16 @@ export function ExerciseFeedback({
   const { t } = useLanguage();
   const dialogue = getRandomDialogue(mascot, isCorrect ? "correct" : "incorrect");
 
+  useEffect(() => {
+    isCorrect ? sounds.playCorrect() : sounds.playIncorrect();
+  }, [isCorrect]);
+
   return (
     <div
       className={cn(
-        "rounded-lg border-4 p-6 mx-4 mb-4",
+        "rounded-lg border-4 p-6 mx-4 mb-4 animate-in slide-in-from-bottom-4 duration-300",
         isCorrect
-          ? "border-secondary bg-secondary/10"
+          ? "border-[hsl(142_71%_45%)] bg-[hsl(142_76%_90%)]"
           : "border-accent bg-accent/10",
       )}
       style={{ boxShadow: "4px 4px 0px 0px hsl(var(--border))" }}

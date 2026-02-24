@@ -48,6 +48,7 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
   }
 
   if (lesson.state === "exercise" && lesson.currentExercise) {
+    const qd = lesson.currentExercise.questionData as any;
     return (
       <div className="flex flex-col min-h-screen">
         <LessonProgress
@@ -56,8 +57,9 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
           onExit={onExit}
         />
         <ExerciseRenderer
+          key={lesson.currentExercise.id}
           exercise={lesson.currentExercise}
-          onAnswer={(answer, isCorrect) => lesson.submitAnswer(isCorrect)}
+          onAnswer={(_answer, isCorrect) => lesson.submitAnswer(isCorrect)}
           disabled={false}
         />
       </div>
@@ -65,6 +67,11 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
   }
 
   if (lesson.state === "feedback") {
+    const feedbackExercise = lesson.currentExercise;
+    const feedbackQd = feedbackExercise?.questionData as any;
+    const explanation = feedbackQd?.explanation;
+    const explanationEs = feedbackQd?.explanation_es;
+    const mascot = (feedbackExercise?.mascot as "caldi" | "goat") ?? "caldi";
     return (
       <div className="flex flex-col min-h-screen">
         <LessonProgress
@@ -75,6 +82,8 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
         <div className="flex-1 flex items-end">
           <ExerciseFeedback
             isCorrect={lesson.lastAnswerCorrect ?? false}
+            explanation={explanation}
+            mascot={mascot}
             onContinue={lesson.nextExercise}
           />
         </div>

@@ -33,6 +33,7 @@ export const ROUTES = {
   contactFeedback: "/contact_feedback",
   profile: "/profile",
   blog: "/brew-log",
+  admin: "/admin",
 } as const;
 
 export const NAV_LINKS = [

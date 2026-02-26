@@ -239,6 +239,16 @@ This file tracks all discussed but unimplemented features, organized by priority
 - ✅ Browser locale auto-detection
 - ✅ Dashboard customizable widgets
 
+### Phase L1-L5: Learning Module ✅
+
+- ✅ Database schema (13 tables, RLS, triggers, seeds)
+- ✅ UI components (pages, tracks, lessons, exercises, mascots)
+- ✅ 12 exercise templates (knowledge + applied)
+- ✅ Gamification integration (streaks, XP, hearts, leagues, achievements)
+- ✅ MVP content: Brewing Science S1 (4 units, 12 lessons, 72 exercises)
+- ✅ Track navigation (TrackPathView with lesson status indicators)
+- ✅ Gamification i18n keys (EN/ES)
+
 ### Phase 8: Shopify Integration (Future)
 
 - Enable Shopify Basic + Webkul Multi-Vendor
@@ -246,7 +256,7 @@ This file tracks all discussed but unimplemented features, organized by priority
 - Connect Shopify Storefront API to frontend
 - **Validation Gate**: First real orders processed
 
-### Phase 8: AI Personalization (Future)
+### Phase 9: AI Personalization (Future)
 
 - AI search ranking based on user profile
 - "You might like" recommendations
@@ -280,27 +290,38 @@ This file tracks all discussed but unimplemented features, organized by priority
 | Feedback System | 7 | In-app feedback with rating |
 | Manual Coffee Add | 7 | Form-based coffee entry |
 | Scan Error Reports | 7 | Report AI scan inaccuracies |
-| i18n (EN/ES) | 7 | Full bilingual support (~400 keys) |
+| i18n (EN/ES) | 7 | Full bilingual support (~460+ keys) |
 | Dashboard Widgets | 7 | Customizable widget grid |
 | Multi-Image Scanner | 7+ | Up to 4 photos per scan, client-side stitching |
 | Coffee Profile Gallery | 7+ | Amazon-style image gallery with thumbnails |
 | Color-Coded Flavor Notes | 7+ | Yellow (AI) vs teal (user) badge colors |
+| Learning DB Schema | L1 | 13 tables, RLS, triggers |
+| Learning UI Components | L2 | Pages, tracks, lessons, mascots |
+| Exercise Templates | L3 | 12 interactive exercise types |
+| Gamification Integration | L4 | Streaks, XP, hearts, leagues, achievements |
+| MVP Content (Brewing S1) | L5 | 4 units, 12 lessons, 72 exercises |
+| Track Navigation | L5 | TrackPathView with status indicators |
 
 ### Upcoming Features
 
 | Priority | Feature | Phase | Description |
 |----------|---------|-------|-------------|
+| 🔴 High | Learning Content (S2-S4) | L5+ | Remaining Brewing Science sections |
+| 🔴 High | Learning Content (Other Tracks) | L5+ | History & Culture, Bean Knowledge, Sustainability |
 | 🔴 High | Shopify Enable | 8 | Connect Shopify Basic with Webkul |
 | 🔴 High | Checkout Flow | 8 | Shopify checkout integration |
 | 🔴 High | Vendor Onboarding | 8 | Guide for roasters to join |
+| 🟡 Medium | Spaced Repetition | L6 | Review weak exercises based on history |
+| 🟡 Medium | League Weekly Reset | L+ | Scheduled function for league rotation |
+| 🟡 Medium | Content Admin Panel | L+ | Browse/preview/import content UI |
 | 🟡 Medium | AI Recommendations | 9 | "You might like" suggestions |
 | 🟡 Medium | Search Ranking | 9 | Personalized results |
 | 🟡 Medium | Wishlist | - | Save products for later |
-| 🟡 Medium | Order Confirmation | 8 | Post-purchase page |
 | 🟡 Medium | Additional Languages | - | PT-BR, FR, IT support |
+| 🟢 Low | Streak Freeze Logic | L+ | Use streak freezes on missed days |
+| 🟢 Low | Gems/Premium System | L+ | Premium features with payment |
 | 🟢 Low | Animations | - | Bouncy micro-interactions |
 | 🟢 Low | Dark Mode Toggle | - | UI toggle with persistence |
-| 🟢 Low | Testing Suite | - | Unit tests per TDD mandate |
 | 🟢 Low | PWA Support | - | Offline capability |
 
 ---
@@ -327,6 +348,11 @@ This file tracks all discussed but unimplemented features, organized by priority
 | `/profile` | ProfilePage | 5 | ✅ Complete |
 | `/feedback` | FeedbackPage | 7 | ✅ Complete |
 | `/blog` | BlogPage | 7 | ✅ Complete |
+| `/learn` | LearnPage | L2 | ✅ Complete |
+| `/learn/:trackId` | TrackPage | L2 | ✅ Complete |
+| `/learn/:trackId/:lessonId` | LessonPage | L2 | ✅ Complete |
+| `/learn/achievements` | AchievementsPage | L4 | ✅ Complete |
+| `/learn/leaderboard` | LeaderboardPage | L4 | ✅ Complete |
 | `/checkout` | CheckoutRedirect | 8 | 🔲 Planned |
 
 ---
@@ -384,4 +410,15 @@ The project follows a B2B2C architectural model:
 
 ---
 
-*Last Updated: 2026-02-20*
+### Learning Module Architecture
+
+- **Content hierarchy**: Tracks → Sections → Units → Lessons → Exercises
+- **Gamification**: Streaks, XP (with bonuses), Hearts (lives), 7-tier Leagues, Achievements
+- **Content seeding**: Direct SQL migrations (Option A); JSON importer deferred
+- **Batch queries**: `getUnitsBySectionIds`, `getLessonsByUnitIds` prevent N+1 issues
+- **Anonymous-first**: Guests can try lessons; prompted to sign up after 3
+- **RPC for atomicity**: `update_streak_and_xp` handles concurrent streak/XP updates
+
+---
+
+*Last Updated: 2026-02-26*

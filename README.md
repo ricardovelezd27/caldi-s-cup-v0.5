@@ -21,7 +21,7 @@
 ## Project Status
 
 **Architecture:** Modular Monolith (React + Vite + Tailwind CSS + TypeScript + Lovable Cloud)  
-**Phase:** Phase 7+ Complete (Multi-Image Scanner, i18n, Recipes, Feedback, User Ratings)  
+**Phase:** Learning Module Phase 5 Complete (Content Population & Track Navigation)  
 **Model:** B2B2C Platform (Consumers + Roasters + Admins)
 
 ### Feature Completion
@@ -52,6 +52,12 @@
 | Scan Error Reports | ✅ Complete | 7 |
 | Multi-Image Scanner | ✅ Complete | 7+ |
 | Coffee Profile Gallery | ✅ Complete | 7+ |
+| Learning Module Schema | ✅ Complete | L1 |
+| Learning UI Components | ✅ Complete | L2 |
+| Exercise Templates (12 types) | ✅ Complete | L3 |
+| Gamification Integration | ✅ Complete | L4 |
+| MVP Content (Brewing Science S1) | ✅ Complete | L5 |
+| Track Navigation (TrackPathView) | ✅ Complete | L5 |
 
 ---
 
@@ -109,10 +115,13 @@
 │  │  │ coffee_ │ │ user_   │ │dashboard│ │user_cof │ │scan_err │    │  │
 │  │  │ scans   │ │ roles   │ │_widgets │ │_ratings │ │_reports │    │  │
 │  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └─────────┘    │  │
-│  │  ┌─────────┐ ┌─────────┐                                         │  │
-│  │  │feedback │ │user_cof │                                         │  │
-│  │  │         │ │_inv/fav │                                         │  │
-│  │  └─────────┘ └─────────┘                                         │  │
+│  │  ┌─────────┐ ┌─────────┐ ┌──────────────────────────────────┐    │  │
+│  │  │feedback │ │user_cof │ │  LEARNING MODULE (13 tables)    │    │  │
+│  │  │         │ │_inv/fav │ │  learning_tracks/sections/units │    │  │
+│  │  └─────────┘ └─────────┘ │  learning_lessons/exercises     │    │  │
+│  │                           │  learning_user_progress/streaks │    │  │
+│  │                           │  learning_leagues/achievements  │    │  │
+│  │                           └──────────────────────────────────┘    │  │
 │  └──────────────────────────────────────────────────────────────────┘  │
 │                                                                         │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
@@ -577,16 +586,32 @@ src/features/
 │   └── hooks/
 │       └── useUsageSummary.ts       # Collect usage context
 
-└── profile/                         # User Profile
+├── profile/                         # User Profile
+│   ├── components/
+│   │   ├── ProfileHero.tsx          # Avatar + cover
+│   │   ├── TribeSection.tsx         # Coffee tribe display
+│   │   ├── FavoritesTable.tsx       # Favorite coffees
+│   │   ├── InventoryTable.tsx       # Coffee inventory
+│   │   ├── ProfileInfoForm.tsx      # Edit profile
+│   │   ├── ChangePasswordForm.tsx   # Password update
+│   │   └── RetakeQuizSection.tsx    # Retake quiz CTA
+│   └── ProfilePage.tsx              # Full profile page
+│
+└── learning/                        # Duolingo-Style Learning Module
     ├── components/
-    │   ├── ProfileHero.tsx          # Avatar + cover
-    │   ├── TribeSection.tsx         # Coffee tribe display
-    │   ├── FavoritesTable.tsx       # Favorite coffees
-    │   ├── InventoryTable.tsx       # Coffee inventory
-    │   ├── ProfileInfoForm.tsx      # Edit profile
-    │   ├── ChangePasswordForm.tsx   # Password update
-    │   └── RetakeQuizSection.tsx    # Retake quiz CTA
-    └── ProfilePage.tsx              # Full profile page
+    │   ├── exercises/               # 12 exercise types
+    │   │   ├── base/                # ExerciseWrapper, CheckButton, Feedback
+    │   │   ├── knowledge/           # MultipleChoice, TrueFalse, FillInBlank...
+    │   │   └── applied/             # Calculation, Prediction, Troubleshooting...
+    │   ├── gamification/            # Streaks, XP, Hearts, Leagues, Achievements
+    │   ├── lesson/                  # LessonScreen, LessonComplete, LessonProgress
+    │   ├── mascot/                  # MascotCharacter, MascotDialogue, Reaction
+    │   └── track/                   # TrackCard, TrackGrid, TrackPathView
+    ├── hooks/                       # useLesson, useStreak, useXP, useHearts...
+    ├── services/                    # learningService, progressService, xpService
+    ├── pages/                       # LearnPage, TrackPage, LessonPage
+    ├── data/                        # Mascot dialogues, daily goals
+    └── types/                       # LearningTrack, LearningLesson, etc.
 ```
 
 ### Authentication Flow
@@ -816,12 +841,23 @@ npm run dev
 The app supports **English** and **Spanish** with full bilingual coverage:
 
 - **Auto-detection**: Language defaults to browser locale (`navigator.language`)
-- **Dictionary files**: `src/i18n/en.ts` and `src/i18n/es.ts` (~400 keys each)
+- **Dictionary files**: `src/i18n/en.ts` and `src/i18n/es.ts` (~460+ keys each)
 - **Context**: `LanguageContext` provides `t()` translation helper and `setLanguage()`
-- **Coverage**: All user-facing pages (Auth, Quiz, Scanner, Coffee Profile, Dashboard, Profile, Marketplace)
-- **Dynamic data**: Tribe names, quiz scenarios, and scanner tips are translated via i18n keys
+- **Coverage**: All user-facing pages including Learning Module gamification
+- **Dynamic data**: Tribe names, quiz scenarios, scanner tips, and gamification strings translated
 - **Selector**: Language toggle in UserMenu (desktop) and burger menu (mobile)
+
+### Learning Module
+
+Duolingo-style coffee education system with gamification:
+
+- **Content hierarchy**: Tracks → Sections → Units → Lessons → Exercises
+- **12 exercise types**: Multiple choice, true/false, fill-in-blank, matching pairs, calculation, prediction, sequencing, categorization, image identification, troubleshooting, recipe building, comparison
+- **Gamification**: Streaks, XP with bonuses (perfect/speed/streak), hearts (lives), 7-tier leagues, milestone achievements
+- **MVP content**: Brewing Science track, Section 1 (Extraction Fundamentals) — 4 units, 12 lessons, 72 exercises
+- **Anonymous-first**: Guests can try lessons before signing up; progress migrates on auth
+- **Mascots**: Caldi ☕ and The Goat 🐐 provide contextual dialogue and reactions
 
 ---
 
-*Last Updated: 2026-02-20*
+*Last Updated: 2026-02-26*

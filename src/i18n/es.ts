@@ -283,7 +283,7 @@ export const es = {
     signUp: "Regístrate",
     hasAccount: "¿Ya tienes cuenta?",
     signInLink: "Inicia sesión",
-    invalidCredentials: "Email o contraseña inválidos. Intenta de nuevo.",
+    orContinueWith: "o continúa con",
     emailNotConfirmed: "Por favor verifica tu email antes de iniciar sesión.",
     unexpectedError: "Ocurrió un error inesperado. Intenta de nuevo.",
     userExists: "Ya existe una cuenta con este email. Inicia sesión.",

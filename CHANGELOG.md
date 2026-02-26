@@ -4,6 +4,55 @@ All notable changes to Caldi's Cup are documented here.
 
 ---
 
+## [2.0.0] - 2026-02-26 - Learning Module Complete (Phases L1-L5)
+
+### Added
+- **Learning Module Database** (Phase L1):
+  - 13 tables: tracks, sections, units, lessons, exercises, user progress, streaks, leagues, achievements, daily goals, exercise history, user league, user achievements
+  - RLS policies for public content reads and user-scoped progress writes
+  - `update_streak_and_xp` RPC function for atomic streak/XP updates
+
+- **Learning UI Components** (Phase L2):
+  - `LearnPage` with track grid, `TrackPage` with section/unit path view
+  - `LessonPage` with state machine (`useLesson`) managing intro → exercises → completion
+  - Mascot system: Caldi ☕ and The Goat 🐐 with context-aware dialogues and reactions
+  - Anonymous-first flow: guests can try lessons, prompted to sign up after 3
+
+- **12 Exercise Templates** (Phase L3):
+  - Knowledge: MultipleChoice, TrueFalse, FillInBlank, MatchingPairs, Sequencing, ImageIdentification, Categorization
+  - Applied: Calculation, Prediction, Troubleshooting, RecipeBuilding, Comparison
+  - Base components: ExerciseWrapper, CheckButton, ExerciseFeedback, ExerciseOption
+
+- **Gamification Integration** (Phase L4):
+  - Hearts system: deduct on wrong answers, show HeartsEmptyModal at 0, auto-refill every 4h
+  - XP calculation with bonuses: base + perfect lesson + speed + streak length + first-of-day
+  - Streak tracking via RPC, daily goal progress, weekly league XP
+  - Achievement unlock checks on lesson completion
+  - LessonComplete shows XP breakdown and achievement modals
+  - HeartsDisplay added to lesson progress header
+  - Exercise history recorded per attempt for future spaced repetition
+  - ~55 gamification i18n keys added (EN/ES)
+
+- **MVP Content Population** (Phase L5):
+  - Brewing Science → Section 1: Extraction Fundamentals (SQL seed)
+  - 4 units: Alchemy of the Bean, Extraction Timeline, Under vs Over, The Balanced Cup
+  - 12 lessons, 72 exercises across all 12 types
+  - Full bilingual question_data JSONB (EN/ES)
+
+- **Track Navigation Fix** (Phase L5):
+  - `useTrackPath` hook fetches units/lessons with batch queries (N+1 prevention)
+  - `TrackPathView` renders vertical lesson path with status indicators
+  - Lesson statuses: completed (green ✓), available (teal pulse), locked (gray 🔒)
+
+### Changed
+- `learningService.ts`: Added `getUnitsBySectionIds`, `getLessonsByUnitIds`, `getLessonById`
+- `useLesson` hook: Now fetches lesson metadata and records exercise history
+- `LessonScreen`: Fully wired to gamification services on completion
+- `LessonProgress`: Now includes HeartsDisplay component
+- i18n dictionaries expanded to ~460+ keys each
+
+---
+
 ## [1.1.0] - 2026-02-20 - Multi-Image Scanner & Coffee Profile Gallery
 
 ### Added
@@ -321,4 +370,4 @@ All notable changes to Caldi's Cup are documented here.
 
 ---
 
-*Last Updated: 2026-02-20*
+*Last Updated: 2026-02-26*

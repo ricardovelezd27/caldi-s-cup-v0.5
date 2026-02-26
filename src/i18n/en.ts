@@ -301,6 +301,7 @@ export const en = {
     userExists: "An account with this email already exists. Please sign in instead.",
     passwordTooShort: "Password must be at least 8 characters long.",
     yourName: "Your name",
+    orContinueWith: "or continue with",
   },
   profile: {
     title: "My Profile",

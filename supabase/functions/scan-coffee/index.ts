@@ -382,7 +382,9 @@ serve(async (req) => {
     // Step 2: Get tribe keywords for personalization
     const tribeKeywords = userTribe ? TRIBE_KEYWORDS[userTribe] || [] : [];
     const tribeContext = tribeKeywords.length > 0 
-      ? `\n\nThe user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}. Consider these when calculating the tribe match score.`
+      ? `\n\nThe user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
+IMPORTANT: When assessing tribe alignment, evaluate ONLY based on this coffee's own variety, processing method, roast level, origin, and flavor notes.
+Do NOT let references to other varietals or methods in jargon explanations influence the match assessment. For example, if the variety is "Caturra", do not count "Bourbon" as a match just because Caturra descends from Bourbon.`
       : "";
 
     // Step 3: Call Gemini AI for image analysis
@@ -548,11 +550,25 @@ Respond ONLY with the JSON object, no additional text.`;
     const matchReasons: string[] = [];
 
     if (userTribe && tribeKeywords.length > 0) {
-      const allText = JSON.stringify(sanitizedData).toLowerCase();
+      // Build search text from ONLY the coffee's actual identifying attributes
+      // Excludes jargonExplanations, brandStory, awards, and numeric scores
+      // to prevent educational references from inflating tribe match scores
+      const attributeText = [
+        sanitizedData.coffeeName,
+        sanitizedData.brand,
+        sanitizedData.variety,
+        sanitizedData.processingMethod,
+        sanitizedData.legacyRoastLevel,
+        sanitizedData.originCountry,
+        sanitizedData.originRegion,
+        sanitizedData.originFarm,
+        ...sanitizedData.flavorNotes,
+      ].filter(Boolean).join(" ").toLowerCase();
+
       let matches = 0;
       
       for (const keyword of tribeKeywords) {
-        if (allText.includes(keyword.toLowerCase())) {
+        if (attributeText.includes(keyword.toLowerCase())) {
           matches++;
           matchReasons.push(`Contains "${keyword}"`);
         }

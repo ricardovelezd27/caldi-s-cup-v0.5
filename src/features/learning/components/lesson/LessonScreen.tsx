@@ -9,7 +9,7 @@ import { useAchievements } from "../../hooks/useAchievements";
 import { calculateLessonXP } from "../../services/xpService";
 import { updateStreakViaRPC, addXPToDaily } from "../../services/streakService";
 import { addWeeklyXP } from "../../services/leagueService";
-import { upsertLessonProgress } from "../../services/progressService";
+import { upsertLessonProgress, getLessonProgress } from "../../services/progressService";
 import { LessonIntro } from "./LessonIntro";
 import { LessonProgress } from "./LessonProgress";
 import { LessonComplete } from "./LessonComplete";

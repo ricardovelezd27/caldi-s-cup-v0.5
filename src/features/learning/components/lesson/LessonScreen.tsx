@@ -30,7 +30,7 @@ interface LessonScreenProps {
 }
 
 export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonScreenProps) {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const lesson = useLesson(lessonId);
   const anonymousProgress = useAnonymousProgress();
   const { hearts, maxHearts, hasHearts, loseHeart, isLoading: heartsLoading } = useHearts();

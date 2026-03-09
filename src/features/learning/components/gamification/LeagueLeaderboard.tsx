@@ -2,11 +2,21 @@ import { useLanguage } from "@/contexts/language";
 import { useLeague } from "../../hooks/useLeague";
 import { useAuth } from "@/contexts/auth";
 import { cn } from "@/lib/utils";
+import { BARISTA_RANKS, useUserRank } from "@/features/gamification";
 
 export function LeagueLeaderboard() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { league, leaderboard, daysRemaining, isLoading } = useLeague();
+  const { currentRank } = useUserRank();
+
+  const getRankIcon = (xp: number) => {
+    let icon = BARISTA_RANKS[0].icon;
+    for (let i = BARISTA_RANKS.length - 1; i >= 0; i--) {
+      if (xp >= BARISTA_RANKS[i].minXP) { icon = BARISTA_RANKS[i].icon; break; }
+    }
+    return icon;
+  };
 
   if (isLoading) {
     return <p className="text-center text-muted-foreground font-inter py-8">{t("common.loading")}</p>;
@@ -62,7 +72,7 @@ export function LeagueLeaderboard() {
               >
                 #{entry.rank}
               </span>
-              <span className="text-xl">👤</span>
+              <span className="text-xl">{isMe ? currentRank.icon : getRankIcon(entry.weeklyXp)}</span>
               <span className="flex-1 text-sm text-foreground truncate">
                 {isMe ? "You" : `User ${entry.rank}`}
               </span>

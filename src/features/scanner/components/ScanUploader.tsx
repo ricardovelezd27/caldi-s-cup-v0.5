@@ -155,7 +155,7 @@ export function ScanUploader({ onImagesReady, disabled }: ScanUploaderProps) {
           {t('scanner.photosAdded').replace('{{count}}', String(images.length))}
         </p>
 
-        <div className="flex gap-3 justify-center">
+        <div className="flex flex-wrap gap-3 justify-center">
           <Button onClick={handleScanNow} disabled={disabled} className="gap-2">
             <ScanLine className="h-4 w-4" />
             {t('scanner.scanNow')}

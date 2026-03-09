@@ -112,6 +112,18 @@ export default function ImportUnitModal({ open, onClose, sectionId, existingUnit
               className="font-mono text-xs min-h-[300px]"
               spellCheck={false}
             />
+            <div className="flex items-center gap-3">
+              <Switch id="override-mode" checked={overrideMode} onCheckedChange={setOverrideMode} />
+              <Label htmlFor="override-mode" className="text-sm font-medium cursor-pointer">Override existing content</Label>
+            </div>
+            {overrideMode && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  This will delete all existing lessons and exercises in the target unit before importing.
+                </AlertDescription>
+              </Alert>
+            )}
             {validation && !validation.valid && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />

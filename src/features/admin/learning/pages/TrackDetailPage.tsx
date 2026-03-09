@@ -76,9 +76,15 @@ export default function TrackDetailPage() {
 
       {track && (
         <div className="space-y-1">
-          <h2 className="font-heading text-2xl flex items-center gap-2">
-            <span>{track.icon}</span> {track.name}
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-heading text-2xl flex items-center gap-2">
+              <span>{track.icon}</span> {track.name}
+            </h2>
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
+              <Download className="h-3 w-3 mr-1" />
+              {exporting ? "Exporting…" : "Export Track JSON"}
+            </Button>
+          </div>
           <p className="text-sm text-muted-foreground">{track.description}</p>
         </div>
       )}

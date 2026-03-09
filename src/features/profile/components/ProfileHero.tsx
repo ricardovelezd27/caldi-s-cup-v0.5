@@ -9,6 +9,8 @@ import { Pencil, Check, X, Camera, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/language";
+import { useUserRank } from "@/features/gamification";
+import { Progress } from "@/components/ui/progress";
 import caldiLogo from "/lovable-uploads/8e78a6bd-5f00-45be-b082-c35b57fa9a7c.png";
 
 export function ProfileHero() {

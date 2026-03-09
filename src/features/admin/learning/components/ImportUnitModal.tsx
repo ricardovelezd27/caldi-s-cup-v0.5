@@ -50,6 +50,15 @@ export default function ImportUnitModal({ open, onClose, sectionId, existingUnit
 
       const insertedUnit = await upsertUnit(unitRow);
 
+      // Override: delete existing nested content before inserting
+      if (overrideMode) {
+        const existingLessons = await getAdminLessons(insertedUnit.id);
+        for (const el of existingLessons) {
+          await deleteExercisesByLessonId(el.id);
+          await deleteEntity("learning_lessons", el.id);
+        }
+      }
+
       for (const { lessonRow, exercises } of lessons) {
         const insertedLesson = await upsertLesson({
           ...lessonRow,

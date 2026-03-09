@@ -143,6 +143,10 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
     } finally {
       setIsProcessingComplete(false);
       refreshProfile();
+      // Navigate if no achievements to show
+      if (newAchievements.length === 0) {
+        onComplete();
+      }
     }
   }, [user, lesson, lessonId, streak, anonymousProgress, onComplete, addDailyXP, checkAndUnlockAchievements]);
 

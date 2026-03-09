@@ -15,7 +15,7 @@ import { LessonIntro } from "./LessonIntro";
 import { LessonProgress } from "./LessonProgress";
 import { LessonComplete } from "./LessonComplete";
 import { ExerciseRenderer } from "./ExerciseRenderer";
-import { ExerciseFeedback } from "../exercises/base/ExerciseFeedback";
+import { BottomActionBar } from "../exercises/base/BottomActionBar";
 import { SignupPrompt } from "../gamification/SignupPrompt";
 import { HeartsEmptyModal } from "../gamification/HeartsEmptyModal";
 import { AchievementUnlock } from "../gamification/AchievementUnlock";
@@ -47,14 +47,12 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
   const [isProcessingComplete, setIsProcessingComplete] = useState(false);
   const [isReview, setIsReview] = useState(false);
 
-  // Handle wrong answer: deduct heart for authenticated users
   const handleSubmitAnswer = useCallback(
     (answer: any, isCorrect: boolean) => {
       lesson.submitAnswer(isCorrect, answer);
 
       if (!isCorrect && user) {
         loseHeart().then(() => {
-          // Check if hearts depleted (use current - 1 since mutation is async)
           if (hearts <= 1) {
             setShowHeartsEmpty(true);
           }
@@ -79,7 +77,6 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
 
     setIsProcessingComplete(true);
     try {
-      // Check if this is a review (lesson already completed)
       const existingProgress = await getLessonProgress(user.id, lessonId);
       const isReviewAttempt = !!existingProgress?.isCompleted;
       setIsReview(isReviewAttempt);
@@ -90,7 +87,6 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
       const today = new Date().toISOString().split("T")[0];
       const isFirstToday = streak?.lastActivityDate !== today;
 
-      // 1. Calculate XP (reduced base for reviews)
       const xpCalc = calculateLessonXP(
         baseXpReward,
         lesson.score.correct,
@@ -101,14 +97,12 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
       );
       setXpResult(xpCalc);
 
-      // 2-4. Update streak + daily goal + league (parallel)
       const [streakResult] = await Promise.all([
         updateStreakViaRPC(user.id, xpCalc.totalXP),
         addXPToDaily(user.id, xpCalc.totalXP),
-        addWeeklyXP(user.id, xpCalc.totalXP).catch(() => {}), // Non-critical
+        addWeeklyXP(user.id, xpCalc.totalXP).catch(() => {}),
       ]);
 
-      // 5. Sync XP to profiles.total_xp (incremental)
       const { data: currentProfile } = await supabase
         .from("profiles")
         .select("total_xp")
@@ -120,7 +114,6 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
         .update({ total_xp: newTotalXp })
         .eq("id", user.id);
 
-      // 5. Save lesson progress
       const scorePercent =
         lesson.score.total > 0
           ? Math.round((lesson.score.correct / lesson.score.total) * 100)
@@ -137,7 +130,6 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
         xpEarned: xpCalc.totalXP,
       });
 
-      // 6. Check achievements
       const unlocked = await checkAndUnlockAchievements({
         currentStreak: streakResult.currentStreak,
         totalLessonsCompleted: streakResult.totalLessonsCompleted,
@@ -176,9 +168,15 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
     return <LessonIntro onStart={lesson.startLesson} />;
   }
 
-  if (lesson.state === "exercise" && lesson.currentExercise) {
+  // Merged exercise + feedback state: exercise stays visible, feedback bar overlays
+  if ((lesson.state === "exercise" || lesson.state === "feedback") && lesson.currentExercise) {
+    const isFeedback = lesson.state === "feedback";
+    const feedbackQd = lesson.currentExercise?.questionData as any;
+    const explanation = feedbackQd?.explanation;
+    const mascot = (lesson.currentExercise?.mascot as "caldi" | "goat") ?? "caldi";
+
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="min-h-[100dvh] flex flex-col bg-background">
         <LessonProgress
           current={lesson.currentIndex + 1}
           total={lesson.exercises.length}
@@ -186,43 +184,27 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
           hearts={user ? hearts : undefined}
           maxHearts={user ? maxHearts : undefined}
         />
-        <ExerciseRenderer
-          key={lesson.currentExercise.id}
-          exercise={lesson.currentExercise}
-          onAnswer={handleSubmitAnswer}
-          disabled={!hasHearts && !!user}
-        />
+        <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col">
+          <ExerciseRenderer
+            key={lesson.currentExercise.id}
+            exercise={lesson.currentExercise}
+            onAnswer={handleSubmitAnswer}
+            disabled={(!hasHearts && !!user) || isFeedback}
+          />
+        </div>
+        {isFeedback && (
+          <BottomActionBar
+            state={lesson.lastAnswerCorrect ? "correct" : "incorrect"}
+            onClick={lesson.nextExercise}
+            explanation={explanation}
+            mascot={mascot}
+          />
+        )}
         <HeartsEmptyModal
           open={showHeartsEmpty}
           onOpenChange={setShowHeartsEmpty}
           timeUntilNextHeart={null}
         />
-      </div>
-    );
-  }
-
-  if (lesson.state === "feedback") {
-    const feedbackExercise = lesson.currentExercise;
-    const feedbackQd = feedbackExercise?.questionData as any;
-    const explanation = feedbackQd?.explanation;
-    const mascot = (feedbackExercise?.mascot as "caldi" | "goat") ?? "caldi";
-    return (
-      <div className="flex flex-col min-h-screen">
-        <LessonProgress
-          current={lesson.currentIndex + 1}
-          total={lesson.exercises.length}
-          onExit={onExit}
-          hearts={user ? hearts : undefined}
-          maxHearts={user ? maxHearts : undefined}
-        />
-        <div className="flex-1 flex items-end">
-          <ExerciseFeedback
-            isCorrect={lesson.lastAnswerCorrect ?? false}
-            explanation={explanation}
-            mascot={mascot}
-            onContinue={lesson.nextExercise}
-          />
-        </div>
       </div>
     );
   }

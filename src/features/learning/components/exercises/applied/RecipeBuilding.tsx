@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/language";
-import { CheckButton } from "../base/CheckButton";
+import { BottomActionBar } from "../base/BottomActionBar";
 import { sounds } from "../../../utils/sounds";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -55,7 +55,7 @@ export function RecipeBuilding({ data, onSubmit, disabled }: Props) {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex-1 px-4 py-6 space-y-5">
+      <div className="flex-1 px-4 py-6 space-y-5 pb-24">
         <div className="flex items-center gap-2">
           <span className="text-2xl">☕</span>
           <h3 className="font-bangers text-xl text-foreground">{data.method}</h3>
@@ -95,7 +95,7 @@ export function RecipeBuilding({ data, onSubmit, disabled }: Props) {
           );
         })}
       </div>
-      {!disabled && !submitted && <CheckButton state={btnState} onClick={handleCheck} />}
+      {!disabled && !submitted && <BottomActionBar state={btnState} onClick={handleCheck} />}
     </div>
   );
 }

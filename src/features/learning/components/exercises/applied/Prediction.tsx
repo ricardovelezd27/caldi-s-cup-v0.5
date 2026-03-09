@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/language";
 import { ExerciseOption } from "../base/ExerciseOption";
-import { CheckButton } from "../base/CheckButton";
+import { BottomActionBar } from "../base/BottomActionBar";
 import { sounds } from "../../../utils/sounds";
 
 interface PredData {
@@ -43,18 +43,18 @@ export function Prediction({ data, onSubmit, disabled }: Props) {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex-1 px-4 py-6 space-y-4">
+      <div className="flex-1 px-4 py-6 space-y-4 pb-24">
         <div className="flex items-center gap-2">
           <span className="text-2xl">🔮</span>
           <span className="font-bangers text-sm uppercase text-muted-foreground">{t("learn.exercise.predict")}</span>
         </div>
-        <div className="rounded-lg border-4 border-accent/40 bg-accent/5 p-4"
-          style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}>
+        <div className="rounded-xl border-2 border-accent/40 bg-accent/5 p-4"
+          style={{ boxShadow: "0 2px 0 0 hsl(var(--border) / 0.2)" }}>
           <p className="text-sm font-inter text-foreground">{scenario}</p>
         </div>
         <p className="text-lg font-inter text-foreground">{question}</p>
-        <div className="space-y-3">
-          {data.options.map((opt, i) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {data.options.map((opt) => {
             const text = language === "es" && opt.text_es ? opt.text_es : opt.text;
             return (
               <ExerciseOption key={opt.id}
@@ -62,7 +62,6 @@ export function Prediction({ data, onSubmit, disabled }: Props) {
                 isCorrect={submitted ? (opt.id === data.correct_answer ? true : selected === opt.id ? false : null) : null}
                 isDisabled={disabled || submitted}
                 onClick={() => setSelected(opt.id)}
-                letterIndex={i}
               >
                 {text}
               </ExerciseOption>
@@ -70,7 +69,7 @@ export function Prediction({ data, onSubmit, disabled }: Props) {
           })}
         </div>
       </div>
-      {!disabled && !submitted && <CheckButton state={btnState} onClick={handleCheck} />}
+      {!disabled && !submitted && <BottomActionBar state={btnState} onClick={handleCheck} />}
     </div>
   );
 }

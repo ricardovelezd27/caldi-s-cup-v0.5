@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import { ProfileAvatar } from "./ProfileAvatar";
-import { getTribeDefinition, type CoffeeTribe } from "@/features/quiz";
 import { getTribeCoverStyle } from "../utils/tribeCoverStyles";
+import type { CoffeeTribe } from "@/features/quiz";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Pencil, Check, X, Camera, Loader2 } from "lucide-react";
@@ -10,6 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/language";
 import { ProfileRankRow } from "./ProfileRankRow";
+import { StreakDisplay } from "@/features/learning/components/gamification/StreakDisplay";
+import { DailyGoalRing } from "@/features/learning/components/gamification/DailyGoalRing";
+import { useStreak } from "@/hooks/gamification/useStreak";
+import { useDailyGoal } from "@/features/learning/hooks/useDailyGoal";
 import caldiLogo from "/lovable-uploads/8e78a6bd-5f00-45be-b082-c35b57fa9a7c.png";
 
 export function ProfileHero() {

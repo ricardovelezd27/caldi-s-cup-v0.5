@@ -1,81 +1,40 @@
 
 
-# Fix: Scanner Tribe Match Hallucination (Prompt + Matching Logic)
+# Fix: Update 4 Coffees from Error Reports and Mark Resolved
 
-## Root Cause
+## Data gathered
 
-Line 551 serializes the **entire** `sanitizedData` object (including `jargonExplanations` and `brandStory`) into one string for keyword matching:
+| # | Coffee ID | Current Name | Current Brand | Fix |
+|---|-----------|-------------|---------------|-----|
+| 1 | `e70fe406-20f4-4322-b143-e81950509d67` | Peaberry Lavado | Kafe ROASTERS | Brand → `Okafe` |
+| 2 | `c4e6ec00-70ca-4d7b-bef3-2425097f9b4b` | Unknown Coffee | Tucán | Name → `Tucán`, Brand → `Nica Brewer Roaster` |
+| 3 | `6215a64f-7538-4558-b6b9-fd23c555e52d` | TASSE TOI | (null) | Brand → `2AM` |
+| 4 | `6037afe1-41d0-453f-bf7d-7718c849ec85` | Cherry Induced Addiction | VHS COFFEE SOURCING | Brand → `People Possesion` |
 
-```typescript
-const allText = JSON.stringify(sanitizedData).toLowerCase();
+Error report IDs to delete: `0e1ab0fb`, `797a7d12`, `c49b3d05`, `09502ce5`, `b73577c2`
+
+## Changes
+
+### 1. Database data updates (via insert/update tool)
+
+Four UPDATE statements on `coffees` table, then DELETE the 5 error report rows from `scan_error_reports`:
+
+```sql
+UPDATE coffees SET brand = 'Okafe', updated_at = now() WHERE id = 'e70fe406-20f4-4322-b143-e81950509d67';
+UPDATE coffees SET name = 'Tucán', brand = 'Nica Brewer Roaster', updated_at = now() WHERE id = 'c4e6ec00-70ca-4d7b-bef3-2425097f9b4b';
+UPDATE coffees SET brand = '2AM', updated_at = now() WHERE id = '6215a64f-7538-4558-b6b9-fd23c555e52d';
+UPDATE coffees SET brand = 'People Possesion', updated_at = now() WHERE id = '6037afe1-41d0-453f-bf7d-7718c849ec85';
+
+DELETE FROM scan_error_reports WHERE id IN (
+  '0e1ab0fb-42a4-4e62-986a-f6a28cf36189',
+  '797a7d12-c3ff-4e08-8419-04b59c101b74',
+  'c49b3d05-785e-4db8-870f-d29ea2ce4869',
+  '09502ce5-9d14-4aef-8dd5-0bc3b96a86bc',
+  'b73577c2-ceb8-4a63-b36b-7878211225bb'
+);
 ```
 
-When the AI explains *"Caturra is a natural mutation of **Bourbon**"* in jargon, the Owl tribe keywords "Bourbon" and "Typica" match against that educational text -- not the coffee's actual variety (Caturra). This inflates the score from ~30% to ~80%.
+### 2. No code changes needed
 
-## Changes (single file: `supabase/functions/scan-coffee/index.ts`)
-
-### 1. Fix keyword matching to search only coffee attributes (lines 550-568)
-
-Replace `JSON.stringify(sanitizedData)` with a targeted string built from only the coffee's own identifying attributes:
-
-- `coffeeName`, `brand`
-- `variety`, `processingMethod`
-- `legacyRoastLevel` (text roast descriptor)
-- `originCountry`, `originRegion`, `originFarm`
-- `flavorNotes` (joined)
-
-**Excluded** from matching: `jargonExplanations`, `brandStory`, `awards`, numeric scores.
-
-```typescript
-// Build search text from ONLY the coffee's actual attributes
-const attributeText = [
-  sanitizedData.coffeeName,
-  sanitizedData.brand,
-  sanitizedData.variety,
-  sanitizedData.processingMethod,
-  sanitizedData.legacyRoastLevel,
-  sanitizedData.originCountry,
-  sanitizedData.originRegion,
-  sanitizedData.originFarm,
-  ...sanitizedData.flavorNotes,
-].filter(Boolean).join(" ").toLowerCase();
-```
-
-### 2. Strengthen the tribe context in the prompt (line 384-386)
-
-Update the tribe context instruction to tell the AI to assess the match based strictly on the coffee's own extracted attributes, not on educational/descriptive text:
-
-**Before:**
-```
-The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
-Consider these when calculating the tribe match score.
-```
-
-**After:**
-```
-The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
-IMPORTANT: When assessing tribe alignment, evaluate ONLY based on this coffee's own
-variety, processing method, roast level, origin, and flavor notes.
-Do NOT let references to other varietals or methods in jargon explanations
-influence the match assessment. For example, if the variety is "Caturra",
-do not count "Bourbon" as a match just because Caturra descends from Bourbon.
-```
-
-### 3. No model change
-
-Keep `google/gemini-2.5-flash` as-is. The hallucination is caused by the matching logic, not the model's extraction accuracy.
-
-## Impact
-
-| Scenario | Before | After |
-|----------|--------|-------|
-| Caturra coffee, Owl tribe | ~80% (false Bourbon/Typica match from jargon) | ~30-50% (correct: no direct Owl keywords in attributes) |
-| Actual Bourbon coffee, Owl tribe | ~80% | ~80% (correct: Bourbon is in variety field) |
-| Natural process coffee, Hummingbird | ~65% | ~65% (unchanged: "Natural" is in processingMethod) |
-
-Works across all 4 tribes since the fix is in the generic matching logic, not tribe-specific code.
-
-## Implementation
-
-Single file edit with 2 changes, auto-deploys as edge function.
+These are data-only fixes. The coffees table RLS allows admin updates, and scan_error_reports allows admin deletes.
 

@@ -204,14 +204,14 @@ export function ProfileHero() {
               </>
             )}
 
-            {tribeDef && !isEditing && tribeName && tribeTitle && (
-              <p className="text-sm text-muted-foreground mt-1">
-                <span className="mr-1">{tribeDef.emoji}</span>
-                {tribeName} — {tribeTitle}
-              </p>
-            )}
-
             {!isEditing && <ProfileRankRow />}
+
+            {!isEditing && (
+              <div className="flex items-center gap-3 mt-2">
+                <StreakDisplay currentStreak={streak?.currentStreak ?? profile.current_streak ?? 0} size="sm" />
+                {goal && <DailyGoalRing earnedXp={goal.earnedXp} goalXp={goal.goalXp} size={44} />}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-1 ml-2 pt-1">

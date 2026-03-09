@@ -26,10 +26,12 @@ export function ProfileHero() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  const { streak } = useStreak();
+  const { goal } = useDailyGoal();
+
   if (!user || !profile) return null;
 
   const tribe = profile.coffee_tribe as CoffeeTribe | null;
-  const tribeDef = tribe ? getTribeDefinition(tribe) : null;
   const coverStyle = getTribeCoverStyle(tribe);
 
   const startEdit = () => {

@@ -150,6 +150,7 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
       console.error("Gamification update failed:", err);
     } finally {
       setIsProcessingComplete(false);
+      refreshProfile();
     }
   }, [
     user,

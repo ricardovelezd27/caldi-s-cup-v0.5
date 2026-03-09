@@ -33,6 +33,7 @@ function ProfileContent() {
                 displayName={profile.display_name}
                 email={user.email}
               />
+              <ProfileRankRow />
               <div>
                 <h2 className="text-xl md:text-2xl mb-3">{t("profile.tribeHeading")}</h2>
                 <TribeSection tribe={profile.coffee_tribe} />

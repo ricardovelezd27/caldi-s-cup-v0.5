@@ -1,81 +1,98 @@
 
 
-# Fix: Scanner Tribe Match Hallucination (Prompt + Matching Logic)
+# Plan: Remove Calculation + Expand Admin Exercise Forms
 
-## Root Cause
+Two tasks: (A) fully purge `calculation` from the platform, and (B) add dedicated admin forms for `prediction`, `troubleshooting`, `categorization`.
 
-Line 551 serializes the **entire** `sanitizedData` object (including `jargonExplanations` and `brandStory`) into one string for keyword matching:
+---
 
-```typescript
-const allText = JSON.stringify(sanitizedData).toLowerCase();
+## A. Remove Calculation Completely
+
+### 1. Delete files
+- `src/features/learning/components/exercises/applied/Calculation.tsx`
+- `src/features/learning/components/exercises/applied/Calculation.test.tsx`
+
+### 2. ExerciseRenderer.tsx
+Already clean -- no calculation references remain from the previous change.
+
+### 3. Types
+`learning.ts` already has calculation removed from `ExerciseType`. The auto-generated `types.ts` still has it in the DB enum -- that requires a DB migration (step 5).
+
+### 4. Admin validation
+`contentValidator.ts` already warns on calculation -- no further change needed.
+
+### 5. Database migration
+Remove the enum value and delete existing calculation exercises:
+
+```sql
+-- Delete any calculation exercises
+DELETE FROM learning_exercises WHERE exercise_type = 'calculation';
+
+-- Remove 'calculation' from the exercise_type enum
+ALTER TYPE learning_exercise_type RENAME TO learning_exercise_type_old;
+CREATE TYPE learning_exercise_type AS ENUM (
+  'multiple_choice','fill_in_blank','true_false',
+  'matching_pairs','sequencing','image_identification',
+  'categorization','troubleshooting','recipe_building',
+  'prediction','comparison'
+);
+ALTER TABLE learning_exercises
+  ALTER COLUMN exercise_type TYPE learning_exercise_type
+  USING exercise_type::text::learning_exercise_type;
+DROP TYPE learning_exercise_type_old;
 ```
 
-When the AI explains *"Caturra is a natural mutation of **Bourbon**"* in jargon, the Owl tribe keywords "Bourbon" and "Typica" match against that educational text -- not the coffee's actual variety (Caturra). This inflates the score from ~30% to ~80%.
+---
 
-## Changes (single file: `supabase/functions/scan-coffee/index.ts`)
+## B. New Admin Sub-Forms
 
-### 1. Fix keyword matching to search only coffee attributes (lines 550-568)
+The existing forms (`TrueFalseForm`, `MultipleChoiceForm`, `FillInBlankForm`, `MatchingPairsForm`, `SequencingForm`) are already built and wired in the `ExerciseEditor` switch. The remaining types that still fall through to `GenericJsonForm` are: `prediction`, `troubleshooting`, `categorization`, `image_identification`, `comparison`, `recipe_building`.
 
-Replace `JSON.stringify(sanitizedData)` with a targeted string built from only the coffee's own identifying attributes:
+This plan covers the three requested: **prediction**, **troubleshooting**, and **categorization**.
 
-- `coffeeName`, `brand`
-- `variety`, `processingMethod`
-- `legacyRoastLevel` (text roast descriptor)
-- `originCountry`, `originRegion`, `originFarm`
-- `flavorNotes` (joined)
+### New files to create
 
-**Excluded** from matching: `jargonExplanations`, `brandStory`, `awards`, numeric scores.
+**`exercise-forms/PredictionForm.tsx`**
+- Mirrors `MultipleChoiceForm` structure but adds Scenario (EN/ES) fields above the question.
+- Schema: `{ scenario, scenario_es, question, question_es, options[]{id, text, text_es}, correct_answer, explanation, explanation_es }`
+- Dynamic options list with radio to select `correct_answer`.
 
-```typescript
-// Build search text from ONLY the coffee's actual attributes
-const attributeText = [
-  sanitizedData.coffeeName,
-  sanitizedData.brand,
-  sanitizedData.variety,
-  sanitizedData.processingMethod,
-  sanitizedData.legacyRoastLevel,
-  sanitizedData.originCountry,
-  sanitizedData.originRegion,
-  sanitizedData.originFarm,
-  ...sanitizedData.flavorNotes,
-].filter(Boolean).join(" ").toLowerCase();
+**`exercise-forms/TroubleshootingForm.tsx`**
+- Similar to Prediction but options have `is_correct: boolean` on each option instead of a global `correct_answer`.
+- Renders a Switch/checkbox per option row to mark it as correct.
+- Fields: `scenario`, `scenario_es`, `question`, `question_es`, `options[]{id, text, text_es, is_correct}`, `explanation`, `explanation_es`.
+
+**`exercise-forms/CategorizationForm.tsx`**
+- Instruction (EN/ES) inputs.
+- Dynamic "Categories" list: each has `id`, `name`, `name_es`. Add/remove buttons.
+- Dynamic "Items" list: each has `id`, `text`, `text_es`, and a `Select` dropdown to assign `category_id` from the categories list.
+- Explanation (EN/ES).
+
+### Files to modify
+
+**`exercise-forms/index.ts`** -- Add 3 new exports.
+
+**`ExerciseEditor.tsx`** -- Add 3 cases to the switch:
+```
+case "prediction": return <PredictionForm ... />;
+case "troubleshooting": return <TroubleshootingForm ... />;
+case "categorization": return <CategorizationForm ... />;
 ```
 
-### 2. Strengthen the tribe context in the prompt (line 384-386)
+All forms follow the existing pattern: `Props { data: Record<string, any>, onChange: (data) => void }` with a `toTyped()` helper and an `update()` partial-merge function.
 
-Update the tribe context instruction to tell the AI to assess the match based strictly on the coffee's own extracted attributes, not on educational/descriptive text:
+---
 
-**Before:**
-```
-The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
-Consider these when calculating the tribe match score.
-```
+## Summary of changes
 
-**After:**
-```
-The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
-IMPORTANT: When assessing tribe alignment, evaluate ONLY based on this coffee's own
-variety, processing method, roast level, origin, and flavor notes.
-Do NOT let references to other varietals or methods in jargon explanations
-influence the match assessment. For example, if the variety is "Caturra",
-do not count "Bourbon" as a match just because Caturra descends from Bourbon.
-```
-
-### 3. No model change
-
-Keep `google/gemini-2.5-flash` as-is. The hallucination is caused by the matching logic, not the model's extraction accuracy.
-
-## Impact
-
-| Scenario | Before | After |
-|----------|--------|-------|
-| Caturra coffee, Owl tribe | ~80% (false Bourbon/Typica match from jargon) | ~30-50% (correct: no direct Owl keywords in attributes) |
-| Actual Bourbon coffee, Owl tribe | ~80% | ~80% (correct: Bourbon is in variety field) |
-| Natural process coffee, Hummingbird | ~65% | ~65% (unchanged: "Natural" is in processingMethod) |
-
-Works across all 4 tribes since the fix is in the generic matching logic, not tribe-specific code.
-
-## Implementation
-
-Single file edit with 2 changes, auto-deploys as edge function.
+| File | Action |
+|------|--------|
+| `Calculation.tsx` | Delete |
+| `Calculation.test.tsx` | Delete |
+| `exercise-forms/PredictionForm.tsx` | Create |
+| `exercise-forms/TroubleshootingForm.tsx` | Create |
+| `exercise-forms/CategorizationForm.tsx` | Create |
+| `exercise-forms/index.ts` | Add 3 exports |
+| `ExerciseEditor.tsx` | Add 3 switch cases |
+| DB migration | Remove `calculation` enum value + delete rows |
 

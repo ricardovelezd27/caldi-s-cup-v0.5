@@ -57,22 +57,15 @@ export async function awardXP(
   if (logError) throw logError;
 
   // 2. Increment total_xp on profile
-  const { error: profileError } = await supabase.rpc("increment_profile_xp", {
-    p_user_id: userId,
-    p_xp: xpAmount,
-  });
-  if (profileError) {
-    // Fallback: manual update if RPC doesn't exist yet
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("total_xp")
-      .eq("id", userId)
-      .single();
-    const currentXp = (profile as any)?.total_xp ?? 0;
-    const { error } = await supabase
-      .from("profiles")
-      .update({ total_xp: currentXp + xpAmount })
-      .eq("id", userId);
-    if (error) throw error;
-  }
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("total_xp")
+    .eq("id", userId)
+    .single();
+  const currentXp = (profile as any)?.total_xp ?? 0;
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ total_xp: currentXp + xpAmount })
+    .eq("id", userId);
+  if (profileError) throw profileError;
 }

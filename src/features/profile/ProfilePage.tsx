@@ -16,6 +16,8 @@ import { useDailyGoal } from "@/features/learning/hooks/useDailyGoal";
 function ProfileContent() {
   const { user, profile, refreshProfile } = useAuth();
   const { t } = useLanguage();
+  const { streak } = useStreak();
+  const { goal } = useDailyGoal();
 
   // Always fetch fresh profile data on mount to reflect XP earned elsewhere
   useEffect(() => {

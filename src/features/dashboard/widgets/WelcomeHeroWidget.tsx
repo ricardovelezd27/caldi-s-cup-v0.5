@@ -1,11 +1,15 @@
 import { useAuth } from "@/contexts/auth";
 import { getTribeDefinition } from "@/features/quiz/data/tribes";
+import { useUserRank } from "@/features/gamification";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import type { WidgetComponentProps } from "./types";
 
 export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
   const { profile } = useAuth();
   const tribeDef = profile?.coffee_tribe ? getTribeDefinition(profile.coffee_tribe) : null;
   const greeting = profile?.display_name || "Coffee Explorer";
+  const { currentRank, nextRank, progressToNext, xpNeeded } = useUserRank();
 
   return (
     <div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20 p-6 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
@@ -15,7 +19,7 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
         <div className="absolute bottom-4 left-4 text-6xl">✨</div>
       </div>
 
-      <div className="relative">
+      <div className="relative space-y-3">
         <h1 className="font-bangers text-3xl md:text-4xl tracking-wide text-foreground mb-2">
           Welcome, {greeting}!
         </h1>
@@ -32,6 +36,20 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
             </a>
           </p>
         )}
+
+        {/* Rank Badge + Progress */}
+        <div className="space-y-2 pt-1">
+          <Badge variant="outline" className={`${currentRank.colorClass} border-2 text-sm font-bold`}>
+            <span className="mr-1">{currentRank.icon}</span>
+            {currentRank.name}
+          </Badge>
+          <Progress value={progressToNext} className="h-2" />
+          <p className="text-xs font-inter text-muted-foreground">
+            {nextRank
+              ? `${xpNeeded} XP to ${nextRank.name}`
+              : "Max Rank Achieved! ☕🏆"}
+          </p>
+        </div>
       </div>
     </div>
   );

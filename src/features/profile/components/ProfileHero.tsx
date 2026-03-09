@@ -209,6 +209,8 @@ export function ProfileHero() {
                 {tribeName} — {tribeTitle}
               </p>
             )}
+
+            {!isEditing && <ProfileRankRow />}
           </div>
 
           <div className="flex items-center gap-1 ml-2 pt-1">

@@ -2,6 +2,7 @@ import { useLanguage } from "@/contexts/language";
 import { useLeague } from "../../hooks/useLeague";
 import { useAuth } from "@/contexts/auth";
 import { cn } from "@/lib/utils";
+import { BARISTA_RANKS, useUserRank } from "@/features/gamification";
 
 export function LeagueLeaderboard() {
   const { t } = useLanguage();

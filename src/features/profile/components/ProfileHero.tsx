@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import { ProfileAvatar } from "./ProfileAvatar";
-import { getTribeDefinition, type CoffeeTribe } from "@/features/quiz";
 import { getTribeCoverStyle } from "../utils/tribeCoverStyles";
+import type { CoffeeTribe } from "@/features/quiz";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Pencil, Check, X, Camera, Loader2 } from "lucide-react";
@@ -10,6 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/language";
 import { ProfileRankRow } from "./ProfileRankRow";
+import { StreakDisplay } from "@/features/learning/components/gamification/StreakDisplay";
+import { DailyGoalRing } from "@/features/learning/components/gamification/DailyGoalRing";
+import { useStreak } from "@/hooks/gamification/useStreak";
+import { useDailyGoal } from "@/features/learning/hooks/useDailyGoal";
 import caldiLogo from "/lovable-uploads/8e78a6bd-5f00-45be-b082-c35b57fa9a7c.png";
 
 export function ProfileHero() {
@@ -22,10 +26,12 @@ export function ProfileHero() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  const { streak } = useStreak();
+  const { goal } = useDailyGoal();
+
   if (!user || !profile) return null;
 
   const tribe = profile.coffee_tribe as CoffeeTribe | null;
-  const tribeDef = tribe ? getTribeDefinition(tribe) : null;
   const coverStyle = getTribeCoverStyle(tribe);
 
   const startEdit = () => {
@@ -101,10 +107,6 @@ export function ProfileHero() {
   };
 
   const hasCoverImage = !!profile.cover_url;
-
-  // Get translated tribe name/title
-  const tribeName = tribe ? t(`tribes.${tribe}.name`) : null;
-  const tribeTitle = tribe ? t(`tribes.${tribe}.title`) : null;
 
   return (
     <div className="md:hidden w-full">
@@ -202,14 +204,14 @@ export function ProfileHero() {
               </>
             )}
 
-            {tribeDef && !isEditing && tribeName && tribeTitle && (
-              <p className="text-sm text-muted-foreground mt-1">
-                <span className="mr-1">{tribeDef.emoji}</span>
-                {tribeName} — {tribeTitle}
-              </p>
-            )}
-
             {!isEditing && <ProfileRankRow />}
+
+            {!isEditing && (
+              <div className="flex items-center gap-3 mt-2">
+                <StreakDisplay currentStreak={streak?.currentStreak ?? profile.current_streak ?? 0} size="sm" />
+                {goal && <DailyGoalRing earnedXp={goal.earnedXp} goalXp={goal.goalXp} size={44} />}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-1 ml-2 pt-1">

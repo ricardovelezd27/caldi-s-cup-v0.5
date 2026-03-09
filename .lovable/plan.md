@@ -1,81 +1,69 @@
 
 
-# Fix: Scanner Tribe Match Hallucination (Prompt + Matching Logic)
+# Plan: Premium Tactile Quiz UI Overhaul
 
-## Root Cause
+## Architecture Note
 
-Line 551 serializes the **entire** `sanitizedData` object (including `jargonExplanations` and `brandStory`) into one string for keyword matching:
+The project mandate specifies a **no-dependency architecture** for the learning module — avoiding external libraries like `framer-motion` to keep the bundle lean. All animations will use native CSS transitions and keyframe animations, consistent with the existing system.
 
-```typescript
-const allText = JSON.stringify(sanitizedData).toLowerCase();
-```
+## Changes
 
-When the AI explains *"Caturra is a natural mutation of **Bourbon**"* in jargon, the Owl tribe keywords "Bourbon" and "Typica" match against that educational text -- not the coffee's actual variety (Caturra). This inflates the score from ~30% to ~80%.
+### 1. `LessonScreen.tsx` — Global Layout Wrapper
+- Wrap exercise and feedback states in `min-h-[100dvh] flex flex-col` container
+- Add `max-w-2xl mx-auto w-full` constraint to center content on desktop
+- **Merge exercise + feedback into a single state render**: Instead of separate "exercise" and "feedback" screens, the exercise stays visible and the feedback bar slides up from the bottom (Duolingo-style)
+- Remove the standalone `ExerciseFeedback` render block — feedback is now handled by the new bottom bar
 
-## Changes (single file: `supabase/functions/scan-coffee/index.ts`)
+### 2. `LessonProgress.tsx` — Thick Rounded Progress Bar
+- Increase progress bar height from `h-3` to `h-4`
+- Add `rounded-full` styling with custom colored indicator
+- Remove the "X of Y" text counter (progress bar is self-explanatory, Duolingo doesn't show it)
+- Constrain to `max-w-2xl mx-auto`
 
-### 1. Fix keyword matching to search only coffee attributes (lines 550-568)
+### 3. `ExerciseOption.tsx` — Tactile Answer Cards
+- Remove letter index circles (A, B, C, D) — the card itself is the interactive element
+- Change from `border-4` to `border-2 rounded-xl` for a cleaner card feel
+- Add `active:scale-[0.97]` press effect and `transition-all duration-200`
+- Selected state: `border-primary bg-primary/10 font-semibold`
+- Correct state: `border-green-500 bg-green-50`
+- Incorrect state: `border-destructive bg-destructive/5`
+- Keep check/X icons for post-submit feedback
 
-Replace `JSON.stringify(sanitizedData)` with a targeted string built from only the coffee's own identifying attributes:
+### 4. `MultipleChoice.tsx` — 2-Column Desktop Grid
+- Change options container from `space-y-3` to `grid grid-cols-1 md:grid-cols-2 gap-3`
+- Apply same pattern to other exercise types that use `ExerciseOption` (TrueFalse already has 2 options, works naturally)
 
-- `coffeeName`, `brand`
-- `variety`, `processingMethod`
-- `legacyRoastLevel` (text roast descriptor)
-- `originCountry`, `originRegion`, `originFarm`
-- `flavorNotes` (joined)
+### 5. `CheckButton.tsx` → New `BottomActionBar.tsx`
+- **Replace** `CheckButton` with a new `BottomActionBar` component
+- Fixed to screen bottom: `fixed bottom-0 left-0 right-0 z-50`
+- Inner content constrained: `max-w-2xl mx-auto px-4 py-4`
+- Three visual states driven by CSS transitions (`transition-all duration-300`):
+  - **Default**: White/transparent background, standard "Check" button (primary color)
+  - **Correct**: Green background (`bg-[hsl(142_76%_90%)]`), checkmark icon + "Continue" button, triggers `sounds.playCorrect()`
+  - **Incorrect**: Red/accent background (`bg-accent/10`), shows explanation text + mascot dialogue, "Got it" button, triggers `sounds.playIncorrect()`
+- Slides up with CSS `translate-y` animation using a keyframe (`animate-in slide-in-from-bottom`)
+- The bar absorbs the functionality of both `CheckButton` and `ExerciseFeedback`
 
-**Excluded** from matching: `jargonExplanations`, `brandStory`, `awards`, numeric scores.
+### 6. Exercise Components Integration
+- `MultipleChoice`, `TrueFalse`, and other exercises that use `CheckButton` will switch to `BottomActionBar`
+- Each exercise will expose its `isSubmitted` and `isCorrect` state so the bar can render the right variant
+- Add `pb-24` padding to exercise content area to prevent the fixed bar from covering options
 
-```typescript
-// Build search text from ONLY the coffee's actual attributes
-const attributeText = [
-  sanitizedData.coffeeName,
-  sanitizedData.brand,
-  sanitizedData.variety,
-  sanitizedData.processingMethod,
-  sanitizedData.legacyRoastLevel,
-  sanitizedData.originCountry,
-  sanitizedData.originRegion,
-  sanitizedData.originFarm,
-  ...sanitizedData.flavorNotes,
-].filter(Boolean).join(" ").toLowerCase();
-```
+### 7. Sound Integration
+- Move sound triggers from `ExerciseFeedback` (being removed) into the `BottomActionBar` correct/incorrect state transitions
+- Remove duplicate sound calls from individual exercises (e.g., `MultipleChoice.handleCheck`)
 
-### 2. Strengthen the tribe context in the prompt (line 384-386)
+## Files Changed
 
-Update the tribe context instruction to tell the AI to assess the match based strictly on the coffee's own extracted attributes, not on educational/descriptive text:
-
-**Before:**
-```
-The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
-Consider these when calculating the tribe match score.
-```
-
-**After:**
-```
-The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
-IMPORTANT: When assessing tribe alignment, evaluate ONLY based on this coffee's own
-variety, processing method, roast level, origin, and flavor notes.
-Do NOT let references to other varietals or methods in jargon explanations
-influence the match assessment. For example, if the variety is "Caturra",
-do not count "Bourbon" as a match just because Caturra descends from Bourbon.
-```
-
-### 3. No model change
-
-Keep `google/gemini-2.5-flash` as-is. The hallucination is caused by the matching logic, not the model's extraction accuracy.
-
-## Impact
-
-| Scenario | Before | After |
-|----------|--------|-------|
-| Caturra coffee, Owl tribe | ~80% (false Bourbon/Typica match from jargon) | ~30-50% (correct: no direct Owl keywords in attributes) |
-| Actual Bourbon coffee, Owl tribe | ~80% | ~80% (correct: Bourbon is in variety field) |
-| Natural process coffee, Hummingbird | ~65% | ~65% (unchanged: "Natural" is in processingMethod) |
-
-Works across all 4 tribes since the fix is in the generic matching logic, not tribe-specific code.
-
-## Implementation
-
-Single file edit with 2 changes, auto-deploys as edge function.
+| File | Action |
+|------|--------|
+| `src/features/learning/components/exercises/base/BottomActionBar.tsx` | **Create** — new fixed bottom bar with 3 states |
+| `src/features/learning/components/exercises/base/ExerciseOption.tsx` | **Edit** — tactile card redesign |
+| `src/features/learning/components/exercises/base/CheckButton.tsx` | **Delete** or deprecate (replaced by BottomActionBar) |
+| `src/features/learning/components/exercises/base/ExerciseFeedback.tsx` | **Delete** or deprecate (absorbed into BottomActionBar) |
+| `src/features/learning/components/lesson/LessonScreen.tsx` | **Edit** — unified layout, merge exercise+feedback states |
+| `src/features/learning/components/lesson/LessonProgress.tsx` | **Edit** — thicker bar, remove counter |
+| `src/features/learning/components/exercises/knowledge/MultipleChoice.tsx` | **Edit** — 2-col grid, use BottomActionBar |
+| `src/features/learning/components/exercises/knowledge/TrueFalse.tsx` | **Edit** — use BottomActionBar |
+| Other exercise components using CheckButton | **Edit** — swap to BottomActionBar |
 

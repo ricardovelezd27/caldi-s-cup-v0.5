@@ -137,9 +137,12 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
       if (unlocked.length > 0) {
         setNewAchievements(unlocked);
         setShowAchievement(unlocked[0]);
+      } else {
+        onComplete();
       }
     } catch (err) {
       console.error("Gamification update failed:", err);
+      onComplete();
     } finally {
       setIsProcessingComplete(false);
       refreshProfile();
@@ -241,7 +244,6 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
     return (
       <PageLayout>
         <div className="container mx-auto px-4 py-8 max-w-2xl">
-          <BackLink />
           <LessonComplete
             correct={lesson.score.correct}
             total={lesson.score.total}

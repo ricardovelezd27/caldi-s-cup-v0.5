@@ -1,81 +1,80 @@
 
 
-# Fix: Scanner Tribe Match Hallucination (Prompt + Matching Logic)
+# Add Delete Capabilities to Admin Learning Hub
 
-## Root Cause
+## Summary
+Add delete functions to the service layer and red trash-icon delete buttons with confirmation dialogs to all four admin pages (Tracks, Units, Lessons, Exercises).
 
-Line 551 serializes the **entire** `sanitizedData` object (including `jargonExplanations` and `brandStory`) into one string for keyword matching:
+## Changes
 
-```typescript
-const allText = JSON.stringify(sanitizedData).toLowerCase();
-```
+### 1. `adminLearningService.ts` -- Add delete function
 
-When the AI explains *"Caturra is a natural mutation of **Bourbon**"* in jargon, the Owl tribe keywords "Bourbon" and "Typica" match against that educational text -- not the coffee's actual variety (Caturra). This inflates the score from ~30% to ~80%.
-
-## Changes (single file: `supabase/functions/scan-coffee/index.ts`)
-
-### 1. Fix keyword matching to search only coffee attributes (lines 550-568)
-
-Replace `JSON.stringify(sanitizedData)` with a targeted string built from only the coffee's own identifying attributes:
-
-- `coffeeName`, `brand`
-- `variety`, `processingMethod`
-- `legacyRoastLevel` (text roast descriptor)
-- `originCountry`, `originRegion`, `originFarm`
-- `flavorNotes` (joined)
-
-**Excluded** from matching: `jargonExplanations`, `brandStory`, `awards`, numeric scores.
+Add one generic `deleteEntity` function (same pattern as `toggleActive`):
 
 ```typescript
-// Build search text from ONLY the coffee's actual attributes
-const attributeText = [
-  sanitizedData.coffeeName,
-  sanitizedData.brand,
-  sanitizedData.variety,
-  sanitizedData.processingMethod,
-  sanitizedData.legacyRoastLevel,
-  sanitizedData.originCountry,
-  sanitizedData.originRegion,
-  sanitizedData.originFarm,
-  ...sanitizedData.flavorNotes,
-].filter(Boolean).join(" ").toLowerCase();
+export async function deleteEntity(
+  table: "learning_tracks" | "learning_sections" | "learning_units" | "learning_lessons" | "learning_exercises",
+  id: string,
+) {
+  const { error } = await supabase.from(table).delete().eq("id", id);
+  if (error) throw error;
+}
 ```
 
-### 2. Strengthen the tribe context in the prompt (line 384-386)
+Database cascading: The foreign keys between tracks→sections→units→lessons→exercises should handle nested deletion. If not, the RLS `ALL` policy for admins already covers DELETE.
 
-Update the tribe context instruction to tell the AI to assess the match based strictly on the coffee's own extracted attributes, not on educational/descriptive text:
+### 2. UI changes -- All 4 pages
 
-**Before:**
+Each page gets:
+- Import `AlertDialog` components from shadcn and `Trash2` from lucide-react
+- A `deleteTarget` state (`string | null`) to track which entity ID is being confirmed
+- A red icon button (Trash2) in each row, wrapped with `e.stopPropagation()` to prevent navigation
+- An `AlertDialog` at page level that shows the warning and calls `deleteEntity` + invalidates queries on confirm
+
+| Page | Entity | Table | Query keys to invalidate |
+|------|--------|-------|-------------------------|
+| `LearningHubPage` | Track | `learning_tracks` | `["admin", "tracks"]` |
+| `TrackDetailPage` | Unit | `learning_units` | `["admin", "units-by-sections"]` |
+| `UnitDetailPage` | Lesson | `learning_lessons` | `["admin", "lessons"]` |
+| `LessonDetailPage` | Exercise | `learning_exercises` | `["admin", "exercises"]` |
+
+### 3. AlertDialog pattern (shared across all pages)
+
+```tsx
+<AlertDialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+      <AlertDialogDescription>
+        This will permanently delete this item and all its nested content.
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel>Cancel</AlertDialogCancel>
+      <AlertDialogAction onClick={handleDelete} className="bg-destructive">
+        Delete
+      </AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
 ```
-The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
-Consider these when calculating the tribe match score.
+
+Delete button in each row:
+```tsx
+<Button size="sm" variant="destructive" onClick={(e) => { e.stopPropagation(); setDeleteTarget(id); }}>
+  <Trash2 className="h-3 w-3" />
+</Button>
 ```
 
-**After:**
-```
-The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
-IMPORTANT: When assessing tribe alignment, evaluate ONLY based on this coffee's own
-variety, processing method, roast level, origin, and flavor notes.
-Do NOT let references to other varietals or methods in jargon explanations
-influence the match assessment. For example, if the variety is "Caturra",
-do not count "Bourbon" as a match just because Caturra descends from Bourbon.
-```
+### 4. Files modified
 
-### 3. No model change
+| File | Action |
+|------|--------|
+| `adminLearningService.ts` | Add `deleteEntity` |
+| `LearningHubPage.tsx` | Add delete button + AlertDialog for tracks |
+| `TrackDetailPage.tsx` | Add delete button + AlertDialog for units |
+| `UnitDetailPage.tsx` | Add delete button + AlertDialog for lessons |
+| `LessonDetailPage.tsx` | Add delete button + AlertDialog for exercises |
 
-Keep `google/gemini-2.5-flash` as-is. The hallucination is caused by the matching logic, not the model's extraction accuracy.
-
-## Impact
-
-| Scenario | Before | After |
-|----------|--------|-------|
-| Caturra coffee, Owl tribe | ~80% (false Bourbon/Typica match from jargon) | ~30-50% (correct: no direct Owl keywords in attributes) |
-| Actual Bourbon coffee, Owl tribe | ~80% | ~80% (correct: Bourbon is in variety field) |
-| Natural process coffee, Hummingbird | ~65% | ~65% (unchanged: "Natural" is in processingMethod) |
-
-Works across all 4 tribes since the fix is in the generic matching logic, not tribe-specific code.
-
-## Implementation
-
-Single file edit with 2 changes, auto-deploys as edge function.
+No database or migration changes needed -- admin RLS `ALL` policy already permits DELETE.
 

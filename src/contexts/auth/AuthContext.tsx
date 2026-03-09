@@ -24,6 +24,8 @@ interface Profile {
   weekly_goal_target: number;
   brewing_level: BrewingLevel;
   city: string | null;
+  total_xp: number;
+  current_streak: number;
   created_at: string;
   updated_at: string;
 }

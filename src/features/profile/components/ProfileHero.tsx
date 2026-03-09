@@ -14,6 +14,9 @@ import { StreakDisplay } from "@/features/learning/components/gamification/Strea
 import { DailyGoalRing } from "@/features/learning/components/gamification/DailyGoalRing";
 import { useStreak } from "@/hooks/gamification/useStreak";
 import { useDailyGoal } from "@/features/learning/hooks/useDailyGoal";
+import { useFavorites } from "@/features/coffee/hooks/useFavorites";
+import { useInventory } from "@/features/coffee/hooks/useInventory";
+import { Heart, Package } from "lucide-react";
 import caldiLogo from "/lovable-uploads/8e78a6bd-5f00-45be-b082-c35b57fa9a7c.png";
 
 export function ProfileHero() {

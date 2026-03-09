@@ -40,9 +40,7 @@ export function ProfileHero() {
     setIsEditing(true);
   };
 
-  const cancelEdit = () => {
-    setIsEditing(false);
-  };
+  const cancelEdit = () => setIsEditing(false);
 
   const saveEdit = async () => {
     if (!tempName.trim()) {
@@ -80,20 +78,17 @@ export function ProfileHero() {
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, file, { upsert: true });
-
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
         .from("avatars")
         .getPublicUrl(filePath);
-
       const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
 
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ cover_url: publicUrl })
         .eq("id", user.id);
-
       if (updateError) throw updateError;
 
       await refreshProfile();
@@ -109,10 +104,10 @@ export function ProfileHero() {
   const hasCoverImage = !!profile.cover_url;
 
   return (
-    <div className="md:hidden w-full">
-      {/* Cover gradient with SVG pattern or custom image */}
+    <div className="w-full">
+      {/* Cover */}
       <div
-        className="relative w-full h-[33vh] flex items-center justify-center overflow-hidden"
+        className="relative w-full h-[200px] md:h-[250px] flex items-center justify-center overflow-hidden"
         style={{ background: hasCoverImage ? undefined : coverStyle.gradient }}
       >
         {hasCoverImage && (
@@ -141,7 +136,7 @@ export function ProfileHero() {
 
         <button
           onClick={() => !uploadingCover && coverInputRef.current?.click()}
-          className="absolute bottom-14 right-4 flex items-center gap-2 rounded-full bg-foreground/60 backdrop-blur-sm text-background px-3 py-2 text-xs font-medium transition-colors active:bg-foreground/80"
+          className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-foreground/60 backdrop-blur-sm text-background px-3 py-2 text-xs font-medium transition-colors active:bg-foreground/80 hover:bg-foreground/80"
           aria-label={t("profile.editCover")}
         >
           {uploadingCover ? (
@@ -161,90 +156,83 @@ export function ProfileHero() {
         />
       </div>
 
-      {/* White content card overlapping cover */}
-      <div className="bg-background rounded-t-3xl -mt-10 relative z-10 px-5 pt-0 pb-2">
-        <div className="-mt-16">
-          <ProfileAvatar
-            avatarUrl={profile.avatar_url}
-            displayName={profile.display_name}
-            email={user.email}
-            variant="circle"
-            className="w-28 h-28"
-            showOverlayAlways={isEditing}
-          />
-        </div>
+      {/* Content card overlapping cover */}
+      <div className="bg-background rounded-t-3xl md:rounded-none -mt-10 md:-mt-0 relative z-10">
+        <div className="max-w-5xl mx-auto px-5 md:px-4">
+          {/* Avatar + info row */}
+          <div className="flex flex-col md:flex-row md:items-end gap-0 md:gap-6">
+            {/* Avatar overlapping cover */}
+            <div className="-mt-16 md:-mt-16 shrink-0">
+              <ProfileAvatar
+                avatarUrl={profile.avatar_url}
+                displayName={profile.display_name}
+                email={user.email}
+                variant="circle"
+                className="w-28 h-28 md:w-32 md:h-32 border-4 border-background"
+                showOverlayAlways={isEditing}
+              />
+            </div>
 
-        <div className="flex items-start justify-between pt-3 pb-4">
-          <div className="flex-1 min-w-0">
-            {isEditing ? (
-              <div className="space-y-2">
-                <Input
-                  value={tempName}
-                  onChange={(e) => setTempName(e.target.value)}
-                  placeholder={t("profile.yourName")}
-                  className="text-xl font-bold !border-2"
-                  style={{ fontFamily: "'Bangers', cursive" }}
-                  autoFocus
-                />
-                <Input
-                  value={tempCity}
-                  onChange={(e) => setTempCity(e.target.value)}
-                  placeholder={t("profile.cityOptional")}
-                  className="!border-2"
-                />
+            {/* Info block */}
+            <div className="flex items-start justify-between flex-1 min-w-0 pt-3 md:pt-0 md:pb-4">
+              <div className="flex-1 min-w-0">
+                {isEditing ? (
+                  <div className="space-y-2 max-w-sm">
+                    <Input
+                      value={tempName}
+                      onChange={(e) => setTempName(e.target.value)}
+                      placeholder={t("profile.yourName")}
+                      className="text-xl font-bold !border-2"
+                      style={{ fontFamily: "'Bangers', cursive" }}
+                      autoFocus
+                    />
+                    <Input
+                      value={tempCity}
+                      onChange={(e) => setTempCity(e.target.value)}
+                      placeholder={t("profile.cityOptional")}
+                      className="!border-2"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <h1 className="text-2xl md:text-3xl truncate">
+                      {profile.display_name || t("profile.coffeeLover")}
+                    </h1>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {user.email}
+                    </p>
+                  </>
+                )}
+
+                {!isEditing && (
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mt-2">
+                    <ProfileRankRow />
+                    <div className="flex items-center gap-3">
+                      <StreakDisplay currentStreak={streak?.currentStreak ?? profile.current_streak ?? 0} size="sm" />
+                      {goal && <DailyGoalRing earnedXp={goal.earnedXp} goalXp={goal.goalXp} size="sm" />}
+                    </div>
+                  </div>
+                )}
               </div>
-            ) : (
-              <>
-                <h1 className="text-2xl truncate">
-                  {profile.display_name || t("profile.coffeeLover")}
-                </h1>
-                <p className="text-sm text-muted-foreground truncate">
-                  {user.email}
-                </p>
-              </>
-            )}
 
-            {!isEditing && <ProfileRankRow />}
-
-            {!isEditing && (
-              <div className="flex items-center gap-3 mt-2">
-                <StreakDisplay currentStreak={streak?.currentStreak ?? profile.current_streak ?? 0} size="sm" />
-                {goal && <DailyGoalRing earnedXp={goal.earnedXp} goalXp={goal.goalXp} size="sm" />}
+              {/* Edit buttons */}
+              <div className="flex items-center gap-1 ml-2 pt-1">
+                {isEditing ? (
+                  <>
+                    <Button size="icon" variant="ghost" onClick={cancelEdit} disabled={saving} className="h-9 w-9">
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button size="icon" onClick={saveEdit} disabled={saving} className="h-9 w-9">
+                      <Check className="h-4 w-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <Button size="icon" variant="ghost" onClick={startEdit} className="h-9 w-9">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-1 ml-2 pt-1">
-            {isEditing ? (
-              <>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={cancelEdit}
-                  disabled={saving}
-                  className="h-9 w-9"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  onClick={saveEdit}
-                  disabled={saving}
-                  className="h-9 w-9"
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-              </>
-            ) : (
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={startEdit}
-                className="h-9 w-9"
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-            )}
+            </div>
           </div>
         </div>
       </div>

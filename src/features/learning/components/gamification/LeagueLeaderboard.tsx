@@ -72,7 +72,7 @@ export function LeagueLeaderboard() {
               >
                 #{entry.rank}
               </span>
-              <span className="text-xl">👤</span>
+              <span className="text-xl">{isMe ? currentRank.icon : getRankIcon(entry.weeklyXp)}</span>
               <span className="flex-1 text-sm text-foreground truncate">
                 {isMe ? "You" : `User ${entry.rank}`}
               </span>

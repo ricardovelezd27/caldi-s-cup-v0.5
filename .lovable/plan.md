@@ -1,68 +1,81 @@
 
 
-# Plan: Decayed Status UI for Track Path Lessons
+# Fix: Scanner Tribe Match Hallucination (Prompt + Matching Logic)
 
-## Overview
-Add visual styling and coffee-themed microcopy for lessons with `"decayed"` status to encourage review.
+## Root Cause
 
-## Changes to `src/features/learning/components/track/TrackPathView.tsx`
-
-### 1. Import Coffee Icon
-Add `Coffee` to the lucide-react imports (line 2).
-
-### 2. Add Decay Jokes Array
-Create bilingual joke arrays at the top of the file:
+Line 551 serializes the **entire** `sanitizedData` object (including `jargonExplanations` and `brandStory`) into one string for keyword matching:
 
 ```typescript
-const DECAY_JOKES_EN = [
-  "Brrr... your coffee is getting cold! 🥶",
-  "These beans are going stale. Time to review! 🫘",
-  "Your crema is fading! Reheat your skills. ☕",
-  "Extraction dropping... pull this shot again! 📉",
-];
-
-const DECAY_JOKES_ES = [
-  "Brrr... ¡tu café se está enfriando! 🥶",
-  "Estos granos se están poniendo rancios. ¡Hora de repasar! 🫘",
-  "¡Tu crema se desvanece! Recalienta tus habilidades. ☕",
-  "Extracción bajando... ¡tira este shot de nuevo! 📉",
-];
+const allText = JSON.stringify(sanitizedData).toLowerCase();
 ```
 
-Use `lesson.id` to deterministically pick a joke (avoid random re-renders).
+When the AI explains *"Caturra is a natural mutation of **Bourbon**"* in jargon, the Owl tribe keywords "Bourbon" and "Typica" match against that educational text -- not the coffee's actual variety (Caturra). This inflates the score from ~30% to ~80%.
 
-### 3. Update LessonNode Component
+## Changes (single file: `supabase/functions/scan-coffee/index.ts`)
 
-**Status circle styling** (add to className logic):
+### 1. Fix keyword matching to search only coffee attributes (lines 550-568)
+
+Replace `JSON.stringify(sanitizedData)` with a targeted string built from only the coffee's own identifying attributes:
+
+- `coffeeName`, `brand`
+- `variety`, `processingMethod`
+- `legacyRoastLevel` (text roast descriptor)
+- `originCountry`, `originRegion`, `originFarm`
+- `flavorNotes` (joined)
+
+**Excluded** from matching: `jargonExplanations`, `brandStory`, `awards`, numeric scores.
+
 ```typescript
-lesson.status === "decayed" && "bg-amber-100 border-amber-500 text-amber-600"
+// Build search text from ONLY the coffee's actual attributes
+const attributeText = [
+  sanitizedData.coffeeName,
+  sanitizedData.brand,
+  sanitizedData.variety,
+  sanitizedData.processingMethod,
+  sanitizedData.legacyRoastLevel,
+  sanitizedData.originCountry,
+  sanitizedData.originRegion,
+  sanitizedData.originFarm,
+  ...sanitizedData.flavorNotes,
+].filter(Boolean).join(" ").toLowerCase();
 ```
 
-**Icon rendering** (add condition):
-```typescript
-{lesson.status === "decayed" && <Coffee className="w-5 h-5" />}
+### 2. Strengthen the tribe context in the prompt (line 384-386)
+
+Update the tribe context instruction to tell the AI to assess the match based strictly on the coffee's own extracted attributes, not on educational/descriptive text:
+
+**Before:**
+```
+The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
+Consider these when calculating the tribe match score.
 ```
 
-**Text styling** (add condition for amber color):
-```typescript
-lesson.status === "decayed" && "text-amber-600"
+**After:**
+```
+The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
+IMPORTANT: When assessing tribe alignment, evaluate ONLY based on this coffee's own
+variety, processing method, roast level, origin, and flavor notes.
+Do NOT let references to other varietals or methods in jargon explanations
+influence the match assessment. For example, if the variety is "Caturra",
+do not count "Bourbon" as a match just because Caturra descends from Bourbon.
 ```
 
-**Subtitle logic**: For decayed lessons, show a random joke instead of "X min · Y XP" in italic amber text.
+### 3. No model change
 
-### 4. Make Decayed Nodes Clickable
-Update the link condition to include `"decayed"`:
-```typescript
-if (lesson.status === "available" || lesson.status === "decayed") {
-  return <Link to={...}>{nodeContent}</Link>;
-}
-```
+Keep `google/gemini-2.5-flash` as-is. The hallucination is caused by the matching logic, not the model's extraction accuracy.
 
-## Files Modified
+## Impact
 
-| File | Change |
-|------|--------|
-| `src/features/learning/components/track/TrackPathView.tsx` | Add decayed styling, coffee icon, bilingual jokes |
+| Scenario | Before | After |
+|----------|--------|-------|
+| Caturra coffee, Owl tribe | ~80% (false Bourbon/Typica match from jargon) | ~30-50% (correct: no direct Owl keywords in attributes) |
+| Actual Bourbon coffee, Owl tribe | ~80% | ~80% (correct: Bourbon is in variety field) |
+| Natural process coffee, Hummingbird | ~65% | ~65% (unchanged: "Natural" is in processingMethod) |
 
-No database changes.
+Works across all 4 tribes since the fix is in the generic matching logic, not tribe-specific code.
+
+## Implementation
+
+Single file edit with 2 changes, auto-deploys as edge function.
 

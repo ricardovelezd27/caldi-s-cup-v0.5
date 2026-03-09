@@ -1,39 +1,81 @@
 
 
-# Plan: Skill Decay for Spaced Repetition (Phase 3)
+# Fix: Scanner Tribe Match Hallucination (Prompt + Matching Logic)
 
-## Overview
-Add a "decayed" status for completed lessons older than 14 days to encourage review. Decayed lessons still count as completed for progress/unlocking.
+## Root Cause
 
-## Changes
+Line 551 serializes the **entire** `sanitizedData` object (including `jargonExplanations` and `brandStory`) into one string for keyword matching:
 
-### 1. Update `useTrackPath.ts`
-
-**Type Update (line 16)**:
 ```typescript
-status: "completed" | "available" | "locked" | "decayed"
+const allText = JSON.stringify(sanitizedData).toLowerCase();
 ```
 
-**Logic Changes**:
-- Add constant `DECAY_THRESHOLD_DAYS = 14`
-- Create a Map from progress data: `lessonId -> progress record` (to access timestamps)
-- When processing completed lessons:
-  - Get `updatedAt` (or fall back to `completedAt`) from progress
-  - Calculate days since using `date-fns` differenceInDays
-  - If `daysSinceUpdate >= 14`, set status to `"decayed"` instead of `"completed"`
-- Decayed lessons still increment `completedCount` and don't reset `foundFirstAvailable`
+When the AI explains *"Caturra is a natural mutation of **Bourbon**"* in jargon, the Owl tribe keywords "Bourbon" and "Typica" match against that educational text -- not the coffee's actual variety (Caturra). This inflates the score from ~30% to ~80%.
 
-**Technical Detail**: The progress service already returns `updatedAt` timestamps, so no service changes needed.
+## Changes (single file: `supabase/functions/scan-coffee/index.ts`)
 
-### 2. Files Modified
+### 1. Fix keyword matching to search only coffee attributes (lines 550-568)
 
-| File | Change |
-|------|--------|
-| `src/features/learning/hooks/useTrackPath.ts` | Add `decayed` status type + decay calculation logic |
+Replace `JSON.stringify(sanitizedData)` with a targeted string built from only the coffee's own identifying attributes:
 
-No database changes. `date-fns` already installed.
+- `coffeeName`, `brand`
+- `variety`, `processingMethod`
+- `legacyRoastLevel` (text roast descriptor)
+- `originCountry`, `originRegion`, `originFarm`
+- `flavorNotes` (joined)
 
----
+**Excluded** from matching: `jargonExplanations`, `brandStory`, `awards`, numeric scores.
 
-**Note**: The `TrackPathView.tsx` component will need a follow-up update to render the "decayed" visual state (orange/amber styling, review icon). That can be a separate task after this logic is in place.
+```typescript
+// Build search text from ONLY the coffee's actual attributes
+const attributeText = [
+  sanitizedData.coffeeName,
+  sanitizedData.brand,
+  sanitizedData.variety,
+  sanitizedData.processingMethod,
+  sanitizedData.legacyRoastLevel,
+  sanitizedData.originCountry,
+  sanitizedData.originRegion,
+  sanitizedData.originFarm,
+  ...sanitizedData.flavorNotes,
+].filter(Boolean).join(" ").toLowerCase();
+```
+
+### 2. Strengthen the tribe context in the prompt (line 384-386)
+
+Update the tribe context instruction to tell the AI to assess the match based strictly on the coffee's own extracted attributes, not on educational/descriptive text:
+
+**Before:**
+```
+The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
+Consider these when calculating the tribe match score.
+```
+
+**After:**
+```
+The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
+IMPORTANT: When assessing tribe alignment, evaluate ONLY based on this coffee's own
+variety, processing method, roast level, origin, and flavor notes.
+Do NOT let references to other varietals or methods in jargon explanations
+influence the match assessment. For example, if the variety is "Caturra",
+do not count "Bourbon" as a match just because Caturra descends from Bourbon.
+```
+
+### 3. No model change
+
+Keep `google/gemini-2.5-flash` as-is. The hallucination is caused by the matching logic, not the model's extraction accuracy.
+
+## Impact
+
+| Scenario | Before | After |
+|----------|--------|-------|
+| Caturra coffee, Owl tribe | ~80% (false Bourbon/Typica match from jargon) | ~30-50% (correct: no direct Owl keywords in attributes) |
+| Actual Bourbon coffee, Owl tribe | ~80% | ~80% (correct: Bourbon is in variety field) |
+| Natural process coffee, Hummingbird | ~65% | ~65% (unchanged: "Natural" is in processingMethod) |
+
+Works across all 4 tribes since the fix is in the generic matching logic, not tribe-specific code.
+
+## Implementation
+
+Single file edit with 2 changes, auto-deploys as edge function.
 

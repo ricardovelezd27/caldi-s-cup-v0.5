@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/auth";
 import { LanguageProvider } from "@/contexts/language";
 import { ErrorBoundary, OfflineIndicator } from "@/components/error";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { RankUpProvider } from "@/features/gamification";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";

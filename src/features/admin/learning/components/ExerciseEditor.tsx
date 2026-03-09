@@ -15,6 +15,9 @@ import {
   FillInBlankForm,
   MatchingPairsForm,
   SequencingForm,
+  PredictionForm,
+  TroubleshootingForm,
+  CategorizationForm,
   GenericJsonForm,
 } from "./exercise-forms";
 
@@ -77,6 +80,12 @@ export default function ExerciseEditor({ exercise, open, onClose, onSave }: Prop
         return <MatchingPairsForm data={questionData} onChange={setQuestionData} />;
       case "sequencing":
         return <SequencingForm data={questionData} onChange={setQuestionData} />;
+      case "prediction":
+        return <PredictionForm data={questionData} onChange={setQuestionData} />;
+      case "troubleshooting":
+        return <TroubleshootingForm data={questionData} onChange={setQuestionData} />;
+      case "categorization":
+        return <CategorizationForm data={questionData} onChange={setQuestionData} />;
       default:
         return (
           <GenericJsonForm

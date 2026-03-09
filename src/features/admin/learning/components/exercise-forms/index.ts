@@ -3,4 +3,7 @@ export { MultipleChoiceForm } from "./MultipleChoiceForm";
 export { FillInBlankForm } from "./FillInBlankForm";
 export { MatchingPairsForm } from "./MatchingPairsForm";
 export { SequencingForm } from "./SequencingForm";
+export { PredictionForm } from "./PredictionForm";
+export { TroubleshootingForm } from "./TroubleshootingForm";
+export { CategorizationForm } from "./CategorizationForm";
 export { GenericJsonForm } from "./GenericJsonForm";

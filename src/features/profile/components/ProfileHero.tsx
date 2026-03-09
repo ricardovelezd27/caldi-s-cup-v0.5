@@ -28,6 +28,8 @@ export function ProfileHero() {
 
   const { streak } = useStreak();
   const { goal } = useDailyGoal();
+  const { favoriteIds } = useFavorites();
+  const { inventoryItems } = useInventory();
 
   if (!user || !profile) return null;
 

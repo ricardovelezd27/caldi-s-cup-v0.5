@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/language";
-import { CheckButton } from "../base/CheckButton";
+import { BottomActionBar } from "../base/BottomActionBar";
 import { sounds } from "../../../utils/sounds";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +37,6 @@ export function Sequencing({ data, onSubmit, disabled }: Props) {
     } else if (selectedId === id) {
       setSelectedId(null);
     } else {
-      // swap
       setOrder((prev) => {
         const copy = [...prev];
         const a = copy.indexOf(selectedId);
@@ -61,7 +60,7 @@ export function Sequencing({ data, onSubmit, disabled }: Props) {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex-1 px-4 py-6 space-y-4">
+      <div className="flex-1 px-4 py-6 space-y-4 pb-24">
         {instruction && <p className="text-lg font-inter text-foreground">{instruction}</p>}
         <p className="text-sm text-muted-foreground font-inter">
           {language === "es" ? "Toca un elemento, luego toca otro para intercambiar" : "Tap an item, then tap another to swap"}
@@ -76,15 +75,16 @@ export function Sequencing({ data, onSubmit, disabled }: Props) {
               <button key={id} type="button" onClick={() => handleTap(id)}
                 disabled={disabled || submitted}
                 className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-lg border-4 font-inter text-left transition-all",
-                  selectedId === id && "border-secondary bg-secondary/10",
-                  selectedId !== id && !submitted && "border-border/40 bg-card",
+                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 font-inter text-left transition-all duration-200",
+                  selectedId === id && "border-primary bg-primary/10",
+                  selectedId !== id && !submitted && "border-border/30 bg-card",
                   correctPos && "border-[hsl(142_71%_45%)] bg-[hsl(142_76%_90%)]",
-                  incorrectPos && "border-destructive bg-destructive/10",
+                  incorrectPos && "border-destructive bg-destructive/5",
+                  !disabled && !submitted && "active:scale-[0.97]",
                 )}
-                style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+                style={{ boxShadow: "0 2px 0 0 hsl(var(--border) / 0.2)" }}
               >
-                <span className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 border-border/40">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 border-border/30">
                   {i + 1}
                 </span>
                 <span className="flex-1">{text}</span>
@@ -93,7 +93,7 @@ export function Sequencing({ data, onSubmit, disabled }: Props) {
           })}
         </div>
       </div>
-      {!disabled && !submitted && <CheckButton state={btnState} onClick={handleCheck} />}
+      {!disabled && !submitted && <BottomActionBar state={btnState} onClick={handleCheck} />}
     </div>
   );
 }

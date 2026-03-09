@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useLanguage } from "@/contexts/language";
-import { CheckButton } from "../base/CheckButton";
+import { BottomActionBar } from "../base/BottomActionBar";
 import { sounds } from "../../../utils/sounds";
 
 interface FIBData {
@@ -25,7 +25,6 @@ export function FillInBlank({ data, onSubmit, disabled }: Props) {
   const [results, setResults] = useState<Record<number, boolean>>({});
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Parse question into segments split by {blank}
   const segments = question.split(/\{blank\}/gi);
   const blankCount = segments.length - 1;
 
@@ -34,7 +33,7 @@ export function FillInBlank({ data, onSubmit, disabled }: Props) {
   const handleCheck = () => {
     const res: Record<number, boolean> = {};
     let allCorrect = true;
-    data.blanks.forEach((b, i) => {
+    data.blanks.forEach((b) => {
       const userVal = (values[b.id] ?? "").trim().toLowerCase();
       const correct = b.correct_answers.some((a) => a.toLowerCase() === userVal);
       res[b.id] = correct;
@@ -52,7 +51,7 @@ export function FillInBlank({ data, onSubmit, disabled }: Props) {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex-1 px-4 py-6">
+      <div className="flex-1 px-4 py-6 pb-24">
         <div className="text-lg font-inter text-foreground leading-relaxed flex flex-wrap items-baseline gap-1">
           {segments.map((seg, i) => (
             <span key={i}>
@@ -85,7 +84,7 @@ export function FillInBlank({ data, onSubmit, disabled }: Props) {
           ))}
         </div>
       </div>
-      {!disabled && !submitted && <CheckButton state={btnState} onClick={handleCheck} />}
+      {!disabled && !submitted && <BottomActionBar state={btnState} onClick={handleCheck} />}
     </div>
   );
 }

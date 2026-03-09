@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/language";
 import { ExerciseOption } from "../base/ExerciseOption";
-import { CheckButton } from "../base/CheckButton";
+import { BottomActionBar } from "../base/BottomActionBar";
 import { sounds } from "../../../utils/sounds";
 
 interface MCData {
@@ -40,12 +40,11 @@ export function MultipleChoice({ data, onSubmit, disabled }: Props) {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex-1 px-4 py-6 space-y-4">
+      <div className="flex-1 px-4 py-6 space-y-4 pb-24">
         <p className="text-lg font-inter text-foreground">{question}</p>
-        <div className="space-y-3">
-          {data.options.map((opt, i) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {data.options.map((opt) => {
             const text = language === "es" && opt.text_es ? opt.text_es : opt.text;
-            const isCorrectOption = submitted ? opt.id === data.correct_answer : null;
             return (
               <ExerciseOption
                 key={opt.id}
@@ -53,7 +52,6 @@ export function MultipleChoice({ data, onSubmit, disabled }: Props) {
                 isCorrect={submitted ? (opt.id === data.correct_answer ? true : selected === opt.id ? false : null) : null}
                 isDisabled={disabled || submitted}
                 onClick={() => setSelected(opt.id)}
-                letterIndex={i}
               >
                 {text}
               </ExerciseOption>
@@ -61,7 +59,7 @@ export function MultipleChoice({ data, onSubmit, disabled }: Props) {
           })}
         </div>
       </div>
-      {!disabled && !submitted && <CheckButton state={btnState} onClick={handleCheck} />}
+      {!disabled && !submitted && <BottomActionBar state={btnState} onClick={handleCheck} />}
     </div>
   );
 }

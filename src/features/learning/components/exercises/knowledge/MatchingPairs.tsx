@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useLanguage } from "@/contexts/language";
-import { CheckButton } from "../base/CheckButton";
+import { BottomActionBar } from "../base/BottomActionBar";
 import { sounds } from "../../../utils/sounds";
 import { cn } from "@/lib/utils";
 
@@ -67,7 +67,6 @@ export function MatchingPairs({ data, onSubmit, disabled }: Props) {
   const handleRightClick = (id: string) => {
     if (disabled || submitted || !selectedLeft) return;
     sounds.playTap();
-    // Remove any existing connection to this right item
     const updated = { ...connections };
     Object.entries(updated).forEach(([k, v]) => { if (v === id) delete updated[k]; });
     updated[selectedLeft] = id;
@@ -90,7 +89,7 @@ export function MatchingPairs({ data, onSubmit, disabled }: Props) {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex-1 px-4 py-6 space-y-4">
+      <div className="flex-1 px-4 py-6 space-y-4 pb-24">
         {instruction && <p className="text-lg font-inter text-foreground">{instruction}</p>}
         <div ref={containerRef} className="relative">
           <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
@@ -109,14 +108,15 @@ export function MatchingPairs({ data, onSubmit, disabled }: Props) {
                     onClick={() => handleLeftClick(p.id)}
                     disabled={disabled || submitted}
                     className={cn(
-                      "w-full px-3 py-3 rounded-lg border-4 text-sm font-inter transition-all",
-                      selectedLeft === p.id && "border-secondary bg-secondary/10",
+                      "w-full px-3 py-3 rounded-xl border-2 text-sm font-inter transition-all duration-200",
+                      selectedLeft === p.id && "border-primary bg-primary/10",
                       connected && !submitted && "border-secondary/60 bg-secondary/5",
                       submitted && connections[p.id] === p.id && "border-[hsl(142_71%_45%)] bg-[hsl(142_76%_90%)]",
-                      submitted && connections[p.id] !== p.id && "border-destructive bg-destructive/10",
-                      !connected && selectedLeft !== p.id && "border-border/40 bg-card",
+                      submitted && connections[p.id] !== p.id && "border-destructive bg-destructive/5",
+                      !connected && selectedLeft !== p.id && "border-border/30 bg-card",
+                      !disabled && !submitted && "active:scale-[0.97]",
                     )}
-                    style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+                    style={{ boxShadow: "0 2px 0 0 hsl(var(--border) / 0.2)" }}
                   >
                     {text}
                   </button>
@@ -133,13 +133,14 @@ export function MatchingPairs({ data, onSubmit, disabled }: Props) {
                     onClick={() => handleRightClick(rId)}
                     disabled={disabled || submitted || !selectedLeft}
                     className={cn(
-                      "w-full px-3 py-3 rounded-lg border-4 text-sm font-inter transition-all",
+                      "w-full px-3 py-3 rounded-xl border-2 text-sm font-inter transition-all duration-200",
                       isConnected && !submitted && "border-secondary/60 bg-secondary/5",
                       submitted && Object.entries(connections).some(([l, r]) => r === rId && l === rId) && "border-[hsl(142_71%_45%)] bg-[hsl(142_76%_90%)]",
-                      !isConnected && "border-border/40 bg-card",
-                      selectedLeft && !isConnected && "hover:border-secondary/40",
+                      !isConnected && "border-border/30 bg-card",
+                      selectedLeft && !isConnected && "hover:border-primary/40",
+                      !disabled && !submitted && "active:scale-[0.97]",
                     )}
-                    style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+                    style={{ boxShadow: "0 2px 0 0 hsl(var(--border) / 0.2)" }}
                   >
                     {text}
                   </button>
@@ -149,7 +150,7 @@ export function MatchingPairs({ data, onSubmit, disabled }: Props) {
           </div>
         </div>
       </div>
-      {!disabled && !submitted && <CheckButton state={btnState} onClick={handleCheck} />}
+      {!disabled && !submitted && <BottomActionBar state={btnState} onClick={handleCheck} />}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/language";
 import { ExerciseOption } from "../base/ExerciseOption";
-import { CheckButton } from "../base/CheckButton";
+import { BottomActionBar } from "../base/BottomActionBar";
 import { sounds } from "../../../utils/sounds";
 
 interface IIData {
@@ -43,16 +43,16 @@ export function ImageIdentification({ data, imageUrl, onSubmit, disabled }: Prop
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex-1 px-4 py-6 space-y-4">
+      <div className="flex-1 px-4 py-6 space-y-4 pb-24">
         {instruction && <p className="text-lg font-inter text-foreground">{instruction}</p>}
         {imgSrc && (
-          <div className="rounded-lg border-4 border-border overflow-hidden"
-            style={{ boxShadow: "4px 4px 0px 0px hsl(var(--border))" }}>
+          <div className="rounded-xl border-2 border-border/30 overflow-hidden"
+            style={{ boxShadow: "0 2px 0 0 hsl(var(--border) / 0.2)" }}>
             <img src={imgSrc} alt="" className="w-full h-48 object-cover" />
           </div>
         )}
-        <div className="grid grid-cols-2 gap-3">
-          {data.options.map((opt, i) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {data.options.map((opt) => {
             const text = language === "es" && opt.text_es ? opt.text_es : opt.text;
             return (
               <ExerciseOption key={opt.id}
@@ -67,7 +67,7 @@ export function ImageIdentification({ data, imageUrl, onSubmit, disabled }: Prop
           })}
         </div>
       </div>
-      {!disabled && !submitted && <CheckButton state={btnState} onClick={handleCheck} />}
+      {!disabled && !submitted && <BottomActionBar state={btnState} onClick={handleCheck} />}
     </div>
   );
 }

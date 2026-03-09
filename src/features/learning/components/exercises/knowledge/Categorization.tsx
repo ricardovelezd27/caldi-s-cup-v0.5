@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/language";
-import { CheckButton } from "../base/CheckButton";
+import { BottomActionBar } from "../base/BottomActionBar";
 import { sounds } from "../../../utils/sounds";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,7 @@ interface Props {
 
 export function Categorization({ data, onSubmit, disabled }: Props) {
   const { language } = useLanguage();
-  const [placements, setPlacements] = useState<Record<string, string>>({}); // itemId -> categoryId
+  const [placements, setPlacements] = useState<Record<string, string>>({});
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
@@ -61,10 +61,9 @@ export function Categorization({ data, onSubmit, disabled }: Props) {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex-1 px-4 py-6 space-y-4">
+      <div className="flex-1 px-4 py-6 space-y-4 pb-24">
         {instruction && <p className="text-lg font-inter text-foreground">{instruction}</p>}
 
-        {/* Category buckets */}
         <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(data.categories.length, 3)}, 1fr)` }}>
           {data.categories.map((cat) => {
             const name = language === "es" && cat.name_es ? cat.name_es : cat.name;
@@ -73,12 +72,13 @@ export function Categorization({ data, onSubmit, disabled }: Props) {
               <button key={cat.id} type="button" onClick={() => handleCategoryClick(cat.id)}
                 disabled={disabled || submitted || !selectedItem}
                 className={cn(
-                  "rounded-lg border-4 p-3 min-h-[100px] transition-all",
-                  selectedItem && "border-secondary/60 hover:bg-secondary/5",
-                  !selectedItem && "border-border/40",
+                  "rounded-xl border-2 p-3 min-h-[100px] transition-all duration-200",
+                  selectedItem && "border-primary/60 hover:bg-primary/5",
+                  !selectedItem && "border-border/30",
                   "bg-card",
+                  !disabled && !submitted && selectedItem && "active:scale-[0.97]",
                 )}
-                style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+                style={{ boxShadow: "0 2px 0 0 hsl(var(--border) / 0.2)" }}
               >
                 <p className="font-bangers text-sm text-foreground mb-2">{name}</p>
                 <div className="space-y-1">
@@ -92,8 +92,8 @@ export function Categorization({ data, onSubmit, disabled }: Props) {
                         className={cn(
                           "inline-block text-xs px-2 py-1 rounded border-2 mr-1 mb-1 cursor-pointer",
                           correctPlace && "border-[hsl(142_71%_45%)] bg-[hsl(142_76%_90%)]",
-                          wrongPlace && "border-destructive bg-destructive/10",
-                          !submitted && "border-border/40 bg-background",
+                          wrongPlace && "border-destructive bg-destructive/5",
+                          !submitted && "border-border/30 bg-background",
                         )}
                       >
                         {text}
@@ -106,7 +106,6 @@ export function Categorization({ data, onSubmit, disabled }: Props) {
           })}
         </div>
 
-        {/* Unplaced items pool */}
         {unplacedItems.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {unplacedItems.map((item) => {
@@ -115,11 +114,12 @@ export function Categorization({ data, onSubmit, disabled }: Props) {
                 <button key={item.id} type="button" onClick={() => handleItemClick(item.id)}
                   disabled={disabled || submitted}
                   className={cn(
-                    "px-3 py-2 rounded-lg border-4 text-sm font-inter transition-all",
-                    selectedItem === item.id && "border-secondary bg-secondary/10",
-                    selectedItem !== item.id && "border-border/40 bg-card",
+                    "px-3 py-2 rounded-xl border-2 text-sm font-inter transition-all duration-200",
+                    selectedItem === item.id && "border-primary bg-primary/10",
+                    selectedItem !== item.id && "border-border/30 bg-card",
+                    !disabled && !submitted && "active:scale-[0.97]",
                   )}
-                  style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+                  style={{ boxShadow: "0 2px 0 0 hsl(var(--border) / 0.2)" }}
                 >
                   {text}
                 </button>
@@ -128,7 +128,7 @@ export function Categorization({ data, onSubmit, disabled }: Props) {
           </div>
         )}
       </div>
-      {!disabled && !submitted && <CheckButton state={btnState} onClick={handleCheck} />}
+      {!disabled && !submitted && <BottomActionBar state={btnState} onClick={handleCheck} />}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/language";
-import { CheckButton } from "../base/CheckButton";
+import { BottomActionBar } from "../base/BottomActionBar";
 import { sounds } from "../../../utils/sounds";
 import { cn } from "@/lib/utils";
 import { Check, X } from "lucide-react";
@@ -40,17 +40,18 @@ export function TrueFalse({ data, onSubmit, disabled }: Props) {
 
   const optionClass = (val: boolean) =>
     cn(
-      "flex-1 flex flex-col items-center justify-center gap-2 py-8 rounded-lg border-4 font-bangers text-2xl transition-all duration-150 cursor-pointer",
-      !submitted && selected !== val && "border-border/40 bg-card",
-      !submitted && selected === val && "border-secondary bg-secondary/10",
+      "flex-1 flex flex-col items-center justify-center gap-2 py-8 rounded-xl border-2 font-bangers text-2xl transition-all duration-200 cursor-pointer",
+      !submitted && selected !== val && "border-border/30 bg-card",
+      !submitted && selected === val && "border-primary bg-primary/10",
       submitted && val === data.correct_answer && "border-[hsl(142_71%_45%)] bg-[hsl(142_76%_90%)]",
-      submitted && val !== data.correct_answer && selected === val && "border-destructive bg-destructive/10",
+      submitted && val !== data.correct_answer && selected === val && "border-destructive bg-destructive/5",
       (disabled || submitted) && "cursor-not-allowed",
+      !disabled && !submitted && "active:scale-[0.97]",
     );
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex-1 px-4 py-6 space-y-6">
+      <div className="flex-1 px-4 py-6 space-y-6 pb-24">
         <p className="text-lg font-inter text-foreground">{statement}</p>
         <div className="flex gap-4">
           {[true, false].map((val) => (
@@ -60,7 +61,7 @@ export function TrueFalse({ data, onSubmit, disabled }: Props) {
               disabled={disabled || submitted}
               onClick={() => { sounds.playTap(); setSelected(val); }}
               className={optionClass(val)}
-              style={{ boxShadow: "2px 2px 0px 0px hsl(var(--border))" }}
+              style={{ boxShadow: "0 2px 0 0 hsl(var(--border) / 0.2)" }}
             >
               {val ? <Check className="w-8 h-8" /> : <X className="w-8 h-8" />}
               {val ? t("learn.exercise.trueLabel") : t("learn.exercise.falseLabel")}
@@ -68,7 +69,7 @@ export function TrueFalse({ data, onSubmit, disabled }: Props) {
           ))}
         </div>
       </div>
-      {!disabled && !submitted && <CheckButton state={btnState} onClick={handleCheck} />}
+      {!disabled && !submitted && <BottomActionBar state={btnState} onClick={handleCheck} />}
     </div>
   );
 }

@@ -31,8 +31,8 @@ export function CoffeeImage({ src, alt, className, isTemporaryImage, additionalI
             {isTemporaryImage && (
               <div className="absolute bottom-0 inset-x-0 bg-foreground/80 px-3 py-2 text-center">
                 <p className="text-background text-sm font-medium">
-                  <a href="/auth" className="underline text-primary font-bold">Sign in</a>
-                  {" "}to save this image to your collection
+                  <a href="/auth" className="underline text-primary font-bold">{t('coffee.signInLink')}</a>
+                  {" "}{t('coffee.saveImageToCollection')}
                 </p>
               </div>
             )}

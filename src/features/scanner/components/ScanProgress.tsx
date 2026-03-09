@@ -58,7 +58,7 @@ export function ScanProgress({ progress }: ScanProgressProps) {
       </div>
       {!isError && progress.status !== "complete" && progress.status !== "idle" && (
         <div className="flex flex-col items-center gap-2">
-          <div className="flex items-center justify-center gap-2 text-primary"><Loader2 className="w-4 h-4 animate-spin" /><span className="text-sm font-medium animate-pulse">{progress.message}</span></div>
+          <div className="flex items-center justify-center gap-2 text-primary"><Loader2 className="w-4 h-4 animate-spin" /><span className="text-sm font-medium animate-pulse">{getProgressMessage()}</span></div>
           {(progress.status === "analyzing" || progress.status === "enriching") && (
             <div className="flex items-center gap-1.5 text-muted-foreground"><Clock className="w-3.5 h-3.5" /><span className="text-xs font-medium">{t('scanner.timeElapsed')}: {elapsedTime}s</span></div>
           )}

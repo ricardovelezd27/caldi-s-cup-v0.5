@@ -205,7 +205,7 @@ export function ScanUploader({ onImagesReady, disabled }: ScanUploaderProps) {
             <h3 className="font-bangers text-2xl text-foreground mb-1">{t('scanner.scanBag')}</h3>
             <p className="text-muted-foreground text-sm">{t('scanner.addUpTo4')}</p>
           </div>
-          <div className="flex gap-3 mt-2">
+          <div className="flex flex-wrap gap-3 mt-2 justify-center">
             {isMobile && (
               <Button variant="default" onClick={handleCameraClick} disabled={disabled} className="gap-2">
                 <Camera className="w-4 h-4" />{t('scanner.takePhoto')}

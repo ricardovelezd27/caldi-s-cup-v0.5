@@ -10,8 +10,13 @@ import { FeedbackCTA } from "@/components/shared/FeedbackCTA";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 function ProfileContent() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { t } = useLanguage();
+
+  // Always fetch fresh profile data on mount to reflect XP earned elsewhere
+  useEffect(() => {
+    refreshProfile();
+  }, []);
   const isMobile = useIsMobile();
 
   if (!user || !profile) return null;

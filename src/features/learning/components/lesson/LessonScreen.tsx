@@ -108,6 +108,18 @@ export function LessonScreen({ lessonId, trackId, onExit, onComplete }: LessonSc
         addWeeklyXP(user.id, xpCalc.totalXP).catch(() => {}), // Non-critical
       ]);
 
+      // 5. Sync XP to profiles.total_xp (incremental)
+      const { data: currentProfile } = await supabase
+        .from("profiles")
+        .select("total_xp")
+        .eq("id", user.id)
+        .single();
+      const newTotalXp = ((currentProfile as any)?.total_xp ?? 0) + xpCalc.totalXP;
+      await supabase
+        .from("profiles")
+        .update({ total_xp: newTotalXp })
+        .eq("id", user.id);
+
       // 5. Save lesson progress
       const scorePercent =
         lesson.score.total > 0

@@ -46,10 +46,11 @@ const App = () => (
           <BrowserRouter>
             <ScrollToTop />
             <AuthProvider>
-              <OfflineIndicator />
-              <Toaster />
-              <Sonner />
-              <Routes>
+              <RankUpProvider>
+                <OfflineIndicator />
+                <Toaster />
+                <Sonner />
+                <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/quiz" element={<QuizPage />} />

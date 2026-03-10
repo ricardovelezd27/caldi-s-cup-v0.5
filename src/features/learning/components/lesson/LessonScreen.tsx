@@ -40,7 +40,7 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
   const { t, language } = useLanguage();
   const lesson = useLesson(lessonId);
   const anonymousProgress = useAnonymousProgress();
-  const { hearts, maxHearts, hasHearts, loseHeart, isLoading: heartsLoading } = useHearts();
+  const { hearts, maxHearts, hasHearts, timeUntilRefill, loseHeart, isLoading: heartsLoading } = useHearts();
   const { streak } = useStreak();
   const { addXP: addDailyXP } = useDailyGoal();
   const { checkAndUnlock: checkAndUnlockAchievements } = useAchievements();

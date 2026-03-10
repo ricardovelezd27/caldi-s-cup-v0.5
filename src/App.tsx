@@ -55,7 +55,7 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/quiz" element={<QuizPage />} />
                 <Route path="/results" element={<ResultsPage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
                 <Route path="/scanner" element={<ScannerPage />} />
                 <Route path="/coffee/:id" element={<CoffeeProfilePage />} />
                 <Route path="/contact_feedback" element={<FeedbackPage />} />

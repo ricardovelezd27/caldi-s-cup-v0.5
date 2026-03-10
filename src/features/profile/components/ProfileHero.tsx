@@ -10,13 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/language";
 import { ProfileRankRow } from "./ProfileRankRow";
-import { StreakDisplay } from "@/features/learning/components/gamification/StreakDisplay";
-import { DailyGoalRing } from "@/features/learning/components/gamification/DailyGoalRing";
-import { useStreak } from "@/hooks/gamification/useStreak";
-import { useDailyGoal } from "@/features/learning/hooks/useDailyGoal";
-import { useFavorites } from "@/features/coffee/hooks/useFavorites";
-import { useInventory } from "@/features/coffee/hooks/useInventory";
-import { Heart, Package } from "lucide-react";
 import caldiLogo from "/lovable-uploads/8e78a6bd-5f00-45be-b082-c35b57fa9a7c.png";
 
 export function ProfileHero() {
@@ -25,11 +18,6 @@ export function ProfileHero() {
   const [editOpen, setEditOpen] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
-
-  const { streak } = useStreak();
-  const { goal } = useDailyGoal();
-  const { favoriteIds } = useFavorites();
-  const { inventoryItems } = useInventory();
 
   if (!user || !profile) return null;
 
@@ -129,8 +117,8 @@ export function ProfileHero() {
       {/* Content card overlapping cover */}
       <div className="bg-background rounded-t-3xl md:rounded-none -mt-10 md:-mt-0 relative z-10">
         <div className="max-w-5xl mx-auto px-5 md:px-4">
-          {/* Avatar + info row */}
-          <div className="flex flex-col md:flex-row md:items-end gap-0 md:gap-6">
+          {/* Avatar + info — centered on mobile, side-by-side on desktop */}
+          <div className="flex flex-col items-center text-center md:flex-row md:items-end md:text-left gap-0 md:gap-6">
             {/* Avatar overlapping cover */}
             <div className="-mt-16 md:-mt-16 shrink-0">
               <ProfileAvatar
@@ -143,7 +131,7 @@ export function ProfileHero() {
             </div>
 
             {/* Info block */}
-            <div className="flex items-start justify-between flex-1 min-w-0 pt-3 md:pt-0 md:pb-4">
+            <div className="flex flex-col md:flex-row items-center md:items-start justify-between flex-1 min-w-0 pt-3 md:pt-0 md:pb-4">
               <div className="flex-1 min-w-0">
                 <h1 className="text-2xl md:text-3xl truncate">
                   {profile.display_name || t("profile.coffeeLover")}
@@ -151,31 +139,20 @@ export function ProfileHero() {
                 <p className="text-sm text-muted-foreground truncate">
                   {user.email}
                 </p>
-
-                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mt-2">
-                  <ProfileRankRow />
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <StreakDisplay currentStreak={streak?.currentStreak ?? profile.current_streak ?? 0} size="sm" />
-                    {goal && <DailyGoalRing earnedXp={goal.earnedXp} goalXp={goal.goalXp} size="sm" />}
-                    <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
-                      <Heart className="h-3.5 w-3.5" />
-                      {favoriteIds.length}
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent">
-                      <Package className="h-3.5 w-3.5" />
-                      {inventoryItems.length}
-                    </span>
-                  </div>
-                </div>
               </div>
 
-              {/* Edit button → opens dialog */}
-              <div className="ml-2 pt-1">
+              {/* Edit button */}
+              <div className="mt-2 md:mt-0 md:ml-2 md:pt-1">
                 <Button size="icon" variant="ghost" onClick={() => setEditOpen(true)} className="h-9 w-9">
                   <Pencil className="h-4 w-4" />
                 </Button>
               </div>
             </div>
+          </div>
+
+          {/* Rank row — full width below avatar/info */}
+          <div className="w-full mt-6 pb-4">
+            <ProfileRankRow />
           </div>
         </div>
       </div>

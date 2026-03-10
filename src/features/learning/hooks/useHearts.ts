@@ -1,14 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 
-const REFILL_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const REFILL_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours — all 5 hearts refill at once
 const DEFAULT_MAX_HEARTS = 5;
 
 export function useHearts() {
   const { user } = useAuth();
   const qc = useQueryClient();
+
+  // Ticking clock for reactive countdown
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const heartsQuery = useQuery({
     queryKey: ["learning-hearts", user?.id],
@@ -28,22 +35,31 @@ export function useHearts() {
   const raw = heartsQuery.data;
 
   const computed = useMemo(() => {
-    if (!raw) return { hearts: DEFAULT_MAX_HEARTS, maxHearts: DEFAULT_MAX_HEARTS, timeUntilNext: null as number | null };
+    if (!raw) return { hearts: DEFAULT_MAX_HEARTS, maxHearts: DEFAULT_MAX_HEARTS, timeUntilRefill: null as number | null };
 
-    const lastRefill = raw.hearts_last_refilled_at
+    const maxH = raw.max_hearts ?? DEFAULT_MAX_HEARTS;
+
+    // If hearts are already at max, no refill needed
+    if (raw.hearts >= maxH) {
+      return { hearts: maxH, maxHearts: maxH, timeUntilRefill: null };
+    }
+
+    // Hearts are below max — check if 24h has elapsed since first loss
+    const lostAt = raw.hearts_last_refilled_at
       ? new Date(raw.hearts_last_refilled_at).getTime()
-      : Date.now();
-    const elapsed = Date.now() - lastRefill;
-    const refillCount = Math.floor(elapsed / REFILL_INTERVAL_MS);
-    const currentHearts = Math.min(raw.hearts + refillCount, raw.max_hearts);
+      : now; // fallback to now (shouldn't happen)
 
-    const timeUntilNext =
-      currentHearts < raw.max_hearts
-        ? REFILL_INTERVAL_MS - (elapsed % REFILL_INTERVAL_MS)
-        : null;
+    const elapsed = now - lostAt;
 
-    return { hearts: currentHearts, maxHearts: raw.max_hearts, timeUntilNext };
-  }, [raw]);
+    if (elapsed >= REFILL_INTERVAL_MS) {
+      // 24h passed — hearts are fully refilled (will sync to DB on next mutation)
+      return { hearts: maxH, maxHearts: maxH, timeUntilRefill: null };
+    }
+
+    // Still waiting — show current hearts and countdown
+    const timeUntilRefill = REFILL_INTERVAL_MS - elapsed;
+    return { hearts: raw.hearts, maxHearts: maxH, timeUntilRefill };
+  }, [raw, now]);
 
   const loseHeartMutation = useMutation({
     mutationFn: async () => {
@@ -53,8 +69,11 @@ export function useHearts() {
       const maxH = computed.maxHearts;
       const newHearts = Math.max(0, currentHearts - 1);
 
+      // Determine if this is the first loss (going from max to below max)
+      const isFirstLoss = currentHearts === maxH;
+
       if (!raw) {
-        // No row exists yet — upsert with hearts already decremented
+        // No row exists yet — insert with hearts decremented
         const { error } = await supabase
           .from("learning_user_streaks")
           .insert({
@@ -65,15 +84,17 @@ export function useHearts() {
           });
         if (error) throw error;
       } else {
+        const updatePayload: Record<string, any> = { hearts: newHearts };
+
+        // Only set the timestamp on the FIRST loss (max → below max)
+        // Subsequent losses keep the original timestamp so the 24h window is anchored
+        if (isFirstLoss) {
+          updatePayload.hearts_last_refilled_at = new Date().toISOString();
+        }
+
         const { error } = await supabase
           .from("learning_user_streaks")
-          .update({
-            hearts: newHearts,
-            hearts_last_refilled_at:
-              currentHearts === maxH
-                ? new Date().toISOString()
-                : raw.hearts_last_refilled_at,
-          })
+          .update(updatePayload)
           .eq("user_id", user.id);
         if (error) throw error;
       }
@@ -98,7 +119,7 @@ export function useHearts() {
     hearts: computed.hearts,
     maxHearts: computed.maxHearts,
     hasHearts: computed.hearts > 0,
-    timeUntilNextHeart: computed.timeUntilNext,
+    timeUntilRefill: computed.timeUntilRefill,
     isLoading: heartsQuery.isLoading,
     loseHeart: loseHeartMutation.mutateAsync,
     gainHeart: gainHeartMutation.mutateAsync,

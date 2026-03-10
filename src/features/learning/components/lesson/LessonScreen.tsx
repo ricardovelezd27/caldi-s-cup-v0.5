@@ -40,7 +40,7 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
   const { t, language } = useLanguage();
   const lesson = useLesson(lessonId);
   const anonymousProgress = useAnonymousProgress();
-  const { hearts, maxHearts, hasHearts, loseHeart, isLoading: heartsLoading } = useHearts();
+  const { hearts, maxHearts, hasHearts, timeUntilRefill, loseHeart, isLoading: heartsLoading } = useHearts();
   const { streak } = useStreak();
   const { addXP: addDailyXP } = useDailyGoal();
   const { checkAndUnlock: checkAndUnlockAchievements } = useAchievements();
@@ -212,6 +212,7 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
           onExit={onExit}
           hearts={user ? hearts : undefined}
           maxHearts={user ? maxHearts : undefined}
+          timeUntilRefill={user ? timeUntilRefill : undefined}
         />
         <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col px-4 pb-8">
           <ExerciseRenderer
@@ -228,12 +229,18 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
           mascot={mascot}
           exerciseId={lesson.currentExercise.id}
           lessonId={lessonId}
-          onContinue={lesson.nextExercise}
+          onContinue={() => {
+            if (hearts === 0 && user) {
+              setShowHeartsEmpty(true);
+              return;
+            }
+            lesson.nextExercise();
+          }}
         />
         <HeartsEmptyModal
           open={showHeartsEmpty}
           onOpenChange={setShowHeartsEmpty}
-          timeUntilNextHeart={null}
+          timeUntilRefill={timeUntilRefill}
         />
       </PageLayout>
     );

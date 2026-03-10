@@ -8,9 +8,10 @@ interface LessonProgressProps {
   onExit: () => void;
   hearts?: number;
   maxHearts?: number;
+  timeUntilRefill?: number | null;
 }
 
-export function LessonProgress({ current, total, onExit, hearts, maxHearts }: LessonProgressProps) {
+export function LessonProgress({ current, total, onExit, hearts, maxHearts, timeUntilRefill }: LessonProgressProps) {
   const percent = total > 0 ? (current / total) * 100 : 0;
 
   return (
@@ -24,7 +25,7 @@ export function LessonProgress({ current, total, onExit, hearts, maxHearts }: Le
       </button>
       <Progress value={percent} className="h-4 flex-1 rounded-full" />
       {hearts !== undefined && maxHearts !== undefined && (
-        <HeartsDisplay hearts={hearts} maxHearts={maxHearts} />
+        <HeartsDisplay hearts={hearts} maxHearts={maxHearts} timeUntilRefill={timeUntilRefill} />
       )}
     </div>
   );

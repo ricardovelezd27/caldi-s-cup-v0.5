@@ -1,76 +1,81 @@
 
 
-# Plan: Unite Dashboard + Profile into One Page
+# Fix: Scanner Tribe Match Hallucination (Prompt + Matching Logic)
 
-## Overview
+## Root Cause
 
-Merge the dashboard's widget system directly into the profile page, eliminating the separate `/dashboard` route. The profile page becomes the single authenticated home — hero at top, stats below, then the full widget grid (add/remove/edit widgets), followed by account settings and footer.
+Line 551 serializes the **entire** `sanitizedData` object (including `jargonExplanations` and `brandStory`) into one string for keyword matching:
 
-## Layout Schema
-
-```text
-┌─────────────────────────────────────────────────┐
-│              ProfileHero                         │
-│  (Cover + Avatar + Name + Email + Rank Bar)      │
-├─────────────────────────────────────────────────┤
-│  📊 Your Stats                                   │
-│  [Streak] [Goal] [XP] [Favs] [Inventory]         │
-│  (grid-cols-2 md:grid-cols-5)                    │
-├─────────────────────────────────────────────────┤
-│  ☕ My Dashboard                                  │
-│  [+ Add Widget] [⚙ Edit]        [Scan Coffee]   │
-│  ┌─────────────────────────────────────────┐     │
-│  │ Widget Grid (from WidgetGrid component) │     │
-│  │ (2-3 col grid, add/remove/reorder)      │     │
-│  └─────────────────────────────────────────┘     │
-├─────────────────────────────────────────────────┤
-│  📦 Collections                                  │
-│  [FavoritesTable] [InventoryTable]               │
-├─────────────────────────────────────────────────┤
-│  ⚙️ Account & Settings                          │
-│  [Edit Profile] [Retake Quiz]                    │
-├─────────────────────────────────────────────────┤
-│  FeedbackCTA                                     │
-│  Footer                                          │
-└─────────────────────────────────────────────────┘
+```typescript
+const allText = JSON.stringify(sanitizedData).toLowerCase();
 ```
 
-## Changes
+When the AI explains *"Caturra is a natural mutation of **Bourbon**"* in jargon, the Owl tribe keywords "Bourbon" and "Typica" match against that educational text -- not the coffee's actual variety (Caturra). This inflates the score from ~30% to ~80%.
 
-### 1. `ProfilePage.tsx` — Embed WidgetGrid
+## Changes (single file: `supabase/functions/scan-coffee/index.ts`)
 
-- Import `WidgetGrid` from `@/features/dashboard/components`
-- Add a new "☕ My Dashboard" section between Stats and Collections
-- Render `<WidgetGrid />` directly inside that section
-- Remove the standalone `TribeSection` (it already exists as a dashboard widget `coffee_tribe`)
-- Keep stats row, collections, account settings, and feedback sections as-is
+### 1. Fix keyword matching to search only coffee attributes (lines 550-568)
 
-### 2. `App.tsx` — Redirect `/dashboard` to `/profile`
+Replace `JSON.stringify(sanitizedData)` with a targeted string built from only the coffee's own identifying attributes:
 
-- Change the `/dashboard` route from rendering `DashboardPage` to a `<Navigate to="/profile" replace />`
-- This preserves any existing links/bookmarks while unifying to one page
-- Keep the `DashboardPage` component file for now (no deletion needed)
+- `coffeeName`, `brand`
+- `variety`, `processingMethod`
+- `legacyRoastLevel` (text roast descriptor)
+- `originCountry`, `originRegion`, `originFarm`
+- `flavorNotes` (joined)
 
-### 3. `DashboardSidebar` — Remove from profile
+**Excluded** from matching: `jargonExplanations`, `brandStory`, `awards`, numeric scores.
 
-- The sidebar was part of the dashboard layout — it won't be embedded in the profile page
-- The profile page uses `PageLayout` (header + footer), not the sidebar layout
-- Sidebar navigation links (Profile, Scanner, etc.) are already in the main Header nav
+```typescript
+// Build search text from ONLY the coffee's actual attributes
+const attributeText = [
+  sanitizedData.coffeeName,
+  sanitizedData.brand,
+  sanitizedData.variety,
+  sanitizedData.processingMethod,
+  sanitizedData.legacyRoastLevel,
+  sanitizedData.originCountry,
+  sanitizedData.originRegion,
+  sanitizedData.originFarm,
+  ...sanitizedData.flavorNotes,
+].filter(Boolean).join(" ").toLowerCase();
+```
 
-### 4. `constants/app.ts` — No route changes needed
+### 2. Strengthen the tribe context in the prompt (line 384-386)
 
-- Keep `ROUTES.dashboard` pointing to `/dashboard` for backward compatibility (redirect handles it)
+Update the tribe context instruction to tell the AI to assess the match based strictly on the coffee's own extracted attributes, not on educational/descriptive text:
 
-### 5. `WidgetGrid.tsx` — Minor: Remove `welcome_hero` special handling (optional)
+**Before:**
+```
+The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
+Consider these when calculating the tribe match score.
+```
 
-- The WelcomeHero widget duplicates what ProfileHero already shows (name, tribe, rank)
-- Either: filter it out when rendered on profile page, or let users remove it via the Edit UI
-- Recommend: no code change needed — users can simply remove it from their widget set
+**After:**
+```
+The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
+IMPORTANT: When assessing tribe alignment, evaluate ONLY based on this coffee's own
+variety, processing method, roast level, origin, and flavor notes.
+Do NOT let references to other varietals or methods in jargon explanations
+influence the match assessment. For example, if the variety is "Caturra",
+do not count "Bourbon" as a match just because Caturra descends from Bourbon.
+```
 
-## Files Modified
+### 3. No model change
 
-| File | Change |
-|------|--------|
-| `ProfilePage.tsx` | Add WidgetGrid section, remove standalone TribeSection |
-| `App.tsx` | Redirect `/dashboard` → `/profile` |
+Keep `google/gemini-2.5-flash` as-is. The hallucination is caused by the matching logic, not the model's extraction accuracy.
+
+## Impact
+
+| Scenario | Before | After |
+|----------|--------|-------|
+| Caturra coffee, Owl tribe | ~80% (false Bourbon/Typica match from jargon) | ~30-50% (correct: no direct Owl keywords in attributes) |
+| Actual Bourbon coffee, Owl tribe | ~80% | ~80% (correct: Bourbon is in variety field) |
+| Natural process coffee, Hummingbird | ~65% | ~65% (unchanged: "Natural" is in processingMethod) |
+
+Works across all 4 tribes since the fix is in the generic matching logic, not tribe-specific code.
+
+## Implementation
+
+Single file edit with 2 changes, auto-deploys as edge function.
 

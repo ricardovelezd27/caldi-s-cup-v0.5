@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/auth";
 import { LanguageProvider } from "@/contexts/language";
 import { ErrorBoundary, OfflineIndicator } from "@/components/error";
@@ -55,7 +55,7 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/quiz" element={<QuizPage />} />
                 <Route path="/results" element={<ResultsPage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/dashboard" element={<Navigate to="/profile" replace />} />
                 <Route path="/scanner" element={<ScannerPage />} />
                 <Route path="/coffee/:id" element={<CoffeeProfilePage />} />
                 <Route path="/contact_feedback" element={<FeedbackPage />} />

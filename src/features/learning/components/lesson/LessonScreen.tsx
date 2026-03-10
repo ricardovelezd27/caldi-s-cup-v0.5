@@ -229,7 +229,13 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
           mascot={mascot}
           exerciseId={lesson.currentExercise.id}
           lessonId={lessonId}
-          onContinue={lesson.nextExercise}
+          onContinue={() => {
+            if (hearts === 0 && user) {
+              setShowHeartsEmpty(true);
+              return;
+            }
+            lesson.nextExercise();
+          }}
         />
         <HeartsEmptyModal
           open={showHeartsEmpty}

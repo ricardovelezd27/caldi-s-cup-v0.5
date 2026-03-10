@@ -7,7 +7,6 @@ import { useAuth } from "@/contexts/auth";
 import { useLanguage } from "@/contexts/language";
 import {
   ProfileHero,
-  TribeSection,
   FavoritesTable,
   InventoryTable,
   EditProfileDialog,
@@ -17,6 +16,7 @@ import {
   ProfileFavoritesCard,
   ProfileInventoryCard,
 } from "./components";
+import { WidgetGrid } from "@/features/dashboard/components";
 import { Separator } from "@/components/ui/separator";
 import { FeedbackCTA } from "@/components/shared/FeedbackCTA";
 import { Button } from "@/components/ui/button";
@@ -63,10 +63,10 @@ function ProfileContent() {
 
         <Separator className="my-8" />
 
-        {/* Widgets Section */}
+        {/* ☕ My Dashboard — Widget Grid */}
         <section>
-          <h2 className="text-xl md:text-2xl font-bangers tracking-wide mb-4">☕ My Coffee Hub</h2>
-          <TribeSection tribe={profile.coffee_tribe} />
+          <h2 className="text-xl md:text-2xl font-bangers tracking-wide mb-4">☕ My Dashboard</h2>
+          <WidgetGrid />
         </section>
 
         <Separator className="my-8" />

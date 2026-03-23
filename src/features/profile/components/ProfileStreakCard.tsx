@@ -3,7 +3,7 @@ import { useStreak } from "@/hooks/gamification/useStreak";
 import { useAuth } from "@/contexts/auth";
 import { ProfileStatCard } from "./ProfileStatCard";
 
-export function ProfileStreakCard() {
+export function ProfileStreakCard({ compact }: { compact?: boolean }) {
   const { profile } = useAuth();
   const { streak } = useStreak();
   const current = streak?.currentStreak ?? profile?.current_streak ?? 0;
@@ -14,6 +14,7 @@ export function ProfileStreakCard() {
       iconClassName="bg-orange-100 text-orange-600"
       metric={current}
       label="Day Streak"
+      compact={compact}
     />
   );
 }

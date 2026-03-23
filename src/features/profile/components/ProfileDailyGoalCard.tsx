@@ -2,7 +2,7 @@ import { Target } from "lucide-react";
 import { useDailyGoal } from "@/features/learning/hooks/useDailyGoal";
 import { ProfileStatCard } from "./ProfileStatCard";
 
-export function ProfileDailyGoalCard() {
+export function ProfileDailyGoalCard({ compact }: { compact?: boolean }) {
   const { goal, isGoalSet } = useDailyGoal();
 
   const metric = isGoalSet && goal
@@ -15,6 +15,7 @@ export function ProfileDailyGoalCard() {
       iconClassName="bg-blue-100 text-blue-600"
       metric={metric}
       label="Daily Goal"
+      compact={compact}
     />
   );
 }

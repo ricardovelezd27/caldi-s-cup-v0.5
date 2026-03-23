@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared/Container";
 import { RequireAuth } from "@/components/auth/RequireAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/auth";
 import { useLanguage } from "@/contexts/language";
 import {
@@ -27,6 +28,7 @@ function ProfileContent() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     refreshProfile();
@@ -51,13 +53,13 @@ function ProfileContent() {
       <Container size="default" className="py-8">
         {/* 📊 Stats Row */}
         <section>
-          <h2 className="text-xl md:text-2xl font-bangers tracking-wide mb-4">📊 Your Stats</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <ProfileStreakCard />
-            <ProfileDailyGoalCard />
-            <ProfileXPCard />
-            <ProfileFavoritesCard />
-            <ProfileInventoryCard />
+          <h2 className="text-xl md:text-2xl font-bangers tracking-wide mb-4 hidden md:block">📊 Your Stats</h2>
+          <div className={isMobile ? "flex overflow-x-auto gap-3 pb-2 -mx-4 px-4 no-scrollbar" : "grid grid-cols-2 md:grid-cols-5 gap-4"}>
+            <ProfileStreakCard compact={isMobile} />
+            <ProfileDailyGoalCard compact={isMobile} />
+            <ProfileXPCard compact={isMobile} />
+            <ProfileFavoritesCard compact={isMobile} />
+            <ProfileInventoryCard compact={isMobile} />
           </div>
         </section>
 

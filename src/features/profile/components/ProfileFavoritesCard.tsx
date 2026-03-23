@@ -2,7 +2,7 @@ import { Heart } from "lucide-react";
 import { useFavorites } from "@/features/coffee/hooks/useFavorites";
 import { ProfileStatCard } from "./ProfileStatCard";
 
-export function ProfileFavoritesCard() {
+export function ProfileFavoritesCard({ compact }: { compact?: boolean }) {
   const { favoriteIds } = useFavorites();
 
   return (
@@ -11,6 +11,7 @@ export function ProfileFavoritesCard() {
       iconClassName="bg-rose-100 text-rose-600"
       metric={favoriteIds.length}
       label="Favorite coffees"
+      compact={compact}
     />
   );
 }

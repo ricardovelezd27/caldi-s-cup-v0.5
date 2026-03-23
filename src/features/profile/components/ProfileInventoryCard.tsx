@@ -2,7 +2,7 @@ import { Package } from "lucide-react";
 import { useInventory } from "@/features/coffee/hooks/useInventory";
 import { ProfileStatCard } from "./ProfileStatCard";
 
-export function ProfileInventoryCard() {
+export function ProfileInventoryCard({ compact }: { compact?: boolean }) {
   const { inventoryItems } = useInventory();
 
   return (
@@ -11,6 +11,7 @@ export function ProfileInventoryCard() {
       iconClassName="bg-amber-100 text-amber-700"
       metric={inventoryItems.length}
       label="Coffees in Inventory"
+      compact={compact}
     />
   );
 }

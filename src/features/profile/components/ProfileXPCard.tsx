@@ -2,7 +2,7 @@ import { Star } from "lucide-react";
 import { useUserRank } from "@/features/gamification/hooks/useUserRank";
 import { ProfileStatCard } from "./ProfileStatCard";
 
-export function ProfileXPCard() {
+export function ProfileXPCard({ compact }: { compact?: boolean }) {
   const { totalXP } = useUserRank();
 
   return (
@@ -11,6 +11,7 @@ export function ProfileXPCard() {
       iconClassName="bg-yellow-100 text-yellow-600"
       metric={totalXP.toLocaleString()}
       label="Total XP"
+      compact={compact}
     />
   );
 }

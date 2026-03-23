@@ -28,6 +28,7 @@ function ProfileContent() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     refreshProfile();

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared/Container";
 import { RequireAuth } from "@/components/auth/RequireAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/auth";
 import { useLanguage } from "@/contexts/language";
 import {

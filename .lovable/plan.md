@@ -1,81 +1,44 @@
 
 
-# Fix: Scanner Tribe Match Hallucination (Prompt + Matching Logic)
+# Plan: Mobile-Friendly Stats Redesign
 
-## Root Cause
+## Problem
 
-Line 551 serializes the **entire** `sanitizedData` object (including `jargonExplanations` and `brandStory`) into one string for keyword matching:
+On mobile, the 5 stat cards render in a 2-column grid with tall, padded cards — taking up excessive vertical space and feeling clunky. The desktop 5-column layout is fine and stays as-is.
 
-```typescript
-const allText = JSON.stringify(sanitizedData).toLowerCase();
+## Solution: Compact Pill Stats on Mobile
+
+On mobile, switch to a horizontal scrollable row of compact "pill" stats — icon + metric + label inline, no big padding or shadows. On desktop (md+), keep the current 5-column card grid unchanged.
+
+```text
+Mobile (horizontal scroll, compact pills):
+┌──────────────────────────────────────────────┐
+│ [🔥 7 Streak] [🎯 5/10 Goal] [⭐ 240 XP] → │
+└──────────────────────────────────────────────┘
+
+Desktop (unchanged):
+[Streak] [Goal] [XP] [Favs] [Inventory]
 ```
 
-When the AI explains *"Caturra is a natural mutation of **Bourbon**"* in jargon, the Owl tribe keywords "Bourbon" and "Typica" match against that educational text -- not the coffee's actual variety (Caturra). This inflates the score from ~30% to ~80%.
+## Changes
 
-## Changes (single file: `supabase/functions/scan-coffee/index.ts`)
+### 1. `ProfileStatCard.tsx` — Add compact variant
 
-### 1. Fix keyword matching to search only coffee attributes (lines 550-568)
+- Add a `compact` prop (boolean, default false)
+- When `compact`: render as a horizontal pill — `flex-row` layout, smaller icon (h-7 w-7), inline metric+label, reduced padding (px-3 py-2), `rounded-full`, thinner border (2px), smaller shadow (2px 2px)
+- When not compact: existing card layout (no changes)
 
-Replace `JSON.stringify(sanitizedData)` with a targeted string built from only the coffee's own identifying attributes:
+### 2. `ProfilePage.tsx` — Responsive stats layout
 
-- `coffeeName`, `brand`
-- `variety`, `processingMethod`
-- `legacyRoastLevel` (text roast descriptor)
-- `originCountry`, `originRegion`, `originFarm`
-- `flavorNotes` (joined)
+- Use `useIsMobile()` hook
+- Mobile: render stats in a `flex overflow-x-auto gap-3` horizontal scroll container, passing `compact` to each stat card
+- Desktop: keep existing `grid grid-cols-5 gap-4` with full cards
+- Hide the "📊 Your Stats" heading on mobile (stats are self-explanatory as pills) or keep it smaller
 
-**Excluded** from matching: `jargonExplanations`, `brandStory`, `awards`, numeric scores.
+### Files Modified
 
-```typescript
-// Build search text from ONLY the coffee's actual attributes
-const attributeText = [
-  sanitizedData.coffeeName,
-  sanitizedData.brand,
-  sanitizedData.variety,
-  sanitizedData.processingMethod,
-  sanitizedData.legacyRoastLevel,
-  sanitizedData.originCountry,
-  sanitizedData.originRegion,
-  sanitizedData.originFarm,
-  ...sanitizedData.flavorNotes,
-].filter(Boolean).join(" ").toLowerCase();
-```
-
-### 2. Strengthen the tribe context in the prompt (line 384-386)
-
-Update the tribe context instruction to tell the AI to assess the match based strictly on the coffee's own extracted attributes, not on educational/descriptive text:
-
-**Before:**
-```
-The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
-Consider these when calculating the tribe match score.
-```
-
-**After:**
-```
-The user's Coffee Tribe is "${userTribe}" with preference keywords: ${tribeKeywords.join(", ")}.
-IMPORTANT: When assessing tribe alignment, evaluate ONLY based on this coffee's own
-variety, processing method, roast level, origin, and flavor notes.
-Do NOT let references to other varietals or methods in jargon explanations
-influence the match assessment. For example, if the variety is "Caturra",
-do not count "Bourbon" as a match just because Caturra descends from Bourbon.
-```
-
-### 3. No model change
-
-Keep `google/gemini-2.5-flash` as-is. The hallucination is caused by the matching logic, not the model's extraction accuracy.
-
-## Impact
-
-| Scenario | Before | After |
-|----------|--------|-------|
-| Caturra coffee, Owl tribe | ~80% (false Bourbon/Typica match from jargon) | ~30-50% (correct: no direct Owl keywords in attributes) |
-| Actual Bourbon coffee, Owl tribe | ~80% | ~80% (correct: Bourbon is in variety field) |
-| Natural process coffee, Hummingbird | ~65% | ~65% (unchanged: "Natural" is in processingMethod) |
-
-Works across all 4 tribes since the fix is in the generic matching logic, not tribe-specific code.
-
-## Implementation
-
-Single file edit with 2 changes, auto-deploys as edge function.
+| File | Change |
+|------|--------|
+| `ProfileStatCard.tsx` | Add `compact` prop for pill variant |
+| `ProfilePage.tsx` | Responsive: scroll pills on mobile, grid on desktop |
 

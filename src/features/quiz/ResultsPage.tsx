@@ -84,7 +84,7 @@ export const ResultsPage = () => {
         }, { maxRetries: 3, initialDelay: 1000, backoffFactor: 2 });
         setHasSaved(true);
         await refreshProfile();
-        try { localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem('caldi_quiz_state'); localStorage.removeItem(PENDING_TRIBE_SAVE_KEY); } catch (err) { console.error("[ResultsPage] Failed to clear localStorage after save:", err); }
+        try { localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE); localStorage.removeItem(PENDING_TRIBE_SAVE_KEY); } catch (err) { console.error("[ResultsPage] Failed to clear localStorage after save:", err); }
         toast({ title: t('quiz.tribeSavedToast'), description: `${t('quiz.tribeSavedDesc')} ${t(`tribes.${result.tribe}.name`)}.` });
       } catch (err) {
         console.error('All retries failed saving tribe:', err);

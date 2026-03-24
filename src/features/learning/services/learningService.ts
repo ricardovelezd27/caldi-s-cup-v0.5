@@ -203,7 +203,8 @@ export async function getUnitsBySectionIds(sectionIds: string[]): Promise<Learni
     .select("*")
     .in("section_id", sectionIds)
     .eq("is_active", true)
-    .order("sort_order");
+    .order("sort_order")
+    .limit(500);
 
   if (error) throw error;
   return (data ?? []).map(toUnit);

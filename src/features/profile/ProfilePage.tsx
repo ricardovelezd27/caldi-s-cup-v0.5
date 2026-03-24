@@ -34,19 +34,6 @@ function ProfileContent() {
           <WidgetGrid />
         </section>
 
-        <Separator className="my-8" />
-
-        {/* ⚙️ Account & Settings */}
-        <section className="w-full">
-          <h2 className="text-xl md:text-2xl font-bangers tracking-wide mb-4">⚙️ Account & Settings</h2>
-          <div className="flex flex-col gap-3 max-w-md">
-            <Button variant="outline" onClick={() => setEditOpen(true)}>
-              <Pencil className="h-4 w-4 mr-2" />
-              {t("profile.editProfile") || "Edit Profile"}
-            </Button>
-          </div>
-        </section>
-
         <div className="mt-12">
           <FeedbackCTA />
         </div>

@@ -8,6 +8,7 @@ import type { WidgetComponentProps } from "./types";
 export function WeeklyGoalWidget({ widget }: WidgetComponentProps) {
   const { profile } = useAuth();
   const { weeklyBrewCount } = useDashboardData();
+  const { streak } = useStreak();
   
   const targetCount = profile?.weekly_goal_target ?? 10;
   const currentCount = weeklyBrewCount;

@@ -132,7 +132,7 @@ export function ProfileHero() {
 
             {/* Info block */}
             <div className="flex flex-col md:flex-row items-center md:items-start justify-between flex-1 min-w-0 pt-3 md:pt-0 md:pb-4">
-              <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 pt-2">
                 <h1 className="text-2xl md:text-3xl truncate">
                   {profile.display_name || t("profile.coffeeLover")}
                 </h1>

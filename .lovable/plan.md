@@ -1,48 +1,30 @@
 
 
-# Plan: Add Error Boundary Around Lesson Exercises
+# Plan: Validate Required Environment Variables at Startup
 
-## Problem
+## Change
 
-If a single exercise component throws a runtime error (e.g., malformed `questionData`), the entire lesson page crashes. Users lose progress and see a generic error screen.
+### `src/main.tsx`
 
-## Changes
+Before mounting React, check that `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are present and non-empty. If either is missing, render a plain HTML error message to `#root` and return early — no React mount.
 
-### `src/features/learning/components/lesson/LessonScreen.tsx`
+```ts
+const requiredVars = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_PUBLISHABLE_KEY'] as const;
+const missing = requiredVars.filter(key => !import.meta.env[key]);
 
-1. **Import** `ErrorBoundary` from `@/components/error/ErrorBoundary`
-2. **Create** an `ExerciseFallback` inline component that shows a friendly message and a "Skip to Next" button calling `lesson.nextExercise()`
-3. **Wrap** the `<ExerciseRenderer>` (around line 210) with `<ErrorBoundary>`, passing the fallback and using `key={lesson.currentExercise.id}` so the boundary resets per exercise
-
-```tsx
-const ExerciseFallback = () => (
-  <div className="flex flex-col items-center justify-center py-8 px-4 text-center max-w-sm mx-auto">
-    <div className="rounded-lg border-4 border-dashed border-border p-8 bg-card/50 w-full space-y-4">
-      <p className="text-muted-foreground font-inter text-sm">
-        This exercise had a problem loading. Your progress has been saved — you can continue to the next exercise.
-      </p>
-      <Button variant="default" onClick={() => lesson.nextExercise()}>
-        Skip to Next
-      </Button>
-    </div>
-  </div>
-);
+if (missing.length > 0) {
+  document.getElementById("root")!.innerHTML = `
+    <div style="font-family:system-ui;padding:2rem;text-align:center">
+      <h1>App configuration error</h1>
+      <p>Missing environment variables: ${missing.join(', ')}</p>
+      <p>Please check your .env.local file.</p>
+    </div>`;
+} else {
+  createRoot(document.getElementById("root")!).render(<App />);
+}
 ```
-
-Wrap usage:
-```tsx
-<ErrorBoundary
-  key={lesson.currentExercise.id}
-  name="ExerciseRenderer"
-  fallback={<ExerciseFallback />}
->
-  <ExerciseRenderer ... />
-</ErrorBoundary>
-```
-
-## Files Modified
 
 | File | Change |
 |------|--------|
-| `LessonScreen.tsx` | Import ErrorBoundary, add fallback component, wrap ExerciseRenderer |
+| `src/main.tsx` | Add env var validation guard before React mount |
 

@@ -54,7 +54,7 @@ export function EditWidgetsDialog({ existingTypes, onAdd, onRemove, isAdding, on
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid grid-cols-2 gap-3 mt-4 max-h-[400px] overflow-y-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 max-h-[400px] overflow-y-auto">
           {availableWidgets.map((meta) => {
             const isAdded = existingTypes.includes(meta.type);
             

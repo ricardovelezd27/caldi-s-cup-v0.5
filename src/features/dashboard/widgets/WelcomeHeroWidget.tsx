@@ -27,37 +27,24 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
       )}
 
       {/* Top row: tribe intro + button */}
-      <div className="relative flex items-start justify-between gap-3">
-        <div className="flex-1 space-y-1">
-          {tribeDef ? (
-            <>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                You're a <span className={`font-bold ${tribeDef.colorClass}`}>{tribeDef.name}</span> — {tribeDef.title.toLowerCase()}.
-              </p>
-              <p className="text-xs text-muted-foreground/70">
-                {tribeDef.description.slice(0, 100)}…
-              </p>
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Ready to discover your coffee personality?{" "}
-              <a href="/quiz" className="text-secondary underline hover:text-secondary/80 font-medium">
-                Take the quiz
-              </a>
+      {/* Tribe intro */}
+      <div className="space-y-1">
+        {tribeDef ? (
+          <>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              You're a <span className={`font-bold ${tribeDef.colorClass}`}>{tribeDef.name}</span> — {tribeDef.title.toLowerCase()}.
             </p>
-          )}
-        </div>
-
-        {tribeDef && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="shrink-0 text-xs gap-1.5"
-            onClick={() => setModalOpen(true)}
-          >
-            <Info className="h-3.5 w-3.5" />
-            My Tribe {tribeDef.emoji}
-          </Button>
+            <p className="text-xs text-muted-foreground/70">
+              {tribeDef.description.slice(0, 100)}…
+            </p>
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Ready to discover your coffee personality?{" "}
+            <a href="/quiz" className="text-secondary underline hover:text-secondary/80 font-medium">
+              Take the quiz
+            </a>
+          </p>
         )}
       </div>
 
@@ -72,6 +59,21 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
               {v}
             </span>
           ))}
+        </div>
+      )}
+
+      {/* My Tribe button */}
+      {tribeDef && (
+        <div className="mt-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs gap-1.5 w-full"
+            onClick={() => setModalOpen(true)}
+          >
+            <Info className="h-3.5 w-3.5" />
+            My Tribe {tribeDef.emoji}
+          </Button>
         </div>
       )}
 

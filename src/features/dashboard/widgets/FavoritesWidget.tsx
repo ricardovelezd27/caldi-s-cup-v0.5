@@ -16,7 +16,7 @@ export function FavoritesWidget({ widget }: WidgetComponentProps) {
       <CardHeader className="pb-2">
         <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
           <Heart className="h-5 w-5 text-destructive" />
-          Favorite Coffee
+          {favCount > 0 ? `Favorites (${favCount})` : "Favorites"}
         </CardTitle>
       </CardHeader>
       <CardContent>

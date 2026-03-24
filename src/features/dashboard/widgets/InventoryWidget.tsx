@@ -56,7 +56,7 @@ export function InventoryWidget({ widget }: WidgetComponentProps) {
       <CardHeader className="pb-2">
         <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
           <Package className="h-5 w-5 text-accent" />
-          My Inventory
+          {totalCount > 0 ? `My Inventory (${totalCount})` : "My Inventory"}
         </CardTitle>
       </CardHeader>
       <CardContent>

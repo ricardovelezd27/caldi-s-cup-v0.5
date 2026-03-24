@@ -69,6 +69,11 @@ export function WeeklyGoalWidget({ widget }: WidgetComponentProps) {
             <span>{targetCount - currentCount} more to go this week</span>
           )}
         </p>
+        {streak && streak.currentStreak > 0 && (
+          <p className="text-xs text-muted-foreground mt-1 text-center">
+            🔥 {streak.currentStreak} day streak
+          </p>
+        )}
       </CardContent>
     </Card>
   );

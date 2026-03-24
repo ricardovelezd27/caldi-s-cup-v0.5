@@ -1,55 +1,56 @@
 
 
-# Plan: Fix Unhandled Async Errors in AuthContext
+# Plan: Fix Silent Error Swallowing in ResultsPage
 
 ## Problem
 
-Three `.then()` chains in the auth initialization `useEffect` have no `.catch()` handlers:
+`ResultsPage.tsx` has 5 empty `catch` blocks that silently swallow errors. The most critical one (line 38) swallows localStorage JSON parse failures without logging or cleanup, which could leave corrupted data in place.
 
-1. **Line 130**: `fetchProfile(session.user.id).then(setProfile)` — inside `setTimeout` in `onAuthStateChange`
-2. **Line 140**: `supabase.auth.getSession().then(...)` — the entire session bootstrap
-3. **Line 146**: `fetchProfile(session.user.id).then((p) => { ... })` — inside `getSession` callback
+## Changes — `src/features/quiz/ResultsPage.tsx`
 
-If any of these reject, the error is swallowed silently, potentially leaving the UI in a broken loading state.
+### 1. Line 37 — `localStorage.setItem` for saving result (guest user)
+Currently: `catch { /* ignore */ }`
+Change: Log warning. This is a non-critical write failure (guest convenience), so logging is sufficient.
+```ts
+catch (err) { console.error("[ResultsPage] Failed to cache quiz result:", err); }
+```
 
-## Changes
+### 2. Line 38 — `localStorage.getItem` + `JSON.parse` for loading result
+Currently: `catch { navigate('/quiz'); }`
+Change: Log error, clear corrupted keys, then redirect.
+```ts
+catch (err) {
+  console.error("[ResultsPage] Failed to parse cached quiz result:", err);
+  localStorage.removeItem(RESULT_STORAGE_KEY);
+  localStorage.removeItem('caldi_quiz_state');
+  navigate('/quiz');
+}
+```
 
-### `src/contexts/auth/AuthContext.tsx`
+### 3. Line 63 — `localStorage.removeItem` cleanup after successful save
+Currently: `catch { /* ignore */ }`
+Change: Log warning. Non-critical cleanup failure.
+```ts
+catch (err) { console.error("[ResultsPage] Failed to clear localStorage after save:", err); }
+```
 
-- Add `import { toast } from "sonner"` at top
-- **Line 130** — Add `.catch()` after `.then(setProfile)`:
-  ```ts
-  fetchProfile(session.user.id)
-    .then(setProfile)
-    .catch((err) => {
-      console.error("[AuthContext] Profile fetch failed on auth change:", err);
-      toast.error("Could not load your profile. Please refresh the page.");
-    });
-  ```
-- **Line 140** — Add `.catch()` to the `getSession().then(...)` chain:
-  ```ts
-  .catch((err) => {
-    console.error("[AuthContext] Session initialization failed:", err);
-    toast.error("Could not load your profile. Please refresh the page.");
-    setIsLoading(false); // Ensure UI doesn't hang on spinner
-  });
-  ```
-- **Line 146** — Add `.catch()` to the inner `fetchProfile` call:
-  ```ts
-  fetchProfile(session.user.id).then((p) => {
-    setProfile(p);
-    if (p && session.user) {
-      recoverPendingTribeSave(session.user.id);
-    }
-  }).catch((err) => {
-    console.error("[AuthContext] Profile fetch failed on init:", err);
-    toast.error("Could not load your profile. Please refresh the page.");
-  });
-  ```
+### 4. Line 67 — `localStorage.setItem` for pending tribe save fallback
+Currently: `catch { /* ignore */ }`
+Change: Log error. This is the fallback when the API save already failed — losing this too is worth knowing about.
+```ts
+catch (err) { console.error("[ResultsPage] Failed to persist pending tribe save:", err); }
+```
+
+### 5. Line 74 — `localStorage.removeItem` in `handleRetake`
+Currently: `catch { /* ignore */ }`
+Change: Log warning.
+```ts
+catch (err) { console.error("[ResultsPage] Failed to clear localStorage on retake:", err); }
+```
 
 ## Files Modified
 
 | File | Change |
 |------|--------|
-| `AuthContext.tsx` | Add sonner import + `.catch()` handlers on 3 unhandled promise chains |
+| `ResultsPage.tsx` | Replace 5 empty catch blocks with `console.error` + cleanup where applicable |
 

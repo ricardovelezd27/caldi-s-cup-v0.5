@@ -1,39 +1,48 @@
 
 
-# Plan: Ensure All Learning Queries Filter Inactive Content
+# Plan: Add Error Boundary Around Lesson Exercises
 
-## Current State
+## Problem
 
-All batch-query functions already filter by `is_active = true`:
-- `getTracks()` ✅
-- `getSections()` ✅  
-- `getUnits()` ✅
-- `getLessons()` ✅
-- `getExercises()` ✅
-- `getUnitsBySectionIds()` ✅
-- `getLessonsByUnitIds()` ✅
-- `getLeagues()` ✅ (no `is_active` column — not applicable)
+If a single exercise component throws a runtime error (e.g., malformed `questionData`), the entire lesson page crashes. Users lose progress and see a generic error screen.
 
-## Gap Found
+## Changes
 
-**`getLessonById()`** (line 148) has no `is_active` filter. A user could access a draft lesson by navigating directly to its URL.
+### `src/features/learning/components/lesson/LessonScreen.tsx`
 
-## Change
+1. **Import** `ErrorBoundary` from `@/components/error/ErrorBoundary`
+2. **Create** an `ExerciseFallback` inline component that shows a friendly message and a "Skip to Next" button calling `lesson.nextExercise()`
+3. **Wrap** the `<ExerciseRenderer>` (around line 210) with `<ErrorBoundary>`, passing the fallback and using `key={lesson.currentExercise.id}` so the boundary resets per exercise
 
-### `src/features/learning/services/learningService.ts`
-
-Add `.eq("is_active", true)` to `getLessonById()`:
-
-```ts
-const { data, error } = await supabase
-  .from("learning_lessons")
-  .select("*")
-  .eq("id", lessonId)
-  .eq("is_active", true)   // ← add this
-  .maybeSingle();
+```tsx
+const ExerciseFallback = () => (
+  <div className="flex flex-col items-center justify-center py-8 px-4 text-center max-w-sm mx-auto">
+    <div className="rounded-lg border-4 border-dashed border-border p-8 bg-card/50 w-full space-y-4">
+      <p className="text-muted-foreground font-inter text-sm">
+        This exercise had a problem loading. Your progress has been saved — you can continue to the next exercise.
+      </p>
+      <Button variant="default" onClick={() => lesson.nextExercise()}>
+        Skip to Next
+      </Button>
+    </div>
+  </div>
+);
 ```
+
+Wrap usage:
+```tsx
+<ErrorBoundary
+  key={lesson.currentExercise.id}
+  name="ExerciseRenderer"
+  fallback={<ExerciseFallback />}
+>
+  <ExerciseRenderer ... />
+</ErrorBoundary>
+```
+
+## Files Modified
 
 | File | Change |
 |------|--------|
-| `learningService.ts` | Add `is_active` filter to `getLessonById()` |
+| `LessonScreen.tsx` | Import ErrorBoundary, add fallback component, wrap ExerciseRenderer |
 

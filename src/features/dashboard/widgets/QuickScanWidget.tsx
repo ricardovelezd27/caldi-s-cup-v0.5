@@ -7,18 +7,19 @@ import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function QuickScanWidget({ widget }: WidgetComponentProps) {
   return (
-    <div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-gradient-to-br from-primary/20 to-accent/10 p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
-      <div className="absolute top-3 right-3 z-10">
+    <div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+      <div className="flex items-center justify-between px-5 pt-5 pb-3">
+        <h3 className="font-bangers text-lg flex items-center gap-2">
+          <ScanLine className="h-5 w-5 text-secondary" />
+          Scan a Coffee
+        </h3>
         <WidgetCategoryTag label="Experience" />
       </div>
-      <div className="flex flex-col items-center justify-center h-full py-6 gap-4 px-5">
+      <div className="px-5 pb-5 flex flex-col items-center justify-center py-4 gap-3">
         <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center border-4 border-border">
           <ScanLine className="h-8 w-8 text-primary" />
         </div>
-        <div className="text-center">
-          <h3 className="font-bangers text-xl tracking-wide text-foreground">Scan a Coffee</h3>
-          <p className="text-sm text-muted-foreground mt-1">Discover coffee profiles with AI</p>
-        </div>
+        <p className="text-sm text-muted-foreground text-center">Discover coffee profiles with AI</p>
         <Button asChild variant="outline" size="sm" className="text-xs gap-1.5">
           <Link to={ROUTES.scanner}>Start scanning →</Link>
         </Button>

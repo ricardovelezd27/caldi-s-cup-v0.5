@@ -5,6 +5,7 @@ import { Heart, ScanLine } from "lucide-react";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { useFavorites } from "@/features/coffee/hooks/useFavorites";
 import type { WidgetComponentProps } from "./types";
+import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function FavoritesWidget({ widget }: WidgetComponentProps) {
   const { favorite } = useDashboardData();
@@ -14,10 +15,13 @@ export function FavoritesWidget({ widget }: WidgetComponentProps) {
   return (
     <Card className="h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
-          <Heart className="h-5 w-5 text-destructive" />
-          {favCount > 0 ? `Favorites (${favCount})` : "Favorites"}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
+            <Heart className="h-5 w-5 text-destructive" />
+            {favCount > 0 ? `Favorites (${favCount})` : "Favorites"}
+          </CardTitle>
+          <WidgetCategoryTag label="Experience" />
+        </div>
       </CardHeader>
       <CardContent>
         {favorite ? (

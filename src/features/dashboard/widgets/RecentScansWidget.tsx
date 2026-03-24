@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import type { WidgetComponentProps } from "./types";
 import type { RecentScan } from "../types/dashboard";
+import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function RecentScansWidget({ widget }: WidgetComponentProps) {
   const { user } = useAuth();
@@ -17,7 +18,6 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
     queryFn: async (): Promise<RecentScan[]> => {
       if (!user?.id) return [];
       
-      // Query from the new coffee_scans table with coffee details
       const { data, error } = await supabase
         .from("coffee_scans")
         .select(`
@@ -52,10 +52,13 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
   return (
     <Card className="h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
-          <History className="h-5 w-5 text-secondary" />
-          Recent Scans
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
+            <History className="h-5 w-5 text-secondary" />
+            Recent Scans
+          </CardTitle>
+          <WidgetCategoryTag label="Experience" />
+        </div>
       </CardHeader>
       <CardContent>
         {recentScans.length === 0 ? (

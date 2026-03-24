@@ -18,6 +18,11 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
 
   return (
     <div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-5 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+      {/* Category tag */}
+      <div className="absolute top-3 right-3 z-10">
+        <WidgetCategoryTag label="General" />
+      </div>
+
       {/* Tribe-colored accent bar */}
       {tribeDef && (
         <div className={`absolute top-0 left-0 right-0 h-1.5 ${tribeDef.bgClass}`} style={{ opacity: 0.6 }} />

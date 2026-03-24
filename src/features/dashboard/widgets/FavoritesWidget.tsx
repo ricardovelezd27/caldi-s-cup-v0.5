@@ -45,7 +45,7 @@ export function FavoritesWidget({ widget }: WidgetComponentProps) {
             <div className="flex flex-col items-center justify-center py-6 text-center">
               <Heart className="h-12 w-12 text-muted-foreground/50 mb-3" />
               <p className="text-muted-foreground mb-3">No favorites yet</p>
-              <Button variant="ghost" size="sm" className="w-full mt-1" onClick={(e) => e.stopPropagation()} asChild>
+              <Button variant="outline" size="sm" className="text-xs gap-1.5" onClick={(e) => e.stopPropagation()} asChild>
                 <Link to="/scanner">Scan to discover →</Link>
               </Button>
             </div>

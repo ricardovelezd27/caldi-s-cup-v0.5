@@ -10,6 +10,20 @@ import type { WidgetComponentProps } from "./types";
 export function InventoryWidget({ widget }: WidgetComponentProps) {
   const { user } = useAuth();
 
+  const { data: totalCount = 0 } = useQuery({
+    queryKey: ["inventory-count", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const { count, error } = await supabase
+        .from("user_coffee_inventory")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    enabled: !!user?.id,
+  });
+
   const { data: inventoryItems = [] } = useQuery({
     queryKey: ["inventory-preview", user?.id],
     queryFn: async () => {
@@ -42,7 +56,7 @@ export function InventoryWidget({ widget }: WidgetComponentProps) {
       <CardHeader className="pb-2">
         <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
           <Package className="h-5 w-5 text-accent" />
-          My Inventory
+          {totalCount > 0 ? `My Inventory (${totalCount})` : "My Inventory"}
         </CardTitle>
       </CardHeader>
       <CardContent>

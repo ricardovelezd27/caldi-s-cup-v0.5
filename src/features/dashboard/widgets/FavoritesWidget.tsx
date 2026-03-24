@@ -3,17 +3,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, ScanLine } from "lucide-react";
 import { useDashboardData } from "../hooks/useDashboardData";
+import { useFavorites } from "@/features/coffee/hooks/useFavorites";
 import type { WidgetComponentProps } from "./types";
 
 export function FavoritesWidget({ widget }: WidgetComponentProps) {
   const { favorite } = useDashboardData();
+  const { favoriteIds } = useFavorites();
+  const favCount = favoriteIds.length;
 
   return (
     <Card className="h-full">
       <CardHeader className="pb-2">
         <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
           <Heart className="h-5 w-5 text-destructive" />
-          Favorite Coffee
+          {favCount > 0 ? `Favorites (${favCount})` : "Favorites"}
         </CardTitle>
       </CardHeader>
       <CardContent>

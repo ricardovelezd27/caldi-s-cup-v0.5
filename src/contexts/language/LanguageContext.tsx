@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, ReactNode } from "rea
 import { en } from "@/i18n/en";
 import { es } from "@/i18n/es";
 import type { Language } from "@/i18n";
+import { STORAGE_KEYS } from "@/constants/storageKeys";
 
 // ---------- types ----------
 interface LanguageContextValue {
@@ -28,7 +29,7 @@ function resolve(dict: Record<string, unknown>, key: string): string {
 }
 
 function detectInitialLanguage(): Language {
-  const stored = localStorage.getItem("caldi_lang");
+  const stored = localStorage.getItem(STORAGE_KEYS.LANGUAGE);
   if (stored === "en" || stored === "es") return stored;
   const browser = navigator.language?.slice(0, 2).toLowerCase();
   return browser === "es" ? "es" : "en";
@@ -41,7 +42,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(detectInitialLanguage);
 
   const setLanguage = useCallback((lang: Language) => {
-    localStorage.setItem("caldi_lang", lang);
+    localStorage.setItem(STORAGE_KEYS.LANGUAGE, lang);
     setLanguageState(lang);
   }, []);
 

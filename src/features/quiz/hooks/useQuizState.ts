@@ -1,9 +1,10 @@
 import { useState, useCallback, useMemo } from 'react';
 import { CoffeeTribe, QuizState, QuizScores, QuizResult } from '../types/tribe';
 import { TOTAL_SCENARIOS } from '../data/scenarios';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
-const STORAGE_KEY = 'caldi_quiz_state';
-const RESULT_STORAGE_KEY = 'caldi_quiz_result';
+const STORAGE_KEY = STORAGE_KEYS.QUIZ_STATE;
+const RESULT_STORAGE_KEY = STORAGE_KEYS.QUIZ_RESULT;
 
 const initialState: QuizState = {
   currentStep: 0, // 0 = hook screen

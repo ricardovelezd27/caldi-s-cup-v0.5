@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/contexts/auth";
+import { STORAGE_KEYS } from "@/constants/storageKeys";
 
-const STORAGE_KEY = "caldi_learning_progress";
+const STORAGE_KEY = STORAGE_KEYS.LEARNING_PROGRESS;
 const MAX_ANONYMOUS_LESSONS = 3;
 
 interface AnonymousProgress {

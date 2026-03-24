@@ -6,6 +6,7 @@ import { RequireAuth } from "@/components/auth/RequireAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/auth";
 import { useLanguage } from "@/contexts/language";
+import { STORAGE_KEYS } from "@/constants/storageKeys";
 import {
   ProfileHero,
   FavoritesTable,
@@ -38,8 +39,8 @@ function ProfileContent() {
 
   const handleRetakeQuiz = () => {
     try {
-      localStorage.removeItem("caldi_quiz_result");
-      localStorage.removeItem("caldi_quiz_state");
+      localStorage.removeItem(STORAGE_KEYS.QUIZ_RESULT);
+      localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE);
     } catch {
       // Ignore
     }

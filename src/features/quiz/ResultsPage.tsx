@@ -12,9 +12,10 @@ import { ROUTES } from '@/constants/app';
 import { Coffee, LayoutDashboard, RefreshCw, UserPlus, ScanLine } from 'lucide-react';
 import { retryWithBackoff } from '@/utils/network/retryWithBackoff';
 import { useLanguage } from '@/contexts/language';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
-const RESULT_STORAGE_KEY = 'caldi_quiz_result';
-export const PENDING_TRIBE_SAVE_KEY = 'caldi_pending_tribe_save';
+const RESULT_STORAGE_KEY = STORAGE_KEYS.QUIZ_RESULT;
+export const PENDING_TRIBE_SAVE_KEY = STORAGE_KEYS.PENDING_TRIBE_SAVE;
 const REDIRECT_DELAY_SECONDS = 3;
 
 export const ResultsPage = () => {
@@ -52,12 +53,12 @@ export const ResultsPage = () => {
         if (!isValidResult(parsed)) {
           console.error("[ResultsPage] Invalid cached quiz result shape, clearing");
           localStorage.removeItem(RESULT_STORAGE_KEY);
-          localStorage.removeItem('caldi_quiz_state');
+           localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE);
           navigate('/quiz');
           return;
         }
         setResult(parsed);
-      } catch (err) { console.error("[ResultsPage] Failed to parse cached quiz result:", err); localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem('caldi_quiz_state'); navigate('/quiz'); }
+      } catch (err) { console.error("[ResultsPage] Failed to parse cached quiz result:", err); localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE); navigate('/quiz'); }
     }
   }, [location.state, user, navigate]);
 
@@ -83,7 +84,7 @@ export const ResultsPage = () => {
         }, { maxRetries: 3, initialDelay: 1000, backoffFactor: 2 });
         setHasSaved(true);
         await refreshProfile();
-        try { localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem('caldi_quiz_state'); localStorage.removeItem(PENDING_TRIBE_SAVE_KEY); } catch (err) { console.error("[ResultsPage] Failed to clear localStorage after save:", err); }
+        try { localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE); localStorage.removeItem(PENDING_TRIBE_SAVE_KEY); } catch (err) { console.error("[ResultsPage] Failed to clear localStorage after save:", err); }
         toast({ title: t('quiz.tribeSavedToast'), description: `${t('quiz.tribeSavedDesc')} ${t(`tribes.${result.tribe}.name`)}.` });
       } catch (err) {
         console.error('All retries failed saving tribe:', err);
@@ -94,7 +95,7 @@ export const ResultsPage = () => {
     saveToProfile();
   }, [user, result, hasSaved, isSaving, toast, refreshProfile, t]);
 
-  const handleRetake = () => { cancelRedirect(); try { localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem('caldi_quiz_state'); } catch (err) { console.error("[ResultsPage] Failed to clear localStorage on retake:", err); } navigate('/quiz'); };
+  const handleRetake = () => { cancelRedirect(); try { localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE); } catch (err) { console.error("[ResultsPage] Failed to clear localStorage on retake:", err); } navigate('/quiz'); };
 
   if (!result) {
     return (<PageLayout><div className="min-h-[60vh] flex items-center justify-center"><div className="text-center"><Coffee className="w-12 h-12 text-muted-foreground mx-auto mb-4 animate-pulse" /><p className="text-muted-foreground">{t('quiz.loadingResults')}</p></div></div></PageLayout>);

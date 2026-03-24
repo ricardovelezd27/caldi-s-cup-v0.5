@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { errorLogger } from "@/services/errorLogging";
 import { toast } from "sonner";
 import { retryWithBackoff } from "@/utils/network/retryWithBackoff";
-
-const PENDING_TRIBE_SAVE_KEY = 'caldi_pending_tribe_save';
+import { STORAGE_KEYS } from "@/constants/storageKeys";
 
 // Coffee tribe type
 export type CoffeeTribe = 'fox' | 'owl' | 'hummingbird' | 'bee';
@@ -85,13 +84,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Recover pending tribe save from localStorage (failed quiz save)
   const recoverPendingTribeSave = async (userId: string) => {
     try {
-      const pending = localStorage.getItem(PENDING_TRIBE_SAVE_KEY);
+      const pending = localStorage.getItem(STORAGE_KEYS.PENDING_TRIBE_SAVE);
       if (!pending) return;
       const VALID_TRIBES = ['fox', 'owl', 'hummingbird', 'bee'];
       const result = JSON.parse(pending);
       if (!result || typeof result !== 'object' || !VALID_TRIBES.includes(result.tribe)) {
         console.warn('[AuthContext] Invalid pending tribe save data, removing');
-        localStorage.removeItem(PENDING_TRIBE_SAVE_KEY);
+        localStorage.removeItem(STORAGE_KEYS.PENDING_TRIBE_SAVE);
         return;
       }
 
@@ -110,7 +109,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         { maxRetries: 2, initialDelay: 1000 }
       );
 
-      localStorage.removeItem(PENDING_TRIBE_SAVE_KEY);
+      localStorage.removeItem(STORAGE_KEYS.PENDING_TRIBE_SAVE);
       // Refresh profile to reflect the recovered save
       const freshProfile = await fetchProfile(userId);
       if (freshProfile) setProfile(freshProfile);
@@ -247,8 +246,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await supabase.auth.signOut();
       setProfile(null);
       errorLogger.clearUserContext();
-      localStorage.removeItem('caldi_pending_tribe_save');
-      localStorage.removeItem('caldi_quiz_result');
+      localStorage.removeItem(STORAGE_KEYS.PENDING_TRIBE_SAVE);
+      localStorage.removeItem(STORAGE_KEYS.QUIZ_RESULT);
     } catch (err) {
       errorLogger.captureError(err as Error, { 
         component: "AuthContext", 

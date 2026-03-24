@@ -1,54 +1,78 @@
 
 
-# Plan: Add Query Limits + Guard Empty Exercise Data
+# Plan: Three Code Quality Improvements
 
-## LEARN-002: Add `.limit()` to learning queries
+## QUALITY-001: Extract `transformCoffeeRow()` helper
 
-All queries already have `.order("sort_order")`. Add `.limit(100)` to every list-fetching query to prevent unbounded result sets as content grows. The batch queries (`getUnitsBySectionIds`, `getLessonsByUnitIds`) get `.limit(500)` since they span multiple parents.
+### `src/features/coffee/services/coffeeService.ts`
 
-### `src/features/learning/services/learningService.ts`
+Extract the 25-line mapping block (repeated 3 times) into a single `transformCoffeeRow(row: any): Coffee` function at the top. Then replace all three instances with calls to it.
 
-| Function | Change |
-|----------|--------|
-| `getTracks` (line 128) | Add `.limit(100)` before `.order()` |
-| `getSections` (line 140) | Add `.limit(100)` |
-| `getUnits` (line 152) | Add `.limit(100)` |
-| `getLessons` (line 164) | Add `.limit(100)` |
-| `getExercises` (line 188) | Add `.limit(100)` |
-| `getUnitsBySectionIds` (line 201) | Add `.limit(500)` |
-| `getLessonsByUnitIds` (line 214) | Add `.limit(500)` |
-| `getLeagues` (line 224) | Add `.limit(20)` (small fixed set) |
-
----
-
-## LEARN-003: Guard empty/missing `questionData`
-
-### `src/features/learning/components/lesson/ExerciseRenderer.tsx`
-
-Add a guard after `const qd = exercise.questionData as any;` — if `qd` is null, undefined, or an empty object (`Object.keys(qd).length === 0`), render a fallback:
-
-```tsx
-if (!qd || typeof qd !== 'object' || Object.keys(qd).length === 0) {
-  return (
-    <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-      <div className="rounded-lg border-4 border-dashed border-border p-8 bg-card/50 max-w-sm w-full">
-        <p className="text-muted-foreground font-inter text-sm">
-          This exercise is not available yet.
-        </p>
-      </div>
-    </div>
-  );
+```ts
+function transformCoffeeRow(row: any): Coffee {
+  return {
+    id: row.id,
+    name: row.name,
+    brand: row.brand,
+    imageUrl: row.image_url,
+    // ... all fields ...
+  };
 }
 ```
 
-This runs before the `switch` so no exercise component receives empty data.
+- `getCoffeeById`: `return transformCoffeeRow(data);`
+- `getVerifiedCoffees`: `return (data ?? []).map(transformCoffeeRow);`
+- `getAllCoffees`: `return (data ?? []).map(transformCoffeeRow);`
 
 ---
 
-## Files Modified
+## QUALITY-002: Centralize localStorage keys
+
+### New file: `src/constants/storageKeys.ts`
+
+```ts
+export const STORAGE_KEYS = {
+  PENDING_TRIBE_SAVE: 'caldi_pending_tribe_save',
+  QUIZ_RESULT: 'caldi_quiz_result',
+  QUIZ_STATE: 'caldi_quiz_state',
+  LANGUAGE: 'caldi_lang',
+  LEARNING_PROGRESS: 'caldi_learning_progress',
+} as const;
+```
+
+### Files to update (replace hardcoded strings with `STORAGE_KEYS.*`):
+
+| File | Keys used |
+|------|-----------|
+| `src/contexts/auth/AuthContext.tsx` | `PENDING_TRIBE_SAVE`, `QUIZ_RESULT` |
+| `src/contexts/language/LanguageContext.tsx` | `LANGUAGE` |
+| `src/features/quiz/ResultsPage.tsx` | `QUIZ_RESULT`, `PENDING_TRIBE_SAVE`, `QUIZ_STATE` |
+| `src/features/quiz/hooks/useQuizState.ts` | `QUIZ_STATE`, `QUIZ_RESULT` |
+| `src/features/quiz/components/OnboardingModal.tsx` | `QUIZ_RESULT` |
+| `src/features/profile/ProfilePage.tsx` | `QUIZ_RESULT`, `QUIZ_STATE` |
+| `src/features/profile/components/RetakeQuizSection.tsx` | `QUIZ_RESULT`, `QUIZ_STATE` |
+| `src/features/learning/hooks/useAnonymousProgress.ts` | `LEARNING_PROGRESS` |
+
+---
+
+## QUALITY-003: Move test deps to devDependencies
+
+### `package.json`
+
+Move from `dependencies` to `devDependencies`:
+- `vitest` (line 67)
+- `jsdom` (line 53)
+- `@testing-library/jest-dom` (line 45)
+- `@testing-library/react` (line 46)
+
+---
+
+## Summary
 
 | File | Change |
 |------|--------|
-| `learningService.ts` | Add `.limit()` to all 8 list queries |
-| `ExerciseRenderer.tsx` | Add empty `questionData` guard with fallback UI |
+| `coffeeService.ts` | Extract `transformCoffeeRow()`, use in 3 functions |
+| `src/constants/storageKeys.ts` | New file with all localStorage key constants |
+| 8 files | Replace hardcoded localStorage strings with `STORAGE_KEYS.*` |
+| `package.json` | Move 4 test packages to `devDependencies` |
 

@@ -55,23 +55,15 @@ export function WidgetGrid() {
     <div className="space-y-6">
       {/* Edit Controls */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <AddWidgetDialog 
-            existingTypes={existingTypes}
-            onAdd={handleAddWidget}
-            isAdding={addWidget.isPending}
-          />
-          <Button
-            variant={isEditing ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => setIsEditing(!isEditing)}
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            {isEditing ? "Done" : "Edit"}
-          </Button>
-        </div>
+        <EditWidgetsDialog 
+          existingTypes={existingTypes}
+          onAdd={handleAddWidget}
+          onRemove={handleRemoveByType}
+          isAdding={addWidget.isPending}
+          onOpenChange={setIsEditing}
+        />
         
-        {/* Scan FAB for mobile - in controls for desktop */}
+        {/* Scan CTA for desktop */}
         <Button asChild size="sm" className="hidden md:flex">
           <Link to={ROUTES.scanner}>
             <ScanLine className="h-4 w-4 mr-2" />

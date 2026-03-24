@@ -45,12 +45,12 @@ export function FavoritesWidget({ widget }: WidgetComponentProps) {
             <div className="flex flex-col items-center justify-center py-6 text-center">
               <Heart className="h-12 w-12 text-muted-foreground/50 mb-3" />
               <p className="text-muted-foreground mb-3">No favorites yet</p>
-              <Button asChild variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
-                <Link to="/scanner"><ScanLine className="h-4 w-4 mr-2" />Scan to discover</Link>
+              <Button variant="ghost" size="sm" className="w-full mt-1" onClick={(e) => e.stopPropagation()} asChild>
+                <Link to="/scanner">Scan to discover →</Link>
               </Button>
             </div>
           )}
-          <p className="text-xs text-muted-foreground text-center mt-3">View all →</p>
+          <Button variant="ghost" size="sm" className="w-full mt-3">View all →</Button>
         </div>
       </div>
       <FavoritesModal open={modalOpen} onOpenChange={setModalOpen} />

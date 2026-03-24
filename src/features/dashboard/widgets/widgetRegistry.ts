@@ -117,9 +117,14 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetRegistryEntry> = {
   },
 };
 
+/** Structural widgets that users cannot add/remove */
+const STRUCTURAL_WIDGETS: WidgetType[] = ["welcome_hero"];
+
 /**
- * Get list of all available widget types for "Add Widget" UI
+ * Get list of user-manageable widget types for the Edit Widgets UI
  */
 export function getAvailableWidgets() {
-  return Object.values(WIDGET_REGISTRY).map((entry) => entry.meta);
+  return Object.values(WIDGET_REGISTRY)
+    .filter((entry) => !STRUCTURAL_WIDGETS.includes(entry.meta.type))
+    .map((entry) => entry.meta);
 }

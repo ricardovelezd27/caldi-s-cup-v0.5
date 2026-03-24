@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { Link } from "react-router-dom";
-import { User, LogOut, LayoutDashboard, Globe } from "lucide-react";
+import { User, LogOut, Globe } from "lucide-react";
 import { ROUTES } from "@/constants/app";
 import { useLanguage } from "@/contexts/language";
 import {
@@ -63,12 +63,6 @@ export const UserMenu = forwardRef<HTMLDivElement, UserMenuProps>(
             </div>
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Link to={ROUTES.dashboard} className="cursor-pointer">
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              Dashboard
-            </Link>
-          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link to={ROUTES.profile} className="cursor-pointer">
               <User className="mr-2 h-4 w-4" />

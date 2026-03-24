@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useMemo, ReactNode } fr
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { errorLogger } from "@/services/errorLogging";
+import { toast } from "sonner";
 import { retryWithBackoff } from "@/utils/network/retryWithBackoff";
 
 const PENDING_TRIBE_SAVE_KEY = 'caldi_pending_tribe_save';

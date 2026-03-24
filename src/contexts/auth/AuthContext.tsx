@@ -109,7 +109,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         { maxRetries: 2, initialDelay: 1000 }
       );
 
-      localStorage.removeItem(PENDING_TRIBE_SAVE_KEY);
+      localStorage.removeItem(STORAGE_KEYS.PENDING_TRIBE_SAVE);
       // Refresh profile to reflect the recovered save
       const freshProfile = await fetchProfile(userId);
       if (freshProfile) setProfile(freshProfile);

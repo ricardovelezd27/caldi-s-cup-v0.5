@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/auth";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { useStreak } from "@/hooks/gamification/useStreak";
 import type { WidgetComponentProps } from "./types";
+import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function WeeklyGoalWidget({ widget }: WidgetComponentProps) {
   const { profile } = useAuth();
@@ -23,10 +24,13 @@ export function WeeklyGoalWidget({ widget }: WidgetComponentProps) {
   return (
     <Card className="h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
-          <Target className="h-5 w-5 text-secondary" />
-          Weekly Goal
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
+            <Target className="h-5 w-5 text-secondary" />
+            Weekly Goal
+          </CardTitle>
+          <WidgetCategoryTag label="Learn" />
+        </div>
       </CardHeader>
       <CardContent className="flex flex-col items-center justify-center py-4">
         {/* Circular Progress */}

@@ -1,16 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
 import type { WidgetComponentProps } from "./types";
+import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function RecommendationsWidget({ widget }: WidgetComponentProps) {
   // Placeholder for future AI recommendations
   return (
     <Card className="h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-primary" />
-          For You
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            For You
+          </CardTitle>
+          <WidgetCategoryTag label="AI" />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center justify-center py-6 text-center">

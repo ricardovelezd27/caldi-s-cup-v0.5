@@ -4,6 +4,7 @@ import { Coffee, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { useDashboardData } from "../hooks/useDashboardData";
 import type { WidgetComponentProps } from "./types";
+import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function RecentBrewsWidget({ widget }: WidgetComponentProps) {
   const { recentBrews } = useDashboardData();
@@ -11,10 +12,13 @@ export function RecentBrewsWidget({ widget }: WidgetComponentProps) {
   return (
     <Card className="h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
-          <Clock className="h-5 w-5 text-primary" />
-          Recent Brews
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
+            Recent Brews
+          </CardTitle>
+          <WidgetCategoryTag label="Experience" />
+        </div>
       </CardHeader>
       <CardContent>
         {recentBrews.length === 0 ? (

@@ -6,6 +6,7 @@ import { Package, ScanLine } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import type { WidgetComponentProps } from "./types";
+import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function InventoryWidget({ widget }: WidgetComponentProps) {
   const { user } = useAuth();
@@ -54,10 +55,13 @@ export function InventoryWidget({ widget }: WidgetComponentProps) {
   return (
     <Card className="h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
-          <Package className="h-5 w-5 text-accent" />
-          {totalCount > 0 ? `My Inventory (${totalCount})` : "My Inventory"}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
+            <Package className="h-5 w-5 text-accent" />
+            {totalCount > 0 ? `My Inventory (${totalCount})` : "My Inventory"}
+          </CardTitle>
+          <WidgetCategoryTag label="Experience" />
+        </div>
       </CardHeader>
       <CardContent>
         {inventoryItems.length === 0 ? (

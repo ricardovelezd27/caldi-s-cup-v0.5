@@ -49,7 +49,7 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <ScanLine className="h-12 w-12 text-muted-foreground/50 mb-3" />
             <p className="text-muted-foreground mb-3">No scans yet</p>
-            <Button asChild variant="ghost" size="sm" className="w-full mt-1">
+            <Button asChild variant="outline" size="sm" className="text-xs gap-1.5">
               <Link to="/scanner">Start scanning →</Link>
             </Button>
           </div>
@@ -75,7 +75,7 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
                 </span>
               </Link>
             ))}
-            <Button asChild variant="ghost" size="sm" className="w-full mt-3">
+            <Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-3">
               <Link to="/scanner">Scan more →</Link>
             </Button>
           </div>

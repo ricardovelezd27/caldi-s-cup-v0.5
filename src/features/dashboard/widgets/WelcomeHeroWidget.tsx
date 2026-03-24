@@ -21,10 +21,6 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
 
 
 
-      {/* Tribe-colored accent bar */}
-      {tribeDef && (
-        <div className={`absolute top-0 left-0 right-0 h-1.5 ${tribeDef.bgClass}`} style={{ opacity: 0.6 }} />
-      )}
 
       {/* Top row: tribe intro + desktop button */}
       <div className="relative flex items-start justify-between gap-3">

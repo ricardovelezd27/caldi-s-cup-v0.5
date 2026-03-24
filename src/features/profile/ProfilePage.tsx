@@ -30,7 +30,7 @@ function ProfileContent() {
       <Container size="default" className="py-8">
         {/* ☕ My Dashboard — Widget Grid */}
         <section>
-          <h2 className="text-xl md:text-2xl font-bangers tracking-wide mb-4">☕ My Dashboard</h2>
+          
           <WidgetGrid />
         </section>
 

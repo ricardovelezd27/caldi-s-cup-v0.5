@@ -53,7 +53,7 @@ export const ResultsPage = () => {
         if (!isValidResult(parsed)) {
           console.error("[ResultsPage] Invalid cached quiz result shape, clearing");
           localStorage.removeItem(RESULT_STORAGE_KEY);
-          localStorage.removeItem('caldi_quiz_state');
+           localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE);
           navigate('/quiz');
           return;
         }

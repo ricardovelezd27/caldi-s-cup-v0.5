@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ScanLine, Settings, Loader2 } from "lucide-react";
+import { ScanLine, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDashboardWidgets } from "@/hooks/useDashboardWidgets";
 import { WIDGET_REGISTRY, type DashboardWidget, type WidgetType } from "../widgets";
 import { WidgetWrapper } from "./WidgetWrapper";
-import { AddWidgetDialog } from "./AddWidgetDialog";
+import { EditWidgetsDialog } from "./EditWidgetsDialog";
 import { ROUTES } from "@/constants/app";
 
 export function WidgetGrid() {
@@ -30,8 +30,9 @@ export function WidgetGrid() {
     });
   };
 
-  const handleRemoveWidget = async (widget: DashboardWidget) => {
-    await removeWidget.mutateAsync(widget.id);
+  const handleRemoveByType = async (widgetType: WidgetType) => {
+    const widget = visibleWidgets.find((w) => w.widgetType === widgetType);
+    if (widget) await removeWidget.mutateAsync(widget.id);
   };
 
   // Get existing widget types to prevent duplicates
@@ -54,23 +55,15 @@ export function WidgetGrid() {
     <div className="space-y-6">
       {/* Edit Controls */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <AddWidgetDialog 
-            existingTypes={existingTypes}
-            onAdd={handleAddWidget}
-            isAdding={addWidget.isPending}
-          />
-          <Button
-            variant={isEditing ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => setIsEditing(!isEditing)}
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            {isEditing ? "Done" : "Edit"}
-          </Button>
-        </div>
+        <EditWidgetsDialog 
+          existingTypes={existingTypes}
+          onAdd={handleAddWidget}
+          onRemove={handleRemoveByType}
+          isAdding={addWidget.isPending}
+          onOpenChange={setIsEditing}
+        />
         
-        {/* Scan FAB for mobile - in controls for desktop */}
+        {/* Scan CTA for desktop */}
         <Button asChild size="sm" className="hidden md:flex">
           <Link to={ROUTES.scanner}>
             <ScanLine className="h-4 w-4 mr-2" />
@@ -84,7 +77,7 @@ export function WidgetGrid() {
         <WidgetWrapper
           widget={heroWidget}
           isEditing={isEditing}
-          onRemove={() => handleRemoveWidget(heroWidget)}
+          onRemove={() => removeWidget.mutateAsync(heroWidget.id)}
         />
       )}
 
@@ -100,7 +93,7 @@ export function WidgetGrid() {
                 <WidgetWrapper
                   widget={widget}
                   isEditing={isEditing}
-                  onRemove={() => handleRemoveWidget(widget)}
+                  onRemove={() => removeWidget.mutateAsync(widget.id)}
                 />
               </div>
             );
@@ -111,10 +104,12 @@ export function WidgetGrid() {
           <p className="text-muted-foreground mb-4">
             No widgets yet. Add some to customize your dashboard!
           </p>
-          <AddWidgetDialog 
+          <EditWidgetsDialog 
             existingTypes={existingTypes}
             onAdd={handleAddWidget}
+            onRemove={handleRemoveByType}
             isAdding={addWidget.isPending}
+            onOpenChange={setIsEditing}
           />
         </div>
       )}

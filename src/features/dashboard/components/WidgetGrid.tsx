@@ -1,12 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { ScanLine, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useDashboardWidgets } from "@/hooks/useDashboardWidgets";
 import { WIDGET_REGISTRY, type DashboardWidget, type WidgetType } from "../widgets";
 import { WidgetWrapper } from "./WidgetWrapper";
 import { EditWidgetsDialog } from "./EditWidgetsDialog";
-import { ROUTES } from "@/constants/app";
 
 export function WidgetGrid() {
   const [isEditing, setIsEditing] = useState(false);
@@ -66,12 +63,6 @@ export function WidgetGrid() {
           onOpenChange={setIsEditing}
         />
         
-        <Button asChild size="sm" className="hidden md:flex">
-          <Link to={ROUTES.scanner}>
-            <ScanLine className="h-4 w-4 mr-2" />
-            Scan Coffee
-          </Link>
-        </Button>
       </div>
 
       {heroWidget && (
@@ -115,15 +106,6 @@ export function WidgetGrid() {
         </div>
       )}
 
-      <Link to={ROUTES.scanner} className="md:hidden">
-        <Button
-          size="lg"
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:scale-105 transition-transform"
-        >
-          <ScanLine className="h-6 w-6" />
-          <span className="sr-only">Scan Coffee</span>
-        </Button>
-      </Link>
     </div>
   );
 }

@@ -493,6 +493,8 @@ export const es = {
     greatJob: "¡Buen trabajo!",
     skillsReheated: "¡Tu conocimiento cafetero está fresco de nuevo!",
     nextLesson: "Siguiente Lección",
+    lessonLocked: "Esta lección está bloqueada",
+    completePrevious: "Completa la lección anterior primero",
     backToTrack: "Volver a la Ruta",
     comingSoon: "Próximamente",
     comingSoonDesc: "Estamos preparando lecciones para esta ruta. ¡Vuelve pronto!",

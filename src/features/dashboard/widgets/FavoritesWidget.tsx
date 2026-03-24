@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, ScanLine } from "lucide-react";
 import { useDashboardData } from "../hooks/useDashboardData";
+import { useFavorites } from "@/features/coffee/hooks/useFavorites";
 import type { WidgetComponentProps } from "./types";
 
 export function FavoritesWidget({ widget }: WidgetComponentProps) {

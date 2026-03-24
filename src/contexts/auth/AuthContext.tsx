@@ -151,13 +151,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         errorLogger.setUserContext(session.user.id);
         fetchProfile(session.user.id).then((p) => {
           setProfile(p);
-          // Recover any pending tribe save from failed quiz completion
           if (p && session.user) {
             recoverPendingTribeSave(session.user.id);
           }
+        }).catch((err) => {
+          console.error("[AuthContext] Profile fetch failed on init:", err);
+          toast.error("Could not load your profile. Please refresh the page.");
         });
       }
       
+      setIsLoading(false);
+    }).catch((err) => {
+      console.error("[AuthContext] Session initialization failed:", err);
+      toast.error("Could not load your profile. Please refresh the page.");
       setIsLoading(false);
     });
 

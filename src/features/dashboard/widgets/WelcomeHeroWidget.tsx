@@ -26,25 +26,39 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
         <div className={`absolute top-0 left-0 right-0 h-1.5 ${tribeDef.bgClass}`} style={{ opacity: 0.6 }} />
       )}
 
-      {/* Top row: tribe intro + button */}
-      {/* Tribe intro */}
-      <div className="space-y-1">
-        {tribeDef ? (
-          <>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              You're a <span className={`font-bold ${tribeDef.colorClass}`}>{tribeDef.name}</span> — {tribeDef.title.toLowerCase()}.
+      {/* Top row: tribe intro + desktop button */}
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="flex-1 space-y-1">
+          {tribeDef ? (
+            <>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                You're a <span className={`font-bold ${tribeDef.colorClass}`}>{tribeDef.name}</span> — {tribeDef.title.toLowerCase()}.
+              </p>
+              <p className="text-xs text-muted-foreground/70">
+                {tribeDef.description.slice(0, 100)}…
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Ready to discover your coffee personality?{" "}
+              <a href="/quiz" className="text-secondary underline hover:text-secondary/80 font-medium">
+                Take the quiz
+              </a>
             </p>
-            <p className="text-xs text-muted-foreground/70">
-              {tribeDef.description.slice(0, 100)}…
-            </p>
-          </>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Ready to discover your coffee personality?{" "}
-            <a href="/quiz" className="text-secondary underline hover:text-secondary/80 font-medium">
-              Take the quiz
-            </a>
-          </p>
+          )}
+        </div>
+
+        {/* Desktop: top-right button */}
+        {tribeDef && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="hidden md:inline-flex shrink-0 text-xs gap-1.5"
+            onClick={() => setModalOpen(true)}
+          >
+            <Info className="h-3.5 w-3.5" />
+            My Tribe {tribeDef.emoji}
+          </Button>
         )}
       </div>
 
@@ -62,9 +76,9 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
         </div>
       )}
 
-      {/* My Tribe button */}
+      {/* Mobile: full-width button below values */}
       {tribeDef && (
-        <div className="mt-3">
+        <div className="mt-3 md:hidden">
           <Button
             variant="outline"
             size="sm"

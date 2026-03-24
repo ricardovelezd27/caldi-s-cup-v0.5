@@ -66,12 +66,6 @@ export function WidgetGrid() {
           onOpenChange={setIsEditing}
         />
         
-        <Button asChild size="sm" className="hidden md:flex">
-          <Link to={ROUTES.scanner}>
-            <ScanLine className="h-4 w-4 mr-2" />
-            Scan Coffee
-          </Link>
-        </Button>
       </div>
 
       {heroWidget && (

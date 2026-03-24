@@ -104,10 +104,12 @@ export function WidgetGrid() {
           <p className="text-muted-foreground mb-4">
             No widgets yet. Add some to customize your dashboard!
           </p>
-          <AddWidgetDialog 
+          <EditWidgetsDialog 
             existingTypes={existingTypes}
             onAdd={handleAddWidget}
+            onRemove={handleRemoveByType}
             isAdding={addWidget.isPending}
+            onOpenChange={setIsEditing}
           />
         </div>
       )}

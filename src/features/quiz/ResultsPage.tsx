@@ -64,7 +64,7 @@ export const ResultsPage = () => {
         toast({ title: t('quiz.tribeSavedToast'), description: `${t('quiz.tribeSavedDesc')} ${t(`tribes.${result.tribe}.name`)}.` });
       } catch (err) {
         console.error('All retries failed saving tribe:', err);
-        try { localStorage.setItem(PENDING_TRIBE_SAVE_KEY, JSON.stringify(result)); } catch { /* ignore */ }
+        try { localStorage.setItem(PENDING_TRIBE_SAVE_KEY, JSON.stringify(result)); } catch (err) { console.error("[ResultsPage] Failed to persist pending tribe save:", err); }
         toast({ title: t('quiz.saveFailed'), description: t('quiz.saveFailedDesc'), variant: "destructive" });
       } finally { setIsSaving(false); }
     };

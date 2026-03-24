@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLesson } from "../../hooks/useLesson";
@@ -24,6 +25,7 @@ import { SignupPrompt } from "../gamification/SignupPrompt";
 import { HeartsEmptyModal } from "../gamification/HeartsEmptyModal";
 import { AchievementUnlock } from "../gamification/AchievementUnlock";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import type { XPCalculation } from "../../services/xpService";
 import type { LearningAchievement } from "../../types";
 
@@ -215,12 +217,28 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
           timeUntilRefill={user ? timeUntilRefill : undefined}
         />
         <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col px-4 pb-8">
-          <ExerciseRenderer
+          <ErrorBoundary
             key={lesson.currentExercise.id}
-            exercise={lesson.currentExercise}
-            onAnswer={handleSubmitAnswer}
-            disabled={(!hasHearts && !!user) || isFeedback}
-          />
+            name="ExerciseRenderer"
+            fallback={
+              <div className="flex flex-col items-center justify-center py-8 px-4 text-center max-w-sm mx-auto">
+                <div className="rounded-lg border-4 border-dashed border-border p-8 bg-card/50 w-full space-y-4">
+                  <p className="text-muted-foreground font-inter text-sm">
+                    This exercise had a problem loading. Your progress has been saved — you can continue to the next exercise.
+                  </p>
+                  <Button variant="default" onClick={() => lesson.nextExercise()}>
+                    Skip to Next
+                  </Button>
+                </div>
+              </div>
+            }
+          >
+            <ExerciseRenderer
+              exercise={lesson.currentExercise}
+              onAnswer={handleSubmitAnswer}
+              disabled={(!hasHearts && !!user) || isFeedback}
+            />
+          </ErrorBoundary>
         </div>
         <FeedbackModal
           open={isFeedback}

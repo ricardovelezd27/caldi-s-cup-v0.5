@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -17,33 +17,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Save, Lock } from "lucide-react";
+import { Save, Lock, Camera, Loader2 } from "lucide-react";
+import caldiPlaceholder from "@/assets/characters/caldi-profile-placeholder.png";
 
 const editProfileSchema = z
   .object({
     display_name: z.string().trim().min(1, "Name is required").max(50),
     city: z.string().trim().max(100).optional().or(z.literal("")),
-    newPassword: z
-      .string()
-      .max(72)
-      .optional()
-      .or(z.literal("")),
+    newPassword: z.string().max(72).optional().or(z.literal("")),
     confirmPassword: z.string().optional().or(z.literal("")),
   })
   .refine(
     (d) => {
-      if (d.newPassword && d.newPassword.length > 0) {
-        return d.newPassword.length >= 8;
-      }
+      if (d.newPassword && d.newPassword.length > 0) return d.newPassword.length >= 8;
       return true;
     },
     { message: "Password must be at least 8 characters", path: ["newPassword"] }
   )
   .refine(
     (d) => {
-      if (d.newPassword && d.newPassword.length > 0) {
-        return d.newPassword === d.confirmPassword;
-      }
+      if (d.newPassword && d.newPassword.length > 0) return d.newPassword === d.confirmPassword;
       return true;
     },
     { message: "Passwords don't match", path: ["confirmPassword"] }
@@ -60,6 +53,11 @@ export function EditProfileDialog({ open, onOpenChange }: EditProfileDialogProps
   const { user, profile, refreshProfile } = useAuth();
   const { t } = useLanguage();
 
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -75,7 +73,6 @@ export function EditProfileDialog({ open, onOpenChange }: EditProfileDialogProps
     },
   });
 
-  // Sync form when dialog opens
   useEffect(() => {
     if (open && profile) {
       reset({
@@ -87,16 +84,59 @@ export function EditProfileDialog({ open, onOpenChange }: EditProfileDialogProps
     }
   }, [open, profile, reset]);
 
+  const handleImageUpload = async (
+    file: File,
+    pathSuffix: string,
+    field: "avatar_url" | "cover_url",
+    setLoading: (v: boolean) => void
+  ) => {
+    if (!user) return;
+    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+    const filePath = `${user.id}/${pathSuffix}.${ext}`;
+
+    setLoading(true);
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ [field]: publicUrl })
+        .eq("id", user.id);
+      if (updateError) throw updateError;
+
+      await refreshProfile();
+      toast.success(field === "avatar_url" ? "Avatar updated!" : t("profile.coverUpdated"));
+    } catch (err: any) {
+      toast.error(err.message || t("profile.failedSave"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleImageUpload(file, "avatar", "avatar_url", setUploadingAvatar);
+    if (avatarInputRef.current) avatarInputRef.current.value = "";
+  };
+
+  const onCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleImageUpload(file, "cover", "cover_url", setUploadingCover);
+    if (coverInputRef.current) coverInputRef.current.value = "";
+  };
+
   const onSubmit = async (data: EditProfileFormData) => {
     if (!user) return;
 
-    // Update profile fields
     const { error: profileError } = await supabase
       .from("profiles")
-      .update({
-        display_name: data.display_name,
-        city: data.city || null,
-      })
+      .update({ display_name: data.display_name, city: data.city || null })
       .eq("id", user.id);
 
     if (profileError) {
@@ -104,12 +144,8 @@ export function EditProfileDialog({ open, onOpenChange }: EditProfileDialogProps
       return;
     }
 
-    // Update password if provided
     if (data.newPassword && data.newPassword.length > 0) {
-      const { error: pwError } = await supabase.auth.updateUser({
-        password: data.newPassword,
-      });
-
+      const { error: pwError } = await supabase.auth.updateUser({ password: data.newPassword });
       if (pwError) {
         toast.error(pwError.message || t("profile.passwordFailed"));
         return;
@@ -125,7 +161,7 @@ export function EditProfileDialog({ open, onOpenChange }: EditProfileDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("profile.editProfile") ?? "Edit Profile"}</DialogTitle>
           <DialogDescription>
@@ -133,8 +169,60 @@ export function EditProfileDialog({ open, onOpenChange }: EditProfileDialogProps
           </DialogDescription>
         </DialogHeader>
 
+        {/* Photo upload section */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">{t("profile.photos") ?? "Photos"}</Label>
+          <div className="flex items-end gap-4">
+            {/* Avatar upload */}
+            <button
+              type="button"
+              onClick={() => !uploadingAvatar && avatarInputRef.current?.click()}
+              className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-border bg-muted shrink-0 group"
+            >
+              <img
+                src={profile.avatar_url || caldiPlaceholder}
+                alt="Avatar"
+                className={`w-full h-full ${profile.avatar_url ? "object-cover" : "object-contain p-1"}`}
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/40 transition-colors">
+                {uploadingAvatar ? (
+                  <Loader2 className="h-5 w-5 text-primary-foreground animate-spin" />
+                ) : (
+                  <Camera className="h-5 w-5 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                )}
+              </div>
+            </button>
+
+            {/* Cover upload */}
+            <button
+              type="button"
+              onClick={() => !uploadingCover && coverInputRef.current?.click()}
+              className="relative flex-1 h-20 rounded-md overflow-hidden border-2 border-border bg-muted group"
+            >
+              {profile.cover_url ? (
+                <img src={profile.cover_url} alt="Cover" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
+                  {t("profile.addCover") ?? "Add cover"}
+                </div>
+              )}
+              <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/40 transition-colors">
+                {uploadingCover ? (
+                  <Loader2 className="h-5 w-5 text-primary-foreground animate-spin" />
+                ) : (
+                  <Camera className="h-5 w-5 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                )}
+              </div>
+            </button>
+          </div>
+
+          <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={onAvatarChange} />
+          <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={onCoverChange} />
+        </div>
+
+        <Separator />
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Display Name */}
           <div>
             <Label htmlFor="edit-display-name">{t("profile.displayName")}</Label>
             <Input id="edit-display-name" {...register("display_name")} />
@@ -143,26 +231,19 @@ export function EditProfileDialog({ open, onOpenChange }: EditProfileDialogProps
             )}
           </div>
 
-          {/* Email (read-only) */}
           <div>
             <Label htmlFor="edit-email">{t("profile.emailLabel")}</Label>
             <Input id="edit-email" value={user.email || ""} disabled className="opacity-60" />
             <p className="text-muted-foreground text-xs mt-1">{t("profile.emailNoChange")}</p>
           </div>
 
-          {/* City */}
           <div>
             <Label htmlFor="edit-city">{t("profile.cityLabel")}</Label>
-            <Input
-              id="edit-city"
-              placeholder={t("profile.cityPlaceholder")}
-              {...register("city")}
-            />
+            <Input id="edit-city" placeholder={t("profile.cityPlaceholder")} {...register("city")} />
           </div>
 
           <Separator />
 
-          {/* Password Section */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Lock className="h-4 w-4 text-muted-foreground" />
@@ -171,12 +252,7 @@ export function EditProfileDialog({ open, onOpenChange }: EditProfileDialogProps
 
             <div>
               <Label htmlFor="edit-new-password">{t("profile.newPassword")}</Label>
-              <Input
-                id="edit-new-password"
-                type="password"
-                placeholder="••••••••"
-                {...register("newPassword")}
-              />
+              <Input id="edit-new-password" type="password" placeholder="••••••••" {...register("newPassword")} />
               {errors.newPassword && (
                 <p className="text-destructive text-xs mt-1">{errors.newPassword.message}</p>
               )}
@@ -184,12 +260,7 @@ export function EditProfileDialog({ open, onOpenChange }: EditProfileDialogProps
 
             <div>
               <Label htmlFor="edit-confirm-password">{t("profile.confirmPassword")}</Label>
-              <Input
-                id="edit-confirm-password"
-                type="password"
-                placeholder="••••••••"
-                {...register("confirmPassword")}
-              />
+              <Input id="edit-confirm-password" type="password" placeholder="••••••••" {...register("confirmPassword")} />
               {errors.confirmPassword && (
                 <p className="text-destructive text-xs mt-1">{errors.confirmPassword.message}</p>
               )}

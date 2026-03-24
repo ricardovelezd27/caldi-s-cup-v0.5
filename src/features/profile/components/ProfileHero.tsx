@@ -131,24 +131,20 @@ export function ProfileHero() {
             </div>
 
             {/* Info block */}
-            <div className="flex flex-col md:flex-row items-center md:items-start justify-between flex-1 min-w-0 pt-3 md:pt-0 md:pb-4">
-            <div className="flex-1 min-w-0 pt-2">
+            <div className="flex-1 min-w-0 pt-3 md:pt-0 md:pb-4">
+              <div className="flex items-center justify-center md:justify-start gap-1">
                 <h1 className="text-2xl md:text-3xl truncate">
                   {profile.display_name || t("profile.coffeeLover")}
                 </h1>
-                {profile.city && (
-                  <p className="text-sm text-muted-foreground truncate">
-                    📍 {profile.city}
-                  </p>
-                )}
-              </div>
-
-              {/* Edit button */}
-              <div className="mt-2 md:mt-0 md:ml-2 md:pt-1">
-                <Button size="icon" variant="ghost" onClick={() => setEditOpen(true)} className="h-9 w-9">
+                <Button size="icon" variant="ghost" onClick={() => setEditOpen(true)} className="h-9 w-9 shrink-0">
                   <Pencil className="h-4 w-4" />
                 </Button>
               </div>
+              {profile.city && (
+                <p className="text-sm text-muted-foreground truncate text-center md:text-left">
+                  📍 {profile.city}
+                </p>
+              )}
             </div>
           </div>
 

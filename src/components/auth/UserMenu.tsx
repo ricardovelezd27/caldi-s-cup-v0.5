@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { Link } from "react-router-dom";
-import { User, LogOut, LayoutDashboard, Globe } from "lucide-react";
+import { User, LogOut, Globe } from "lucide-react";
 import { ROUTES } from "@/constants/app";
 import { useLanguage } from "@/contexts/language";
 import {

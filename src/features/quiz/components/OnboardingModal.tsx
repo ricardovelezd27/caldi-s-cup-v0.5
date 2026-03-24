@@ -6,8 +6,9 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useLanguage } from '@/contexts/language';
 import { Sparkles } from 'lucide-react';
 import tribeIllustration from '@/assets/characters/illustration-coffee-tribe-onboarding.png';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
-const QUIZ_RESULT_KEY = 'caldi_quiz_result';
+const QUIZ_RESULT_KEY = STORAGE_KEYS.QUIZ_RESULT;
 
 interface OnboardingModalProps {
   onComplete: () => void;

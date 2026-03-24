@@ -42,7 +42,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(detectInitialLanguage);
 
   const setLanguage = useCallback((lang: Language) => {
-    localStorage.setItem("caldi_lang", lang);
+    localStorage.setItem(STORAGE_KEYS.LANGUAGE, lang);
     setLanguageState(lang);
   }, []);
 

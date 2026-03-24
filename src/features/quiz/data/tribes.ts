@@ -26,7 +26,7 @@ export const TRIBES: Record<CoffeeTribe, TribeDefinition> = {
     bgClass: 'bg-secondary/10',
     values: ['Data', 'Precision', 'Clarity', 'Control'],
     keywords: ['Washed', 'Light Roast', 'Elevation', 'MASL', 'Typica', 'Bourbon', 'Clean'],
-    description: 'You approach coffee with scientific precision. Elevation, varietal, processing method—these details matter to you. You dial in your extraction ratio and track your brewing variables. Coffee is your daily optimization ritual.',
+    description: 'You approach coffee with scientific precision. Elevation, varietal, processing method. A gram difference when weighting your beans makes all the difference',
     coffeeRecommendations: [
       'Kenya AA - Washed, 1800 MASL',
       'Guatemala Huehuetenango - Bourbon, Light Roast',

@@ -31,7 +31,7 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
                 You're a <span className={`font-bold ${tribeDef.colorClass}`}>{tribeDef.name}</span> — {tribeDef.title.toLowerCase()}.
               </p>
               <p className="text-xs text-muted-foreground/70">
-                {tribeDef.description.slice(0, 100)}…
+                {tribeDef.description}
               </p>
             </>
           ) : (

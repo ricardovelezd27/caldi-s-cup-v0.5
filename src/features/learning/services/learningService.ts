@@ -172,6 +172,7 @@ export async function getLessonById(lessonId: string): Promise<LearningLesson | 
     .from("learning_lessons")
     .select("*")
     .eq("id", lessonId)
+    .eq("is_active", true)
     .maybeSingle();
 
   if (error) throw error;

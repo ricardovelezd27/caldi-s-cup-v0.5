@@ -150,10 +150,6 @@ export function ProfileHero() {
             </div>
           </div>
 
-          {/* Rank row — full width below avatar/info */}
-          <div className="w-full mt-6 pb-4">
-            <ProfileRankRow />
-          </div>
         </div>
       </div>
 

@@ -71,7 +71,7 @@ export const ResultsPage = () => {
     saveToProfile();
   }, [user, result, hasSaved, isSaving, toast, refreshProfile, t]);
 
-  const handleRetake = () => { cancelRedirect(); try { localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem('caldi_quiz_state'); } catch { /* ignore */ } navigate('/quiz'); };
+  const handleRetake = () => { cancelRedirect(); try { localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem('caldi_quiz_state'); } catch (err) { console.error("[ResultsPage] Failed to clear localStorage on retake:", err); } navigate('/quiz'); };
 
   if (!result) {
     return (<PageLayout><div className="min-h-[60vh] flex items-center justify-center"><div className="text-center"><Coffee className="w-12 h-12 text-muted-foreground mx-auto mb-4 animate-pulse" /><p className="text-muted-foreground">{t('quiz.loadingResults')}</p></div></div></PageLayout>);

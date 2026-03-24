@@ -506,6 +506,8 @@ export const en = {
     greatJob: "Great job!",
     skillsReheated: "Your coffee knowledge is fresh again!",
     nextLesson: "Next Lesson",
+    lessonLocked: "This lesson is locked",
+    completePrevious: "Complete the previous lesson first",
     backToTrack: "Back to Track",
     comingSoon: "Coming Soon",
     comingSoonDesc: "We're brewing up lessons for this track. Check back soon!",

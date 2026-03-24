@@ -1,27 +1,20 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared/Container";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { useAuth } from "@/contexts/auth";
 import { useLanguage } from "@/contexts/language";
-import { STORAGE_KEYS } from "@/constants/storageKeys";
-import {
-  ProfileHero,
-  FavoritesTable,
-  InventoryTable,
-  EditProfileDialog,
-} from "./components";
+import { ProfileHero, EditProfileDialog } from "./components";
 import { WidgetGrid } from "@/features/dashboard/components";
 import { Separator } from "@/components/ui/separator";
 import { FeedbackCTA } from "@/components/shared/FeedbackCTA";
 import { Button } from "@/components/ui/button";
-import { Pencil, RefreshCw } from "lucide-react";
+import { Pencil } from "lucide-react";
+import { useEffect } from "react";
 
 function ProfileContent() {
   const { user, profile, refreshProfile } = useAuth();
   const { t } = useLanguage();
-  const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
@@ -30,37 +23,15 @@ function ProfileContent() {
 
   if (!user || !profile) return null;
 
-  const handleRetakeQuiz = () => {
-    try {
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_RESULT);
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE);
-    } catch {
-      // Ignore
-    }
-    navigate("/quiz");
-  };
-
   return (
     <PageLayout>
       <ProfileHero />
 
       <Container size="default" className="py-8">
-
         {/* ☕ My Dashboard — Widget Grid */}
         <section>
           <h2 className="text-xl md:text-2xl font-bangers tracking-wide mb-4">☕ My Dashboard</h2>
           <WidgetGrid />
-        </section>
-
-        <Separator className="my-8" />
-
-        {/* Collections detail tables */}
-        <section>
-          <h2 className="text-xl md:text-2xl font-bangers tracking-wide mb-4">📦 Collections</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <FavoritesTable />
-            <InventoryTable />
-          </div>
         </section>
 
         <Separator className="my-8" />
@@ -72,10 +43,6 @@ function ProfileContent() {
             <Button variant="outline" onClick={() => setEditOpen(true)}>
               <Pencil className="h-4 w-4 mr-2" />
               {t("profile.editProfile") || "Edit Profile"}
-            </Button>
-            <Button variant="outline" onClick={handleRetakeQuiz}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              {t("profile.retakeQuiz") || "Retake Coffee Quiz"}
             </Button>
           </div>
         </section>

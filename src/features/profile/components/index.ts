@@ -12,3 +12,5 @@ export { ProfileDailyGoalCard } from "./ProfileDailyGoalCard";
 export { ProfileXPCard } from "./ProfileXPCard";
 export { ProfileFavoritesCard } from "./ProfileFavoritesCard";
 export { ProfileInventoryCard } from "./ProfileInventoryCard";
+export { FavoritesModal } from "./FavoritesModal";
+export { InventoryModal } from "./InventoryModal";

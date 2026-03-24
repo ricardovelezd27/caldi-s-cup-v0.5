@@ -136,9 +136,11 @@ export function ProfileHero() {
                 <h1 className="text-2xl md:text-3xl truncate">
                   {profile.display_name || t("profile.coffeeLover")}
                 </h1>
-                <p className="text-sm text-muted-foreground truncate">
-                  {user.email}
-                </p>
+                {profile.city && (
+                  <p className="text-sm text-muted-foreground truncate">
+                    📍 {profile.city}
+                  </p>
+                )}
               </div>
 
               {/* Edit button */}

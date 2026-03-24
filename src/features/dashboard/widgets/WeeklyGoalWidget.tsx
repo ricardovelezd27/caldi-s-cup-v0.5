@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Target } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { useDashboardData } from "../hooks/useDashboardData";
+import { useStreak } from "@/hooks/gamification/useStreak";
 import type { WidgetComponentProps } from "./types";
 
 export function WeeklyGoalWidget({ widget }: WidgetComponentProps) {

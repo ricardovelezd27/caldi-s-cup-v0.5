@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Package, ScanLine } from "lucide-react";
+import { Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import { InventoryModal } from "@/features/profile/components/InventoryModal";
@@ -61,8 +61,8 @@ export function InventoryWidget({ widget }: WidgetComponentProps) {
             <div className="flex flex-col items-center justify-center py-6 text-center">
               <Package className="h-12 w-12 text-muted-foreground/50 mb-3" />
               <p className="text-muted-foreground mb-3">No coffees in inventory</p>
-              <Button asChild variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
-                <Link to="/scanner"><ScanLine className="h-4 w-4 mr-2" />Scan to add</Link>
+              <Button variant="ghost" size="sm" className="w-full mt-1" onClick={(e) => e.stopPropagation()} asChild>
+                <Link to="/scanner">Scan to add →</Link>
               </Button>
             </div>
           ) : (
@@ -83,7 +83,7 @@ export function InventoryWidget({ widget }: WidgetComponentProps) {
               ))}
             </div>
           )}
-          <p className="text-xs text-muted-foreground text-center mt-3">View all →</p>
+          <Button variant="ghost" size="sm" className="w-full mt-3">View all →</Button>
         </div>
       </div>
       <InventoryModal open={modalOpen} onOpenChange={setModalOpen} />

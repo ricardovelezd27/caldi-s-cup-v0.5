@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLesson } from "../../hooks/useLesson";

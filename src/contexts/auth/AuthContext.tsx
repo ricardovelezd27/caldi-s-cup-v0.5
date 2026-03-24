@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const result = JSON.parse(pending);
       if (!result || typeof result !== 'object' || !VALID_TRIBES.includes(result.tribe)) {
         console.warn('[AuthContext] Invalid pending tribe save data, removing');
-        localStorage.removeItem(PENDING_TRIBE_SAVE_KEY);
+        localStorage.removeItem(STORAGE_KEYS.PENDING_TRIBE_SAVE);
         return;
       }
 

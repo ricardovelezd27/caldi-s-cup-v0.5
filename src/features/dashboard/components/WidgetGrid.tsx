@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ScanLine, Settings, Loader2 } from "lucide-react";
+import { ScanLine, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDashboardWidgets } from "@/hooks/useDashboardWidgets";
 import { WIDGET_REGISTRY, type DashboardWidget, type WidgetType } from "../widgets";
 import { WidgetWrapper } from "./WidgetWrapper";
-import { AddWidgetDialog } from "./AddWidgetDialog";
+import { EditWidgetsDialog } from "./EditWidgetsDialog";
 import { ROUTES } from "@/constants/app";
 
 export function WidgetGrid() {

@@ -125,7 +125,8 @@ export async function getTracks(): Promise<LearningTrack[]> {
     .from("learning_tracks")
     .select("*")
     .eq("is_active", true)
-    .order("sort_order");
+    .order("sort_order")
+    .limit(100);
 
   if (error) throw error;
   return (data ?? []).map(toTrack);

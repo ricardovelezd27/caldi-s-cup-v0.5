@@ -1,30 +1,39 @@
 
 
-# Plan: Restructure WelcomeHeroWidget + Create TribeInfoModal
+# Plan: Unregister CoffeeTribeWidget and BrewingLevelWidget
+
+## Problem
+
+The `WIDGET_REGISTRY` is typed as `Record<WidgetType, WidgetRegistryEntry>`, requiring an entry for every enum value. We can't simply delete entries without a type error. The enum still exists in the DB so we won't remove it.
+
+## Approach
+
+Change the registry type from `Record<WidgetType, ...>` to `Partial<Record<WidgetType, ...>>` so entries can be omitted. Then remove the two widget entries and their imports. Add the two types to the `STRUCTURAL_WIDGETS` exclusion list (renamed to `HIDDEN_WIDGETS`) so they never appear in the "Add Widget" dialog. Update any code that reads from the registry to handle possibly-undefined entries.
 
 ## Changes
 
-### 1. New file: `src/features/dashboard/widgets/TribeInfoModal.tsx`
+### 1. `src/features/dashboard/widgets/widgetRegistry.ts`
+- Change type to `Partial<Record<WidgetType, WidgetRegistryEntry>>`
+- Remove `coffee_tribe` and `brewing_level` entries + their imports
+- Rename `STRUCTURAL_WIDGETS` to include these hidden types, or just filter by presence in registry
 
-A dialog component that receives `open` and `onOpenChange` props:
+### 2. `src/features/dashboard/widgets/types.ts`
+- No changes needed (WidgetType stays as the DB enum)
 
-- **Has tribe**: Shows emoji avatar circle (w-16 h-16, rounded-full, border-4, tribe bgClass), tribe name (font-bangers text-3xl, tribe colorClass), subtitle in muted text, full description, value tags, and a "Retake Coffee Quiz" button (clears `STORAGE_KEYS.QUIZ_RESULT` + `QUIZ_STATE`, navigates to `/quiz`)
-- **No tribe**: Shows "You haven't discovered your tribe yet" message with a "Take the Quiz" button navigating to `/quiz`
+### 3. `src/features/dashboard/components/WidgetGrid.tsx` / `WidgetWrapper.tsx`
+- Add a guard: if `WIDGET_REGISTRY[widget.widgetType]` is undefined, skip rendering that widget (handles existing DB rows for users who had these widgets)
 
-Uses Dialog/DialogContent from `@/components/ui/dialog`, imports tribe data via `getTribeDefinition`, reads `profile.coffee_tribe` from `useAuth`.
+### 4. `src/features/dashboard/widgets/index.ts`
+- Remove re-exports of `CoffeeTribeWidget` and `BrewingLevelWidget`
 
-### 2. Edit: `src/features/dashboard/widgets/WelcomeHeroWidget.tsx`
-
-- Remove the `Welcome, {greeting}!` heading (lines 23-25) and the `greeting` variable
-- Keep tribe description text and rank badge + progress bar unchanged
-- Add `useState` for modal open state
-- After the tribe description paragraph, add a ghost/outline small button: `Learn about your tribe {tribeDef.emoji}` (only when tribeDef exists)
-- Import and render `<TribeInfoModal>` wired to the open state
+### 5. `src/features/dashboard/components/EditWidgetsDialog.tsx`
+- Already driven by `getAvailableWidgets()` which reads from registry, so removing entries automatically hides them from the add list
 
 ## Files Modified
 
 | File | Change |
 |------|--------|
-| `TribeInfoModal.tsx` (new) | Tribe info dialog with retake quiz CTA |
-| `WelcomeHeroWidget.tsx` | Remove welcome heading, add "Learn about your tribe" button + modal |
+| `widgetRegistry.ts` | Remove 2 entries, change to Partial type, remove imports |
+| `widgets/index.ts` | Remove 2 re-exports |
+| `WidgetGrid.tsx` or `WidgetWrapper.tsx` | Guard against undefined registry entries |
 

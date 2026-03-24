@@ -1,44 +1,55 @@
 
 
-# Plan: Mobile-Friendly Stats Redesign
+# Plan: Fix Unhandled Async Errors in AuthContext
 
 ## Problem
 
-On mobile, the 5 stat cards render in a 2-column grid with tall, padded cards — taking up excessive vertical space and feeling clunky. The desktop 5-column layout is fine and stays as-is.
+Three `.then()` chains in the auth initialization `useEffect` have no `.catch()` handlers:
 
-## Solution: Compact Pill Stats on Mobile
+1. **Line 130**: `fetchProfile(session.user.id).then(setProfile)` — inside `setTimeout` in `onAuthStateChange`
+2. **Line 140**: `supabase.auth.getSession().then(...)` — the entire session bootstrap
+3. **Line 146**: `fetchProfile(session.user.id).then((p) => { ... })` — inside `getSession` callback
 
-On mobile, switch to a horizontal scrollable row of compact "pill" stats — icon + metric + label inline, no big padding or shadows. On desktop (md+), keep the current 5-column card grid unchanged.
-
-```text
-Mobile (horizontal scroll, compact pills):
-┌──────────────────────────────────────────────┐
-│ [🔥 7 Streak] [🎯 5/10 Goal] [⭐ 240 XP] → │
-└──────────────────────────────────────────────┘
-
-Desktop (unchanged):
-[Streak] [Goal] [XP] [Favs] [Inventory]
-```
+If any of these reject, the error is swallowed silently, potentially leaving the UI in a broken loading state.
 
 ## Changes
 
-### 1. `ProfileStatCard.tsx` — Add compact variant
+### `src/contexts/auth/AuthContext.tsx`
 
-- Add a `compact` prop (boolean, default false)
-- When `compact`: render as a horizontal pill — `flex-row` layout, smaller icon (h-7 w-7), inline metric+label, reduced padding (px-3 py-2), `rounded-full`, thinner border (2px), smaller shadow (2px 2px)
-- When not compact: existing card layout (no changes)
+- Add `import { toast } from "sonner"` at top
+- **Line 130** — Add `.catch()` after `.then(setProfile)`:
+  ```ts
+  fetchProfile(session.user.id)
+    .then(setProfile)
+    .catch((err) => {
+      console.error("[AuthContext] Profile fetch failed on auth change:", err);
+      toast.error("Could not load your profile. Please refresh the page.");
+    });
+  ```
+- **Line 140** — Add `.catch()` to the `getSession().then(...)` chain:
+  ```ts
+  .catch((err) => {
+    console.error("[AuthContext] Session initialization failed:", err);
+    toast.error("Could not load your profile. Please refresh the page.");
+    setIsLoading(false); // Ensure UI doesn't hang on spinner
+  });
+  ```
+- **Line 146** — Add `.catch()` to the inner `fetchProfile` call:
+  ```ts
+  fetchProfile(session.user.id).then((p) => {
+    setProfile(p);
+    if (p && session.user) {
+      recoverPendingTribeSave(session.user.id);
+    }
+  }).catch((err) => {
+    console.error("[AuthContext] Profile fetch failed on init:", err);
+    toast.error("Could not load your profile. Please refresh the page.");
+  });
+  ```
 
-### 2. `ProfilePage.tsx` — Responsive stats layout
-
-- Use `useIsMobile()` hook
-- Mobile: render stats in a `flex overflow-x-auto gap-3` horizontal scroll container, passing `compact` to each stat card
-- Desktop: keep existing `grid grid-cols-5 gap-4` with full cards
-- Hide the "📊 Your Stats" heading on mobile (stats are self-explanatory as pills) or keep it smaller
-
-### Files Modified
+## Files Modified
 
 | File | Change |
 |------|--------|
-| `ProfileStatCard.tsx` | Add `compact` prop for pill variant |
-| `ProfilePage.tsx` | Responsive: scroll pills on mobile, grid on desktop |
+| `AuthContext.tsx` | Add sonner import + `.catch()` handlers on 3 unhandled promise chains |
 

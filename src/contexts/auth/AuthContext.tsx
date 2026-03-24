@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Recover pending tribe save from localStorage (failed quiz save)
   const recoverPendingTribeSave = async (userId: string) => {
     try {
-      const pending = localStorage.getItem(PENDING_TRIBE_SAVE_KEY);
+      const pending = localStorage.getItem(STORAGE_KEYS.PENDING_TRIBE_SAVE);
       if (!pending) return;
       const VALID_TRIBES = ['fox', 'owl', 'hummingbird', 'bee'];
       const result = JSON.parse(pending);

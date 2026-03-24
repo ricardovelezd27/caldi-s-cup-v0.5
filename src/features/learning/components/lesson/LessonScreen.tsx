@@ -25,6 +25,7 @@ import { SignupPrompt } from "../gamification/SignupPrompt";
 import { HeartsEmptyModal } from "../gamification/HeartsEmptyModal";
 import { AchievementUnlock } from "../gamification/AchievementUnlock";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import type { XPCalculation } from "../../services/xpService";
 import type { LearningAchievement } from "../../types";
 

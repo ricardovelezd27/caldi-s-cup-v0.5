@@ -106,9 +106,19 @@ export async function addXPToDaily(userId: string, xp: number): Promise<void> {
   let goal = await getDailyGoal(userId);
 
   if (!goal) {
+    // Fetch user's most recent goal_xp to use as threshold instead of hardcoded 10
+    const { data: lastGoal } = await supabase
+      .from("learning_user_daily_goals")
+      .select("goal_xp")
+      .eq("user_id", userId)
+      .order("date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const threshold = lastGoal?.goal_xp ?? 10;
+
     const { error } = await supabase
       .from("learning_user_daily_goals")
-      .insert({ user_id: userId, date: today, earned_xp: xp, is_achieved: xp >= 10 });
+      .insert({ user_id: userId, date: today, earned_xp: xp, goal_xp: threshold, is_achieved: xp >= threshold });
     if (error) throw error;
     return;
   }

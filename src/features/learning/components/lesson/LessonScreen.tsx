@@ -1,8 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useLesson } from "../../hooks/useLesson";
 import { useAuth } from "@/contexts/auth";
 import { useLanguage } from "@/contexts/language";

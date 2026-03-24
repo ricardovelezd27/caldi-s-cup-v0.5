@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Heart, ScanLine } from "lucide-react";
+import { Heart } from "lucide-react";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { useFavorites } from "@/features/coffee/hooks/useFavorites";
 import { FavoritesModal } from "@/features/profile/components/FavoritesModal";

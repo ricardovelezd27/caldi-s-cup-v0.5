@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
 import type { WidgetComponentProps } from "./types";
 import { TribeInfoModal } from "./TribeInfoModal";
+import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
   const { profile } = useAuth();

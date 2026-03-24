@@ -34,8 +34,8 @@ export const ResultsPage = () => {
 
   useEffect(() => {
     const stateResult = location.state?.result as QuizResult | undefined;
-    if (stateResult) { setResult(stateResult); if (!user) { try { localStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(stateResult)); } catch { /* ignore */ } } }
-    else { try { const saved = localStorage.getItem(RESULT_STORAGE_KEY); if (saved) { setResult(JSON.parse(saved)); } else { navigate('/quiz'); } } catch { navigate('/quiz'); } }
+    if (stateResult) { setResult(stateResult); if (!user) { try { localStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(stateResult)); } catch (err) { console.error("[ResultsPage] Failed to cache quiz result:", err); } } }
+    else { try { const saved = localStorage.getItem(RESULT_STORAGE_KEY); if (saved) { setResult(JSON.parse(saved)); } else { navigate('/quiz'); } } catch (err) { console.error("[ResultsPage] Failed to parse cached quiz result:", err); localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem('caldi_quiz_state'); navigate('/quiz'); } }
   }, [location.state, user, navigate]);
 
   const cancelRedirect = useCallback(() => { if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; } setCountdown(null); }, []);

@@ -17,7 +17,7 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
-    <div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-5 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+    <div className="relative h-full overflow-hidden rounded-lg bg-card p-5">
 
 
 

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { History, ScanLine } from "lucide-react";
 import { format } from "date-fns";
+import { useLanguage } from "@/contexts/language";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import type { WidgetComponentProps } from "./types";
@@ -11,6 +12,7 @@ import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function RecentScansWidget({ widget }: WidgetComponentProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const { data: recentScans = [] } = useQuery({
     queryKey: ["recent-scans", user?.id],
@@ -40,17 +42,17 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <h3 className="font-bangers text-lg flex items-center gap-2">
           <History className="h-5 w-5 text-secondary" />
-          Recent Scans
+          {t("widgets.recentScans")}
         </h3>
-        <WidgetCategoryTag label="Experience" />
+        <WidgetCategoryTag label={t("widgets.categoryExperience")} />
       </div>
       <div className="px-5 pb-5">
         {recentScans.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <ScanLine className="h-12 w-12 text-muted-foreground/50 mb-3" />
-            <p className="text-muted-foreground mb-3">No scans yet</p>
+            <p className="text-muted-foreground mb-3">{t("widgets.noScansYet")}</p>
             <Button asChild variant="outline" size="sm" className="text-xs gap-1.5">
-              <Link to="/scanner">Start scanning →</Link>
+              <Link to="/scanner">{t("widgets.startScanning")}</Link>
             </Button>
           </div>
         ) : (
@@ -76,7 +78,7 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
               </Link>
             ))}
             <Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-3">
-              <Link to="/scanner">Scan more →</Link>
+              <Link to="/scanner">{t("widgets.scanMore")}</Link>
             </Button>
           </div>
         )}

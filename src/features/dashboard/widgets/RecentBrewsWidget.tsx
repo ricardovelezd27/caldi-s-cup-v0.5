@@ -1,11 +1,13 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Coffee, Clock } from "lucide-react";
 import { format } from "date-fns";
+import { useLanguage } from "@/contexts/language";
 import { useDashboardData } from "../hooks/useDashboardData";
 import type { WidgetComponentProps } from "./types";
 import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function RecentBrewsWidget({ widget }: WidgetComponentProps) {
+  const { t } = useLanguage();
   const { recentBrews } = useDashboardData();
 
   return (
@@ -13,25 +15,25 @@ export function RecentBrewsWidget({ widget }: WidgetComponentProps) {
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <h3 className="font-bangers text-lg flex items-center gap-2">
           <Clock className="h-5 w-5 text-primary" />
-          Recent Brews
+          {t("widgets.recentBrews")}
         </h3>
-        <WidgetCategoryTag label="Experience" />
+        <WidgetCategoryTag label={t("widgets.categoryExperience")} />
       </div>
       <div className="px-5 pb-5">
         {recentBrews.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <Coffee className="h-12 w-12 text-muted-foreground/50 mb-3" />
-            <p className="text-muted-foreground">No brews logged yet</p>
-            <p className="text-sm text-muted-foreground/70">Start brewing to track your progress!</p>
+            <p className="text-muted-foreground">{t("widgets.noBrewsYet")}</p>
+            <p className="text-sm text-muted-foreground/70">{t("widgets.startBrewing")}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Coffee</TableHead>
-                  <TableHead>Method</TableHead>
-                  <TableHead className="text-right">When</TableHead>
+                  <TableHead>{t("widgets.coffeeCol")}</TableHead>
+                  <TableHead>{t("widgets.methodCol")}</TableHead>
+                  <TableHead className="text-right">{t("widgets.whenCol")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

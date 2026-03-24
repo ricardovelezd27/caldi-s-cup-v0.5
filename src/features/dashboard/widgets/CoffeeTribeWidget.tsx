@@ -2,26 +2,28 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth";
+import { useLanguage } from "@/contexts/language";
 import { getTribeDefinition } from "@/features/quiz/data/tribes";
 import { cn } from "@/lib/utils";
 import type { WidgetComponentProps } from "./types";
 
 export function CoffeeTribeWidget({ widget }: WidgetComponentProps) {
   const { profile } = useAuth();
+  const { t } = useLanguage();
   const tribe = profile?.coffee_tribe;
 
   if (!tribe) {
     return (
       <Card className="h-full">
         <CardHeader>
-          <CardTitle className="font-bangers text-xl tracking-wide">Your Coffee Tribe</CardTitle>
+          <CardTitle className="font-bangers text-xl tracking-wide">{t("widgets.yourTribe")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center py-8">
           <p className="text-muted-foreground text-center mb-4">
-            Discover your coffee personality!
+            {t("widgets.discoverPersonality")}
           </p>
           <Button asChild>
-            <Link to="/quiz">Take the Quiz</Link>
+            <Link to="/quiz">{t("widgets.takeQuiz")}</Link>
           </Button>
         </CardContent>
       </Card>
@@ -34,7 +36,7 @@ export function CoffeeTribeWidget({ widget }: WidgetComponentProps) {
     <Card className="h-full overflow-hidden">
       <div className={cn("h-2", tribeDef.bgClass.replace("/10", ""))} />
       <CardHeader className="pb-2">
-        <CardTitle className="font-bangers text-xl tracking-wide">Your Coffee Tribe</CardTitle>
+        <CardTitle className="font-bangers text-xl tracking-wide">{t("widgets.yourTribe")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4 mb-4">

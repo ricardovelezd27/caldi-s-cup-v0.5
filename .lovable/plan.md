@@ -1,25 +1,39 @@
 
 
-# Plan: Clear App State on Logout
+# Plan: Ensure All Learning Queries Filter Inactive Content
 
-## Problem
+## Current State
 
-When a user logs out and a different user logs in on the same device, stale localStorage data (`caldi_pending_tribe_save`, `caldi_quiz_result`) from the previous session can bleed into the new session.
+All batch-query functions already filter by `is_active = true`:
+- `getTracks()` ✅
+- `getSections()` ✅  
+- `getUnits()` ✅
+- `getLessons()` ✅
+- `getExercises()` ✅
+- `getUnitsBySectionIds()` ✅
+- `getLessonsByUnitIds()` ✅
+- `getLeagues()` ✅ (no `is_active` column — not applicable)
+
+## Gap Found
+
+**`getLessonById()`** (line 148) has no `is_active` filter. A user could access a draft lesson by navigating directly to its URL.
 
 ## Change
 
-### `src/contexts/auth/AuthContext.tsx` — `signOut()` (line 247)
+### `src/features/learning/services/learningService.ts`
 
-After `supabase.auth.signOut()` and `setProfile(null)`, add two `localStorage.removeItem` calls:
+Add `.eq("is_active", true)` to `getLessonById()`:
 
 ```ts
-localStorage.removeItem('caldi_pending_tribe_save');
-localStorage.removeItem('caldi_quiz_result');
+const { data, error } = await supabase
+  .from("learning_lessons")
+  .select("*")
+  .eq("id", lessonId)
+  .eq("is_active", true)   // ← add this
+  .maybeSingle();
 ```
-
-Language preference (`caldi_lang`) is intentionally preserved.
 
 | File | Change |
 |------|--------|
-| `AuthContext.tsx` | Add 2 `localStorage.removeItem` calls in `signOut()` |
+| `learningService.ts` | Add `is_active` filter to `getLessonById()` |
 

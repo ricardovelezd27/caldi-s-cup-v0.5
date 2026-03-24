@@ -77,7 +77,7 @@ export function WidgetGrid() {
         <WidgetWrapper
           widget={heroWidget}
           isEditing={isEditing}
-          onRemove={() => handleRemoveWidget(heroWidget)}
+          onRemove={() => removeWidget.mutateAsync(heroWidget.id)}
         />
       )}
 

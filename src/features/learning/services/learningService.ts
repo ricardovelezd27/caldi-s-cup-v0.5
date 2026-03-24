@@ -138,7 +138,8 @@ export async function getSections(trackId: string): Promise<LearningSection[]> {
     .select("*")
     .eq("track_id", trackId)
     .eq("is_active", true)
-    .order("sort_order");
+    .order("sort_order")
+    .limit(100);
 
   if (error) throw error;
   return (data ?? []).map(toSection);

@@ -1,7 +1,10 @@
+import { Link } from "react-router-dom";
 import { Target } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { useStreak } from "@/hooks/gamification/useStreak";
+import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/constants/app";
 import type { WidgetComponentProps } from "./types";
 import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
@@ -58,6 +61,10 @@ export function WeeklyGoalWidget({ widget }: WidgetComponentProps) {
             🔥 {streak.currentStreak} day streak
           </p>
         )}
+
+        <Button asChild variant="outline" size="sm" className="text-xs gap-1.5 mt-4">
+          <Link to={ROUTES.learn}>Start learning →</Link>
+        </Button>
       </div>
     </div>
   );

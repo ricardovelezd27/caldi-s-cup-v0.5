@@ -19,7 +19,7 @@ export function useDashboardWidgets() {
         .from("dashboard_widgets")
         .select("*")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: true });
+        .order("sort_order", { ascending: true });
 
       if (error) throw error;
       return (data ?? []).map(transformWidget);
@@ -44,6 +44,7 @@ export function useDashboardWidgets() {
         widget_type: widgetType,
         position: (position ?? { row: 0, col: 0, width: 1, height: 1 }) as Json,
         config: (config ?? {}) as Json,
+        sort_order: widgets.length,
       };
 
       const { data, error } = await supabase
@@ -106,6 +107,23 @@ export function useDashboardWidgets() {
     },
   });
 
+  const reorderWidgets = useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      const updates = orderedIds.map((id, index) =>
+        supabase
+          .from("dashboard_widgets")
+          .update({ sort_order: index })
+          .eq("id", id)
+      );
+      const results = await Promise.all(updates);
+      const failed = results.find((r) => r.error);
+      if (failed?.error) throw failed.error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard-widgets", user?.id] });
+    },
+  });
+
   const toggleVisibility = useMutation({
     mutationFn: async ({ id, isVisible }: { id: string; isVisible: boolean }) => {
       const { error } = await supabase
@@ -128,6 +146,7 @@ export function useDashboardWidgets() {
     addWidget,
     updateWidget,
     removeWidget,
+    reorderWidgets,
     toggleVisibility,
   };
 }

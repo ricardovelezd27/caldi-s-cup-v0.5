@@ -15,6 +15,7 @@ export function WidgetGrid() {
     isLoading, 
     addWidget, 
     removeWidget,
+    reorderWidgets,
   } = useDashboardWidgets();
 
   const handleAddWidget = async (widgetType: WidgetType) => {
@@ -35,7 +36,10 @@ export function WidgetGrid() {
     if (widget) await removeWidget.mutateAsync(widget.id);
   };
 
-  // Get existing widget types to prevent duplicates
+  const handleReorder = (orderedIds: string[]) => {
+    reorderWidgets.mutate(orderedIds);
+  };
+
   const existingTypes = visibleWidgets.map((w) => w.widgetType);
 
   if (isLoading) {
@@ -46,24 +50,22 @@ export function WidgetGrid() {
     );
   }
 
-  // Group widgets by their intended layout
-  // welcome_hero spans full width, others go in grid
   const heroWidget = visibleWidgets.find((w) => w.widgetType === "welcome_hero");
   const gridWidgets = visibleWidgets.filter((w) => w.widgetType !== "welcome_hero");
 
   return (
     <div className="space-y-6">
-      {/* Edit Controls */}
       <div className="flex items-center justify-between">
         <EditWidgetsDialog 
           existingTypes={existingTypes}
+          activeWidgets={visibleWidgets}
           onAdd={handleAddWidget}
           onRemove={handleRemoveByType}
+          onReorder={handleReorder}
           isAdding={addWidget.isPending}
           onOpenChange={setIsEditing}
         />
         
-        {/* Scan CTA for desktop */}
         <Button asChild size="sm" className="hidden md:flex">
           <Link to={ROUTES.scanner}>
             <ScanLine className="h-4 w-4 mr-2" />
@@ -72,7 +74,6 @@ export function WidgetGrid() {
         </Button>
       </div>
 
-      {/* Hero Widget (full width) */}
       {heroWidget && (
         <WidgetWrapper
           widget={heroWidget}
@@ -81,11 +82,9 @@ export function WidgetGrid() {
         />
       )}
 
-      {/* Widget Grid */}
       {gridWidgets.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {gridWidgets.map((widget) => {
-            // Determine column span based on widget size
             const colSpan = widget.position.width >= 2 ? "md:col-span-2" : "";
             
             return (
@@ -106,15 +105,16 @@ export function WidgetGrid() {
           </p>
           <EditWidgetsDialog 
             existingTypes={existingTypes}
+            activeWidgets={visibleWidgets}
             onAdd={handleAddWidget}
             onRemove={handleRemoveByType}
+            onReorder={handleReorder}
             isAdding={addWidget.isPending}
             onOpenChange={setIsEditing}
           />
         </div>
       )}
 
-      {/* Floating Action Button - Mobile only */}
       <Link to={ROUTES.scanner} className="md:hidden">
         <Button
           size="lg"

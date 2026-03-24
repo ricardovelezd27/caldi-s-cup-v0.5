@@ -8,6 +8,8 @@ import type { WidgetComponentProps } from "./types";
 
 export function FavoritesWidget({ widget }: WidgetComponentProps) {
   const { favorite } = useDashboardData();
+  const { favoriteIds } = useFavorites();
+  const favCount = favoriteIds.length;
 
   return (
     <Card className="h-full">

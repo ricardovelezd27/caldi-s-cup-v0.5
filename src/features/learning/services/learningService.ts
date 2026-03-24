@@ -228,7 +228,8 @@ export async function getLeagues(): Promise<LearningLeague[]> {
   const { data, error } = await supabase
     .from("learning_leagues")
     .select("*")
-    .order("tier");
+    .order("tier")
+    .limit(20);
 
   if (error) throw error;
   return (data ?? []).map(toLeague);

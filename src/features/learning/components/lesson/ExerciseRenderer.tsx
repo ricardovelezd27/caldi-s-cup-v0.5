@@ -21,6 +21,18 @@ interface ExerciseRendererProps {
 export function ExerciseRenderer({ exercise, onAnswer, disabled }: ExerciseRendererProps) {
   const qd = exercise.questionData as any;
 
+  if (!qd || typeof qd !== 'object' || Object.keys(qd).length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+        <div className="rounded-lg border-4 border-dashed border-border p-8 bg-card/50 max-w-sm w-full">
+          <p className="text-muted-foreground font-inter text-sm">
+            This exercise is not available yet.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const handleSubmit = (answer: any, isCorrect: boolean) => {
     onAnswer(answer, isCorrect);
   };

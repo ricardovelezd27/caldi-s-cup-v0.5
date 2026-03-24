@@ -125,7 +125,8 @@ export async function getTracks(): Promise<LearningTrack[]> {
     .from("learning_tracks")
     .select("*")
     .eq("is_active", true)
-    .order("sort_order");
+    .order("sort_order")
+    .limit(100);
 
   if (error) throw error;
   return (data ?? []).map(toTrack);
@@ -137,7 +138,8 @@ export async function getSections(trackId: string): Promise<LearningSection[]> {
     .select("*")
     .eq("track_id", trackId)
     .eq("is_active", true)
-    .order("sort_order");
+    .order("sort_order")
+    .limit(100);
 
   if (error) throw error;
   return (data ?? []).map(toSection);
@@ -149,7 +151,8 @@ export async function getUnits(sectionId: string): Promise<LearningUnit[]> {
     .select("*")
     .eq("section_id", sectionId)
     .eq("is_active", true)
-    .order("sort_order");
+    .order("sort_order")
+    .limit(100);
 
   if (error) throw error;
   return (data ?? []).map(toUnit);
@@ -161,7 +164,8 @@ export async function getLessons(unitId: string): Promise<LearningLesson[]> {
     .select("*")
     .eq("unit_id", unitId)
     .eq("is_active", true)
-    .order("sort_order");
+    .order("sort_order")
+    .limit(100);
 
   if (error) throw error;
   return (data ?? []).map(toLesson);
@@ -185,7 +189,8 @@ export async function getExercises(lessonId: string): Promise<LearningExercise[]
     .select("*")
     .eq("lesson_id", lessonId)
     .eq("is_active", true)
-    .order("sort_order");
+    .order("sort_order")
+    .limit(100);
 
   if (error) throw error;
   return (data ?? []).map(toExercise);
@@ -198,7 +203,8 @@ export async function getUnitsBySectionIds(sectionIds: string[]): Promise<Learni
     .select("*")
     .in("section_id", sectionIds)
     .eq("is_active", true)
-    .order("sort_order");
+    .order("sort_order")
+    .limit(500);
 
   if (error) throw error;
   return (data ?? []).map(toUnit);
@@ -211,7 +217,8 @@ export async function getLessonsByUnitIds(unitIds: string[]): Promise<LearningLe
     .select("*")
     .in("unit_id", unitIds)
     .eq("is_active", true)
-    .order("sort_order");
+    .order("sort_order")
+    .limit(500);
 
   if (error) throw error;
   return (data ?? []).map(toLesson);
@@ -221,7 +228,8 @@ export async function getLeagues(): Promise<LearningLeague[]> {
   const { data, error } = await supabase
     .from("learning_leagues")
     .select("*")
-    .order("tier");
+    .order("tier")
+    .limit(20);
 
   if (error) throw error;
   return (data ?? []).map(toLeague);

@@ -1,39 +1,33 @@
 
 
-# Plan: Unregister CoffeeTribeWidget and BrewingLevelWidget
+# Plan: Homogenize Widget UI to Branded Retro Box Style
 
-## Problem
+## What
 
-The `WIDGET_REGISTRY` is typed as `Record<WidgetType, WidgetRegistryEntry>`, requiring an entry for every enum value. We can't simply delete entries without a type error. The enum still exists in the DB so we won't remove it.
+Replace `<Card>`, `<CardHeader>`, `<CardTitle>`, and `<CardContent>` with plain `<div>` and `<h3>` elements using the same retro border/shadow style as `WelcomeHeroWidget` across all 7 active widgets.
 
-## Approach
+## Target Style
 
-Change the registry type from `Record<WidgetType, ...>` to `Partial<Record<WidgetType, ...>>` so entries can be omitted. Then remove the two widget entries and their imports. Add the two types to the `STRUCTURAL_WIDGETS` exclusion list (renamed to `HIDDEN_WIDGETS`) so they never appear in the "Add Widget" dialog. Update any code that reads from the registry to handle possibly-undefined entries.
+```
+Root:    <div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+Header:  <div className="flex items-center justify-between px-5 pt-5 pb-3">
+Title:   <h3 className="font-bangers text-lg flex items-center gap-2">
+Content: <div className="px-5 pb-5">
+```
 
-## Changes
+## Widgets to Update (7 files)
 
-### 1. `src/features/dashboard/widgets/widgetRegistry.ts`
-- Change type to `Partial<Record<WidgetType, WidgetRegistryEntry>>`
-- Remove `coffee_tribe` and `brewing_level` entries + their imports
-- Rename `STRUCTURAL_WIDGETS` to include these hidden types, or just filter by presence in registry
+| Widget | Notes |
+|--------|-------|
+| `WeeklyGoalWidget.tsx` | Standard Card → retro div |
+| `RecentBrewsWidget.tsx` | Standard Card → retro div |
+| `FavoritesWidget.tsx` | Standard Card → retro div |
+| `InventoryWidget.tsx` | Standard Card → retro div |
+| `RecentScansWidget.tsx` | Standard Card → retro div |
+| `RecommendationsWidget.tsx` | Standard Card → retro div |
+| `QuickScanWidget.tsx` | Card with gradient → retro div, keep gradient via inline style or extra classes |
 
-### 2. `src/features/dashboard/widgets/types.ts`
-- No changes needed (WidgetType stays as the DB enum)
+**WelcomeHeroWidget** — already correct, no changes.
 
-### 3. `src/features/dashboard/components/WidgetGrid.tsx` / `WidgetWrapper.tsx`
-- Add a guard: if `WIDGET_REGISTRY[widget.widgetType]` is undefined, skip rendering that widget (handles existing DB rows for users who had these widgets)
-
-### 4. `src/features/dashboard/widgets/index.ts`
-- Remove re-exports of `CoffeeTribeWidget` and `BrewingLevelWidget`
-
-### 5. `src/features/dashboard/components/EditWidgetsDialog.tsx`
-- Already driven by `getAvailableWidgets()` which reads from registry, so removing entries automatically hides them from the add list
-
-## Files Modified
-
-| File | Change |
-|------|--------|
-| `widgetRegistry.ts` | Remove 2 entries, change to Partial type, remove imports |
-| `widgets/index.ts` | Remove 2 re-exports |
-| `WidgetGrid.tsx` or `WidgetWrapper.tsx` | Guard against undefined registry entries |
+Each file: remove `Card`/`CardHeader`/`CardTitle`/`CardContent` imports, replace JSX with the plain div structure, keep all internal logic and content unchanged.
 

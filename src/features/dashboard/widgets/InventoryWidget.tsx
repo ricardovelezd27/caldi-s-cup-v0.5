@@ -83,7 +83,7 @@ export function InventoryWidget({ widget }: WidgetComponentProps) {
               ))}
             </div>
           )}
-          <Button variant="ghost" size="sm" className="w-full mt-3">View all →</Button>
+          <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-3">View all →</Button>
         </div>
       </div>
       <InventoryModal open={modalOpen} onOpenChange={setModalOpen} />

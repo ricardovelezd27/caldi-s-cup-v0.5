@@ -75,7 +75,7 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
                 </span>
               </Link>
             ))}
-            <Button asChild variant="ghost" size="sm" className="w-full mt-3">
+            <Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-3">
               <Link to="/scanner">Scan more →</Link>
             </Button>
           </div>

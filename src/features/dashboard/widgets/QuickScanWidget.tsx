@@ -19,7 +19,7 @@ export function QuickScanWidget({ widget }: WidgetComponentProps) {
           <h3 className="font-bangers text-xl tracking-wide text-foreground">Scan a Coffee</h3>
           <p className="text-sm text-muted-foreground mt-1">Discover coffee profiles with AI</p>
         </div>
-        <Button asChild variant="ghost" size="sm" className="w-full">
+        <Button asChild variant="outline" size="sm" className="text-xs gap-1.5">
           <Link to={ROUTES.scanner}>Start scanning →</Link>
         </Button>
       </div>

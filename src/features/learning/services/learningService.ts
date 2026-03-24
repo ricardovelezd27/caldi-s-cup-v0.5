@@ -151,7 +151,8 @@ export async function getUnits(sectionId: string): Promise<LearningUnit[]> {
     .select("*")
     .eq("section_id", sectionId)
     .eq("is_active", true)
-    .order("sort_order");
+    .order("sort_order")
+    .limit(100);
 
   if (error) throw error;
   return (data ?? []).map(toUnit);

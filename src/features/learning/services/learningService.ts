@@ -189,7 +189,8 @@ export async function getExercises(lessonId: string): Promise<LearningExercise[]
     .select("*")
     .eq("lesson_id", lessonId)
     .eq("is_active", true)
-    .order("sort_order");
+    .order("sort_order")
+    .limit(100);
 
   if (error) throw error;
   return (data ?? []).map(toExercise);

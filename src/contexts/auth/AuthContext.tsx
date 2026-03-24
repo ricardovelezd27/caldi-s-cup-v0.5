@@ -128,7 +128,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           errorLogger.setUserContext(session.user.id);
           // Defer profile fetch with setTimeout to avoid deadlock
           setTimeout(() => {
-            fetchProfile(session.user.id).then(setProfile);
+            fetchProfile(session.user.id)
+              .then(setProfile)
+              .catch((err) => {
+                console.error("[AuthContext] Profile fetch failed on auth change:", err);
+                toast.error("Could not load your profile. Please refresh the page.");
+              });
           }, 0);
         } else {
           errorLogger.clearUserContext();

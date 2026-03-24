@@ -12,9 +12,10 @@ import { ROUTES } from '@/constants/app';
 import { Coffee, LayoutDashboard, RefreshCw, UserPlus, ScanLine } from 'lucide-react';
 import { retryWithBackoff } from '@/utils/network/retryWithBackoff';
 import { useLanguage } from '@/contexts/language';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
-const RESULT_STORAGE_KEY = 'caldi_quiz_result';
-export const PENDING_TRIBE_SAVE_KEY = 'caldi_pending_tribe_save';
+const RESULT_STORAGE_KEY = STORAGE_KEYS.QUIZ_RESULT;
+export const PENDING_TRIBE_SAVE_KEY = STORAGE_KEYS.PENDING_TRIBE_SAVE;
 const REDIRECT_DELAY_SECONDS = 3;
 
 export const ResultsPage = () => {

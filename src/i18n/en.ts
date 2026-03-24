@@ -687,6 +687,11 @@ export const en = {
     expertNext: "You've mastered the art!",
     takeTheQuiz: "Take the quiz",
   },
+  learn: {
+    lessonLocked: "This lesson is locked",
+    completePrevious: "Complete the previous lesson first",
+    backToTrack: "Back to track",
+  },
   common: {
     loading: "Loading...",
     error: "Something went wrong",

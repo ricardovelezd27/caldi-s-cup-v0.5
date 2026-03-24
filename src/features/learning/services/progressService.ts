@@ -105,6 +105,154 @@ export async function upsertLessonProgress(progress: {
   return toProgress(data);
 }
 
+/**
+ * Server-validated unlock check for a lesson.
+ * Returns { unlocked, previousLessonId? }.
+ * First lesson overall is always unlocked.
+ * For anonymous users, checks localStorage.
+ */
+export async function isLessonUnlocked(
+  userId: string | undefined,
+  lessonId: string,
+): Promise<{ unlocked: boolean; previousLessonId?: string }> {
+  // 1. Fetch the target lesson's unit_id and sort_order
+  const { data: lesson, error: lessonErr } = await supabase
+    .from("learning_lessons")
+    .select("id, unit_id, sort_order")
+    .eq("id", lessonId)
+    .maybeSingle();
+
+  if (lessonErr || !lesson) return { unlocked: false };
+
+  // 2. If sort_order > 0, the previous lesson is in the same unit
+  if (lesson.sort_order > 0) {
+    const { data: prevLesson } = await supabase
+      .from("learning_lessons")
+      .select("id")
+      .eq("unit_id", lesson.unit_id)
+      .eq("sort_order", lesson.sort_order - 1)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (!prevLesson) return { unlocked: true }; // no predecessor found, unlock
+
+    const completed = userId
+      ? await isLessonCompletedByUser(userId, prevLesson.id)
+      : isLessonCompletedAnonymously(prevLesson.id);
+
+    return completed
+      ? { unlocked: true }
+      : { unlocked: false, previousLessonId: prevLesson.id };
+  }
+
+  // 3. sort_order === 0 → first lesson in unit.
+  //    Check if there's a previous unit in the same section whose last lesson is completed.
+  const { data: unit } = await supabase
+    .from("learning_units")
+    .select("id, section_id, sort_order")
+    .eq("id", lesson.unit_id)
+    .maybeSingle();
+
+  if (!unit) return { unlocked: true };
+
+  if (unit.sort_order > 0) {
+    // Find the previous unit in the same section
+    const { data: prevUnit } = await supabase
+      .from("learning_units")
+      .select("id")
+      .eq("section_id", unit.section_id)
+      .eq("sort_order", unit.sort_order - 1)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (prevUnit) {
+      // Find the last lesson in that previous unit
+      const { data: lastLesson } = await supabase
+        .from("learning_lessons")
+        .select("id")
+        .eq("unit_id", prevUnit.id)
+        .eq("is_active", true)
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (lastLesson) {
+        const completed = userId
+          ? await isLessonCompletedByUser(userId, lastLesson.id)
+          : isLessonCompletedAnonymously(lastLesson.id);
+
+        return completed
+          ? { unlocked: true }
+          : { unlocked: false, previousLessonId: lastLesson.id };
+      }
+    }
+  }
+
+  // 4. First unit in section → check section prerequisites
+  const { data: section } = await supabase
+    .from("learning_sections")
+    .select("id, requires_section_id, sort_order")
+    .eq("id", unit.section_id)
+    .maybeSingle();
+
+  if (!section || !section.requires_section_id) {
+    // No prerequisite or first section → first lesson is always unlocked
+    return { unlocked: true };
+  }
+
+  // Check if all lessons in the required section are completed
+  const { data: reqSectionLessons } = await supabase
+    .from("learning_lessons")
+    .select("id, unit_id")
+    .eq("is_active", true)
+    .in(
+      "unit_id",
+      await getUnitIdsForSection(section.requires_section_id),
+    );
+
+  if (!reqSectionLessons || reqSectionLessons.length === 0) return { unlocked: true };
+
+  for (const l of reqSectionLessons) {
+    const completed = userId
+      ? await isLessonCompletedByUser(userId, l.id)
+      : isLessonCompletedAnonymously(l.id);
+    if (!completed) return { unlocked: false };
+  }
+
+  return { unlocked: true };
+}
+
+async function getUnitIdsForSection(sectionId: string): Promise<string[]> {
+  const { data } = await supabase
+    .from("learning_units")
+    .select("id")
+    .eq("section_id", sectionId)
+    .eq("is_active", true);
+  return (data ?? []).map((u) => u.id);
+}
+
+async function isLessonCompletedByUser(userId: string, lessonId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("learning_user_progress")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("lesson_id", lessonId)
+    .eq("is_completed", true)
+    .maybeSingle();
+  return !!data;
+}
+
+function isLessonCompletedAnonymously(lessonId: string): boolean {
+  try {
+    const raw = localStorage.getItem("caldi_learning_progress");
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed.lessonsCompleted) && parsed.lessonsCompleted.includes(lessonId);
+  } catch {
+    return false;
+  }
+}
+
 export async function recordExerciseHistory(history: {
   userId: string;
   exerciseId: string;

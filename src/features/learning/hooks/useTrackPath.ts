@@ -74,7 +74,26 @@ export function useTrackPath(trackIdParam: string) {
   let completedCount = 0;
   let foundFirstAvailable = false;
 
+  // Build a set of all lesson IDs per section for prerequisite checking
+  const lessonIdsBySection = new Map<string, string[]>();
+  for (const section of sectionsQuery.data ?? []) {
+    const sectionLessonIds = allLessons
+      .filter((l) => allUnits.some((u) => u.sectionId === section.id && u.id === l.unitId))
+      .map((l) => l.id);
+    lessonIdsBySection.set(section.id, sectionLessonIds);
+  }
+
   const sections: TrackPathSection[] = (sectionsQuery.data ?? []).map((section) => {
+    // Section prerequisite gating: if requiresSectionId is set,
+    // ALL lessons in the required section must be completed
+    let sectionLocked = false;
+    if (section.requiresSectionId) {
+      const requiredLessonIds = lessonIdsBySection.get(section.requiresSectionId) ?? [];
+      sectionLocked = requiredLessonIds.length === 0
+        ? false
+        : requiredLessonIds.some((id) => !progressByLessonId.has(id));
+    }
+
     const sectionUnits = allUnits
       .filter((u) => u.sectionId === section.id)
       .map((unit) => {
@@ -82,11 +101,15 @@ export function useTrackPath(trackIdParam: string) {
           .filter((l) => l.unitId === unit.id)
           .map((lesson): TrackPathLesson => {
             totalLessons++;
+
+            if (sectionLocked) {
+              return { ...lesson, status: "locked" };
+            }
+
             const progress = progressByLessonId.get(lesson.id);
             
             if (progress) {
               completedCount++;
-              // Check for decay: use updatedAt, fallback to completedAt
               const lastActivityDate = progress.updatedAt || progress.completedAt;
               if (lastActivityDate) {
                 const daysSinceUpdate = differenceInDays(new Date(), new Date(lastActivityDate));

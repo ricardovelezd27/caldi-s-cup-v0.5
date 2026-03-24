@@ -1,33 +1,40 @@
 
 
-# Plan: Homogenize Widget UI to Branded Retro Box Style
+# Plan: PROFILE-008 + PROFILE-009 — Collections to Modals & Remove Retake Quiz Button
 
-## What
+## Changes
 
-Replace `<Card>`, `<CardHeader>`, `<CardTitle>`, and `<CardContent>` with plain `<div>` and `<h3>` elements using the same retro border/shadow style as `WelcomeHeroWidget` across all 7 active widgets.
+### 1. New: `src/features/profile/components/FavoritesModal.tsx`
+Dialog wrapping the existing `FavoritesTable` content. Props: `open`, `onOpenChange`. Title: "My Favorites ❤️".
 
-## Target Style
+### 2. New: `src/features/profile/components/InventoryModal.tsx`
+Dialog wrapping the existing `InventoryTable` content. Props: `open`, `onOpenChange`. Title: "My Inventory 📦".
 
-```
-Root:    <div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
-Header:  <div className="flex items-center justify-between px-5 pt-5 pb-3">
-Title:   <h3 className="font-bangers text-lg flex items-center gap-2">
-Content: <div className="px-5 pb-5">
-```
+### 3. Edit: `src/features/dashboard/widgets/FavoritesWidget.tsx`
+- Add `useState` for modal open state
+- Make the widget root div clickable (`onClick` + `cursor-pointer`)
+- Add "View all →" text link at bottom
+- Render `<FavoritesModal>` inside the widget
 
-## Widgets to Update (7 files)
+### 4. Edit: `src/features/dashboard/widgets/InventoryWidget.tsx`
+- Same pattern: clickable root, "View all →" link, render `<InventoryModal>`
 
-| Widget | Notes |
-|--------|-------|
-| `WeeklyGoalWidget.tsx` | Standard Card → retro div |
-| `RecentBrewsWidget.tsx` | Standard Card → retro div |
-| `FavoritesWidget.tsx` | Standard Card → retro div |
-| `InventoryWidget.tsx` | Standard Card → retro div |
-| `RecentScansWidget.tsx` | Standard Card → retro div |
-| `RecommendationsWidget.tsx` | Standard Card → retro div |
-| `QuickScanWidget.tsx` | Card with gradient → retro div, keep gradient via inline style or extra classes |
+### 5. Edit: `src/features/profile/ProfilePage.tsx`
+- Delete the Collections section (lines 55-64: Separator + section with FavoritesTable/InventoryTable)
+- Delete the Retake Quiz button (lines 76-79)
+- Remove unused imports: `FavoritesTable`, `InventoryTable`, `STORAGE_KEYS`, `RefreshCw`, `useNavigate`, and the `handleRetakeQuiz` function
 
-**WelcomeHeroWidget** — already correct, no changes.
+### 6. Edit: `src/features/profile/components/index.ts`
+- Add exports for `FavoritesModal` and `InventoryModal`
 
-Each file: remove `Card`/`CardHeader`/`CardTitle`/`CardContent` imports, replace JSX with the plain div structure, keep all internal logic and content unchanged.
+## Files
+
+| File | Action |
+|------|--------|
+| `FavoritesModal.tsx` | Create |
+| `InventoryModal.tsx` | Create |
+| `FavoritesWidget.tsx` | Edit — clickable + modal |
+| `InventoryWidget.tsx` | Edit — clickable + modal |
+| `ProfilePage.tsx` | Edit — remove Collections section + Retake Quiz button |
+| `profile/components/index.ts` | Edit — add exports |
 

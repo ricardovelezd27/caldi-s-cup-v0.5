@@ -1,40 +1,41 @@
 
 
-# Plan: PROFILE-008 + PROFILE-009 — Collections to Modals & Remove Retake Quiz Button
+## Plan: Consolidate Photo Uploads into Edit Profile Dialog
 
-## Changes
+### What changes
 
-### 1. New: `src/features/profile/components/FavoritesModal.tsx`
-Dialog wrapping the existing `FavoritesTable` content. Props: `open`, `onOpenChange`. Title: "My Favorites ❤️".
+1. **EditProfileDialog** — Add avatar and cover photo upload sections at the top of the modal (before the name field). Each shows a preview thumbnail with a camera overlay button. Upload logic is extracted from `ProfileAvatar` and `ProfileHero` into this dialog.
 
-### 2. New: `src/features/profile/components/InventoryModal.tsx`
-Dialog wrapping the existing `InventoryTable` content. Props: `open`, `onOpenChange`. Title: "My Inventory 📦".
+2. **ProfileHero** — Remove the "Edit Cover" button and its hidden file input. Remove the cover upload handler. When the user clicks the avatar, open the Edit Profile dialog instead of triggering a file picker directly.
 
-### 3. Edit: `src/features/dashboard/widgets/FavoritesWidget.tsx`
-- Add `useState` for modal open state
-- Make the widget root div clickable (`onClick` + `cursor-pointer`)
-- Add "View all →" text link at bottom
-- Render `<FavoritesModal>` inside the widget
+3. **ProfileAvatar** — Remove the built-in file upload logic (click-to-upload, overlay, hidden input). Make it a pure display component. Accept an `onClick` prop so the hero can wire it to open the edit dialog.
 
-### 4. Edit: `src/features/dashboard/widgets/InventoryWidget.tsx`
-- Same pattern: clickable root, "View all →" link, render `<InventoryModal>`
+4. **Desktop spacing fix** — Restore spacing between the cover and the name/avatar row on desktop by adding `md:pt-4` (or similar) to the content card section in `ProfileHero`.
 
-### 5. Edit: `src/features/profile/ProfilePage.tsx`
-- Delete the Collections section (lines 55-64: Separator + section with FavoritesTable/InventoryTable)
-- Delete the Retake Quiz button (lines 76-79)
-- Remove unused imports: `FavoritesTable`, `InventoryTable`, `STORAGE_KEYS`, `RefreshCw`, `useNavigate`, and the `handleRetakeQuiz` function
+### Technical details
 
-### 6. Edit: `src/features/profile/components/index.ts`
-- Add exports for `FavoritesModal` and `InventoryModal`
+**EditProfileDialog changes:**
+- Add `useRef` for avatar and cover file inputs
+- Add `uploadingAvatar` and `uploadingCover` state
+- Add two upload handler functions (reuse existing logic from `ProfileAvatar` and `ProfileHero`)
+- At the top of the form, render two side-by-side upload areas:
+  - Cover: wide rectangle preview with camera icon overlay
+  - Avatar: circular preview with camera icon overlay
+- Both use hidden `<input type="file">` elements
 
-## Files
+**ProfileHero changes:**
+- Remove `coverInputRef`, `uploadingCover`, `handleCoverUpload` state/logic
+- Remove the "Edit Cover" button and hidden file input
+- Pass `onClick={() => setEditOpen(true)}` to `ProfileAvatar`
+- Add `md:pt-4` to the content card div for desktop spacing
 
-| File | Action |
-|------|--------|
-| `FavoritesModal.tsx` | Create |
-| `InventoryModal.tsx` | Create |
-| `FavoritesWidget.tsx` | Edit — clickable + modal |
-| `InventoryWidget.tsx` | Edit — clickable + modal |
-| `ProfilePage.tsx` | Edit — remove Collections section + Retake Quiz button |
-| `profile/components/index.ts` | Edit — add exports |
+**ProfileAvatar changes:**
+- Remove `fileInputRef`, `uploading`, `handleUpload`, hidden input, camera overlay
+- Accept optional `onClick` prop, apply it to the wrapper div
+- Keep cursor-pointer when onClick is provided
+
+### Files to modify
+- `src/features/profile/components/EditProfileDialog.tsx`
+- `src/features/profile/components/ProfileHero.tsx`
+- `src/features/profile/components/ProfileAvatar.tsx`
 

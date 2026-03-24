@@ -164,7 +164,8 @@ export async function getLessons(unitId: string): Promise<LearningLesson[]> {
     .select("*")
     .eq("unit_id", unitId)
     .eq("is_active", true)
-    .order("sort_order");
+    .order("sort_order")
+    .limit(100);
 
   if (error) throw error;
   return (data ?? []).map(toLesson);

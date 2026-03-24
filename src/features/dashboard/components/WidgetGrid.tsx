@@ -1,12 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { ScanLine, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useDashboardWidgets } from "@/hooks/useDashboardWidgets";
 import { WIDGET_REGISTRY, type DashboardWidget, type WidgetType } from "../widgets";
 import { WidgetWrapper } from "./WidgetWrapper";
 import { EditWidgetsDialog } from "./EditWidgetsDialog";
-import { ROUTES } from "@/constants/app";
 
 export function WidgetGrid() {
   const [isEditing, setIsEditing] = useState(false);

@@ -6,6 +6,7 @@ import { RequireAuth } from "@/components/auth/RequireAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/auth";
 import { useLanguage } from "@/contexts/language";
+import { STORAGE_KEYS } from "@/constants/storageKeys";
 import {
   ProfileHero,
   FavoritesTable,

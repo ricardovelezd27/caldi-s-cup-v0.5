@@ -1,0 +1,84 @@
+import { useNavigate } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth";
+import { getTribeDefinition } from "@/features/quiz/data/tribes";
+import { STORAGE_KEYS } from "@/constants/storageKeys";
+import { cn } from "@/lib/utils";
+import { RefreshCw } from "lucide-react";
+
+interface TribeInfoModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function TribeInfoModal({ open, onOpenChange }: TribeInfoModalProps) {
+  const { profile } = useAuth();
+  const navigate = useNavigate();
+  const tribeDef = profile?.coffee_tribe ? getTribeDefinition(profile.coffee_tribe) : null;
+
+  const handleRetake = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.QUIZ_RESULT);
+      localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE);
+    } catch { /* ignore */ }
+    onOpenChange(false);
+    navigate("/quiz");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        {tribeDef ? (
+          <>
+            <DialogHeader className="items-center text-center">
+              <div className={cn("w-16 h-16 rounded-full border-4 border-border flex items-center justify-center mx-auto", tribeDef.bgClass)}>
+                <span className="text-3xl">{tribeDef.emoji}</span>
+              </div>
+              <DialogTitle className={cn("font-bangers text-3xl tracking-wide", tribeDef.colorClass)}>
+                {tribeDef.name}
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground">
+                {tribeDef.title}
+              </DialogDescription>
+            </DialogHeader>
+
+            <p className="text-sm text-muted-foreground leading-relaxed text-center">
+              {tribeDef.description}
+            </p>
+
+            <div className="flex flex-wrap justify-center gap-2">
+              {tribeDef.values.map((v) => (
+                <span key={v} className="text-xs px-2 py-1 rounded-full border bg-muted text-muted-foreground">
+                  {v}
+                </span>
+              ))}
+            </div>
+
+            <Button variant="outline" className="w-full mt-2" onClick={handleRetake}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retake Coffee Quiz
+            </Button>
+          </>
+        ) : (
+          <>
+            <DialogHeader className="items-center text-center">
+              <div className="w-16 h-16 rounded-full border-4 border-border flex items-center justify-center mx-auto bg-muted">
+                <span className="text-3xl">☕</span>
+              </div>
+              <DialogTitle className="font-bangers text-2xl tracking-wide text-foreground">
+                Discover Your Tribe
+              </DialogTitle>
+              <DialogDescription>
+                You haven't discovered your coffee tribe yet.
+              </DialogDescription>
+            </DialogHeader>
+            <Button className="w-full" onClick={() => { onOpenChange(false); navigate("/quiz"); }}>
+              Take the Quiz
+            </Button>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}

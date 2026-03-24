@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useMemo, ReactNode } fr
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { errorLogger } from "@/services/errorLogging";
+import { toast } from "sonner";
 import { retryWithBackoff } from "@/utils/network/retryWithBackoff";
 
 const PENDING_TRIBE_SAVE_KEY = 'caldi_pending_tribe_save';
@@ -127,7 +128,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           errorLogger.setUserContext(session.user.id);
           // Defer profile fetch with setTimeout to avoid deadlock
           setTimeout(() => {
-            fetchProfile(session.user.id).then(setProfile);
+            fetchProfile(session.user.id)
+              .then(setProfile)
+              .catch((err) => {
+                console.error("[AuthContext] Profile fetch failed on auth change:", err);
+                toast.error("Could not load your profile. Please refresh the page.");
+              });
           }, 0);
         } else {
           errorLogger.clearUserContext();
@@ -145,13 +151,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         errorLogger.setUserContext(session.user.id);
         fetchProfile(session.user.id).then((p) => {
           setProfile(p);
-          // Recover any pending tribe save from failed quiz completion
           if (p && session.user) {
             recoverPendingTribeSave(session.user.id);
           }
+        }).catch((err) => {
+          console.error("[AuthContext] Profile fetch failed on init:", err);
+          toast.error("Could not load your profile. Please refresh the page.");
         });
       }
       
+      setIsLoading(false);
+    }).catch((err) => {
+      console.error("[AuthContext] Session initialization failed:", err);
+      toast.error("Could not load your profile. Please refresh the page.");
       setIsLoading(false);
     });
 

@@ -58,7 +58,7 @@ export const ResultsPage = () => {
           return;
         }
         setResult(parsed);
-      } catch (err) { console.error("[ResultsPage] Failed to parse cached quiz result:", err); localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem('caldi_quiz_state'); navigate('/quiz'); }
+      } catch (err) { console.error("[ResultsPage] Failed to parse cached quiz result:", err); localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE); navigate('/quiz'); }
     }
   }, [location.state, user, navigate]);
 

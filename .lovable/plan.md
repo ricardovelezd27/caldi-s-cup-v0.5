@@ -1,50 +1,41 @@
 
 
-## Plan: Enforce Lesson Locking at Route Level
+## Plan: Harden Lesson Completion Pipeline
 
 ### Problem
-Lesson locking is visual-only in `TrackPathView`. A user can type `/learn/:trackId/:lessonId` directly and access any lesson, bypassing the progression system.
+`handleLessonDone` in `LessonScreen.tsx` has a single try/catch around multiple async operations — one failure blocks everything. No double-click guard exists, so rapid taps can award XP twice. `addXPToDaily` in `streakService.ts` hardcodes `is_achieved: xp >= 10` instead of using the user's actual daily goal.
 
-### Solution
+### Changes
 
-Three changes across three files, plus i18n keys for the lock screen.
+#### 1. `src/features/learning/components/lesson/LessonScreen.tsx`
 
-### 1. `progressService.ts` — Add `isLessonUnlocked()`
+- Add `import { useRef } from "react"` and `import { toast } from "sonner"`
+- Add `const hasSubmittedRef = useRef(false)` inside the component
+- At top of `handleLessonDone`: early-return if `hasSubmittedRef.current` is true, then set it to true
+- Break the single try/catch into individually-wrapped operations:
+  - **Streak RPC** (critical): toast error on fail, continue
+  - **Daily goal + league XP**: catch individually, log, continue
+  - **Profile XP update**: catch, log, continue
+  - **Progress upsert** (critical): toast warning on fail
+  - **Achievements**: catch, continue, call `onComplete()` anyway
+- Reset `hasSubmittedRef.current = false` in the finally block
 
-New async function that:
-- Fetches the target lesson's `unit_id` and `sort_order`
-- If `sort_order === 0` (first in unit), checks if the unit is in the first section or if prerequisite sections are completed — but for simplicity, first lesson in a unit checks if previous unit's last lesson is completed (or if it's the very first lesson overall, it's always unlocked)
-- Otherwise, queries `learning_lessons` for the lesson with `sort_order - 1` in the same `unit_id`, then checks `learning_user_progress` for that lesson
-- For anonymous users: checks localStorage `caldi_learning_progress` for the previous lesson ID in the completed list
-- Returns `{ unlocked: boolean; previousLessonId?: string }`
+#### 2. `src/services/gamification/streakService.ts`
 
-### 2. `useTrackPath.ts` — Enforce section prerequisites
-
-Current logic uses a single `foundFirstAvailable` flag across all sections without checking `requiresSectionId`. Fix:
-- Before processing a section's lessons, if `section.requiresSectionId` is set, check whether ALL lessons in the required section are in `progressByLessonId`. If not, mark all lessons in this section as `locked` regardless.
-- This ensures section-level gating works properly.
-
-### 3. `LessonPage.tsx` — Route-level guard
-
-- Add a `useQuery` that calls `isLessonUnlocked(userId, lessonId)` (or the anonymous variant)
-- While loading, show a spinner/skeleton
-- If locked, render a card with a `Lock` icon, translated message ("Complete the previous lesson first"), and a back button to the track page
-- If unlocked, render `LessonScreen` as before
-
-### 4. i18n keys
-
-Add to both `en.ts` and `es.ts`:
-
-| Key | EN | ES |
-|---|---|---|
-| `learn.lessonLocked` | This lesson is locked | Esta leccion esta bloqueada |
-| `learn.completePrevious` | Complete the previous lesson first | Completa la leccion anterior primero |
-| `learn.backToTrack` | Back to track | Volver al track |
+- In `addXPToDaily()`, when inserting a new row (no existing goal), fetch the user's most recent `goal_xp` from `learning_user_daily_goals` to use as the threshold instead of hardcoded `10`:
+  ```
+  const { data: lastGoal } = await supabase
+    .from("learning_user_daily_goals")
+    .select("goal_xp")
+    .eq("user_id", userId)
+    .order("date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const threshold = lastGoal?.goal_xp ?? 10;
+  ```
+- Use `threshold` in `is_achieved: xp >= threshold`
 
 ### Files to modify
-- `src/features/learning/services/progressService.ts` — add `isLessonUnlocked()`
-- `src/features/learning/hooks/useTrackPath.ts` — enforce `requiresSectionId` gating
-- `src/features/learning/pages/LessonPage.tsx` — add unlock check before rendering
-- `src/i18n/en.ts` — add 3 keys
-- `src/i18n/es.ts` — add 3 keys
+- `src/features/learning/components/lesson/LessonScreen.tsx`
+- `src/services/gamification/streakService.ts`
 

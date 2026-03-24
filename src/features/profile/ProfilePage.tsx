@@ -11,11 +11,6 @@ import {
   FavoritesTable,
   InventoryTable,
   EditProfileDialog,
-  ProfileStreakCard,
-  ProfileDailyGoalCard,
-  ProfileXPCard,
-  ProfileFavoritesCard,
-  ProfileInventoryCard,
 } from "./components";
 import { WidgetGrid } from "@/features/dashboard/components";
 import { Separator } from "@/components/ui/separator";
@@ -50,18 +45,6 @@ function ProfileContent() {
       <ProfileHero />
 
       <Container size="default" className="py-8">
-        {/* 📊 Stats Row */}
-        <section>
-          <div className="flex flex-wrap gap-3">
-            <ProfileStreakCard compact />
-            <ProfileDailyGoalCard compact />
-            <ProfileXPCard compact />
-            <ProfileFavoritesCard compact />
-            <ProfileInventoryCard compact />
-          </div>
-        </section>
-
-        <Separator className="my-8" />
 
         {/* ☕ My Dashboard — Widget Grid */}
         <section>

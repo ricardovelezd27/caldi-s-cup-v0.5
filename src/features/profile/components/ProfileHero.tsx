@@ -54,7 +54,17 @@ export function ProfileHero() {
 
       {/* Content card overlapping cover */}
       <div className="bg-background rounded-t-3xl md:rounded-none -mt-10 md:-mt-0 relative z-10 md:pt-4">
-        <div className="max-w-5xl mx-auto px-5 md:px-4">
+        <div className="max-w-5xl mx-auto px-5 md:px-4 relative">
+          {/* Edit button — top-right on mobile, inline on desktop */}
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setEditOpen(true)}
+            className="absolute right-4 top-2 md:hidden h-9 w-9 z-10"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+
           <div className="flex flex-col items-center text-center md:flex-row md:items-end md:text-left gap-0 md:gap-6">
             <div className="-mt-16 md:-mt-16 shrink-0">
               <ProfileAvatar
@@ -69,10 +79,10 @@ export function ProfileHero() {
 
             <div className="flex-1 min-w-0 pt-3 md:pt-0 md:pb-4">
               <div className="flex items-center justify-center md:justify-start gap-1">
-                <h1 className="text-2xl md:text-3xl truncate">
+                <h1 className="text-2xl md:text-3xl truncate text-center md:text-left">
                   {profile.display_name || t("profile.coffeeLover")}
                 </h1>
-                <Button size="icon" variant="ghost" onClick={() => setEditOpen(true)} className="h-9 w-9 shrink-0">
+                <Button size="icon" variant="ghost" onClick={() => setEditOpen(true)} className="h-9 w-9 shrink-0 hidden md:inline-flex">
                   <Pencil className="h-4 w-4" />
                 </Button>
               </div>

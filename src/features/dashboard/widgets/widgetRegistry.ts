@@ -1,9 +1,7 @@
 import type { WidgetType, WidgetRegistryEntry } from "./types";
 import { WelcomeHeroWidget } from "./WelcomeHeroWidget";
-import { CoffeeTribeWidget } from "./CoffeeTribeWidget";
 import { QuickScanWidget } from "./QuickScanWidget";
 import { WeeklyGoalWidget } from "./WeeklyGoalWidget";
-import { BrewingLevelWidget } from "./BrewingLevelWidget";
 import { RecentBrewsWidget } from "./RecentBrewsWidget";
 import { RecentScansWidget } from "./RecentScansWidget";
 import { FavoritesWidget } from "./FavoritesWidget";
@@ -11,9 +9,11 @@ import { InventoryWidget } from "./InventoryWidget";
 import { RecommendationsWidget } from "./RecommendationsWidget";
 
 /**
- * Registry of all available widget types and their components
+ * Registry of all available widget types and their components.
+ * Partial because some WidgetType enum values (coffee_tribe, brewing_level)
+ * are intentionally unregistered — their functionality lives elsewhere.
  */
-export const WIDGET_REGISTRY: Record<WidgetType, WidgetRegistryEntry> = {
+export const WIDGET_REGISTRY: Partial<Record<WidgetType, WidgetRegistryEntry>> = {
   welcome_hero: {
     component: WelcomeHeroWidget,
     meta: {
@@ -22,16 +22,6 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetRegistryEntry> = {
       description: "Personalized greeting with tribe info",
       defaultSize: { width: 2, height: 1 },
       icon: "👋",
-    },
-  },
-  coffee_tribe: {
-    component: CoffeeTribeWidget,
-    meta: {
-      type: "coffee_tribe",
-      name: "Coffee Tribe",
-      description: "Your coffee personality type",
-      defaultSize: { width: 1, height: 1 },
-      icon: "🦊",
     },
   },
   quick_scan: {
@@ -52,16 +42,6 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetRegistryEntry> = {
       description: "Track your weekly brew goal",
       defaultSize: { width: 1, height: 1 },
       icon: "🎯",
-    },
-  },
-  brewing_level: {
-    component: BrewingLevelWidget,
-    meta: {
-      type: "brewing_level",
-      name: "Brewing Level",
-      description: "Your expertise progress",
-      defaultSize: { width: 1, height: 1 },
-      icon: "⭐",
     },
   },
   recent_brews: {
@@ -118,13 +98,13 @@ export const WIDGET_REGISTRY: Record<WidgetType, WidgetRegistryEntry> = {
 };
 
 /** Structural widgets that users cannot add/remove */
-const STRUCTURAL_WIDGETS: WidgetType[] = ["welcome_hero"];
+const HIDDEN_WIDGETS: WidgetType[] = ["welcome_hero"];
 
 /**
  * Get list of user-manageable widget types for the Edit Widgets UI
  */
 export function getAvailableWidgets() {
-  return Object.values(WIDGET_REGISTRY)
-    .filter((entry) => !STRUCTURAL_WIDGETS.includes(entry.meta.type))
+  return (Object.values(WIDGET_REGISTRY) as WidgetRegistryEntry[])
+    .filter((entry) => !HIDDEN_WIDGETS.includes(entry.meta.type))
     .map((entry) => entry.meta);
 }

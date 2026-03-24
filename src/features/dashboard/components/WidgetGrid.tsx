@@ -47,8 +47,10 @@ export function WidgetGrid() {
     );
   }
 
-  const heroWidget = visibleWidgets.find((w) => w.widgetType === "welcome_hero");
-  const gridWidgets = visibleWidgets.filter((w) => w.widgetType !== "welcome_hero");
+  // Filter out widgets that are no longer registered (e.g. coffee_tribe, brewing_level)
+  const registeredWidgets = visibleWidgets.filter((w) => WIDGET_REGISTRY[w.widgetType]);
+  const heroWidget = registeredWidgets.find((w) => w.widgetType === "welcome_hero");
+  const gridWidgets = registeredWidgets.filter((w) => w.widgetType !== "welcome_hero");
 
   return (
     <div className="space-y-6">

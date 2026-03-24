@@ -29,7 +29,7 @@ function resolve(dict: Record<string, unknown>, key: string): string {
 }
 
 function detectInitialLanguage(): Language {
-  const stored = localStorage.getItem("caldi_lang");
+  const stored = localStorage.getItem(STORAGE_KEYS.LANGUAGE);
   if (stored === "en" || stored === "es") return stored;
   const browser = navigator.language?.slice(0, 2).toLowerCase();
   return browser === "es" ? "es" : "en";

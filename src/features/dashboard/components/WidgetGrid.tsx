@@ -30,8 +30,9 @@ export function WidgetGrid() {
     });
   };
 
-  const handleRemoveWidget = async (widget: DashboardWidget) => {
-    await removeWidget.mutateAsync(widget.id);
+  const handleRemoveByType = async (widgetType: WidgetType) => {
+    const widget = visibleWidgets.find((w) => w.widgetType === widgetType);
+    if (widget) await removeWidget.mutateAsync(widget.id);
   };
 
   // Get existing widget types to prevent duplicates

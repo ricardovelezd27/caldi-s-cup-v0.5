@@ -33,9 +33,32 @@ export const ResultsPage = () => {
   useEffect(() => { if (profile && !profile.is_onboarded) { wasFirstOnboarding.current = true; } }, [profile]);
 
   useEffect(() => {
+    const VALID_TRIBES = ['fox', 'owl', 'hummingbird', 'bee'];
+    const isValidResult = (obj: unknown): obj is QuizResult =>
+      !!obj && typeof obj === 'object' &&
+      VALID_TRIBES.includes((obj as QuizResult).tribe) &&
+      !!(obj as QuizResult).scores && typeof (obj as QuizResult).scores === 'object';
+
     const stateResult = location.state?.result as QuizResult | undefined;
-    if (stateResult) { setResult(stateResult); if (!user) { try { localStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(stateResult)); } catch (err) { console.error("[ResultsPage] Failed to cache quiz result:", err); } } }
-    else { try { const saved = localStorage.getItem(RESULT_STORAGE_KEY); if (saved) { setResult(JSON.parse(saved)); } else { navigate('/quiz'); } } catch (err) { console.error("[ResultsPage] Failed to parse cached quiz result:", err); localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem('caldi_quiz_state'); navigate('/quiz'); } }
+    if (stateResult) {
+      if (!isValidResult(stateResult)) { console.error("[ResultsPage] Invalid state result shape, redirecting"); navigate('/quiz'); return; }
+      setResult(stateResult);
+      if (!user) { try { localStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(stateResult)); } catch (err) { console.error("[ResultsPage] Failed to cache quiz result:", err); } }
+    } else {
+      try {
+        const saved = localStorage.getItem(RESULT_STORAGE_KEY);
+        if (!saved) { navigate('/quiz'); return; }
+        const parsed = JSON.parse(saved);
+        if (!isValidResult(parsed)) {
+          console.error("[ResultsPage] Invalid cached quiz result shape, clearing");
+          localStorage.removeItem(RESULT_STORAGE_KEY);
+          localStorage.removeItem('caldi_quiz_state');
+          navigate('/quiz');
+          return;
+        }
+        setResult(parsed);
+      } catch (err) { console.error("[ResultsPage] Failed to parse cached quiz result:", err); localStorage.removeItem(RESULT_STORAGE_KEY); localStorage.removeItem('caldi_quiz_state'); navigate('/quiz'); }
+    }
   }, [location.state, user, navigate]);
 
   const cancelRedirect = useCallback(() => { if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; } setCountdown(null); }, []);

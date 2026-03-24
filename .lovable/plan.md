@@ -1,78 +1,32 @@
 
 
-# Plan: Three Code Quality Improvements
+# Plan: Use Pill-Style Stat Cards on All Screen Sizes
 
-## QUALITY-001: Extract `transformCoffeeRow()` helper
+## What Changes
 
-### `src/features/coffee/services/coffeeService.ts`
+Make the stat cards always render in the compact "pill" format (horizontal scrollable row) regardless of screen size. This removes the `useIsMobile` hook dependency and the conditional layout logic.
 
-Extract the 25-line mapping block (repeated 3 times) into a single `transformCoffeeRow(row: any): Coffee` function at the top. Then replace all three instances with calls to it.
+## `src/features/profile/ProfilePage.tsx`
 
-```ts
-function transformCoffeeRow(row: any): Coffee {
-  return {
-    id: row.id,
-    name: row.name,
-    brand: row.brand,
-    imageUrl: row.image_url,
-    // ... all fields ...
-  };
-}
+1. Remove `useIsMobile` import and usage
+2. Replace the conditional layout with a single `flex flex-wrap gap-3` container
+3. Always pass `compact` (or remove the prop entirely since it's always true)
+4. Remove the `hidden md:block` heading since pills are self-explanatory
+
+```tsx
+{/* 📊 Stats Row */}
+<section>
+  <div className="flex flex-wrap gap-3">
+    <ProfileStreakCard compact />
+    <ProfileDailyGoalCard compact />
+    <ProfileXPCard compact />
+    <ProfileFavoritesCard compact />
+    <ProfileInventoryCard compact />
+  </div>
+</section>
 ```
-
-- `getCoffeeById`: `return transformCoffeeRow(data);`
-- `getVerifiedCoffees`: `return (data ?? []).map(transformCoffeeRow);`
-- `getAllCoffees`: `return (data ?? []).map(transformCoffeeRow);`
-
----
-
-## QUALITY-002: Centralize localStorage keys
-
-### New file: `src/constants/storageKeys.ts`
-
-```ts
-export const STORAGE_KEYS = {
-  PENDING_TRIBE_SAVE: 'caldi_pending_tribe_save',
-  QUIZ_RESULT: 'caldi_quiz_result',
-  QUIZ_STATE: 'caldi_quiz_state',
-  LANGUAGE: 'caldi_lang',
-  LEARNING_PROGRESS: 'caldi_learning_progress',
-} as const;
-```
-
-### Files to update (replace hardcoded strings with `STORAGE_KEYS.*`):
-
-| File | Keys used |
-|------|-----------|
-| `src/contexts/auth/AuthContext.tsx` | `PENDING_TRIBE_SAVE`, `QUIZ_RESULT` |
-| `src/contexts/language/LanguageContext.tsx` | `LANGUAGE` |
-| `src/features/quiz/ResultsPage.tsx` | `QUIZ_RESULT`, `PENDING_TRIBE_SAVE`, `QUIZ_STATE` |
-| `src/features/quiz/hooks/useQuizState.ts` | `QUIZ_STATE`, `QUIZ_RESULT` |
-| `src/features/quiz/components/OnboardingModal.tsx` | `QUIZ_RESULT` |
-| `src/features/profile/ProfilePage.tsx` | `QUIZ_RESULT`, `QUIZ_STATE` |
-| `src/features/profile/components/RetakeQuizSection.tsx` | `QUIZ_RESULT`, `QUIZ_STATE` |
-| `src/features/learning/hooks/useAnonymousProgress.ts` | `LEARNING_PROGRESS` |
-
----
-
-## QUALITY-003: Move test deps to devDependencies
-
-### `package.json`
-
-Move from `dependencies` to `devDependencies`:
-- `vitest` (line 67)
-- `jsdom` (line 53)
-- `@testing-library/jest-dom` (line 45)
-- `@testing-library/react` (line 46)
-
----
-
-## Summary
 
 | File | Change |
 |------|--------|
-| `coffeeService.ts` | Extract `transformCoffeeRow()`, use in 3 functions |
-| `src/constants/storageKeys.ts` | New file with all localStorage key constants |
-| 8 files | Replace hardcoded localStorage strings with `STORAGE_KEYS.*` |
-| `package.json` | Move 4 test packages to `devDependencies` |
+| `src/features/profile/ProfilePage.tsx` | Remove `useIsMobile`, use pill layout always |
 

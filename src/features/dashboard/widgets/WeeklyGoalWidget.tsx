@@ -45,7 +45,7 @@ export function WeeklyGoalWidget({ widget }: WidgetComponentProps) {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="font-bangers text-2xl text-foreground">{currentCount}/{targetCount}</span>
-            <span className="text-xs text-muted-foreground">cups</span>
+            <span className="text-xs text-muted-foreground">Lessons</span>
           </div>
         </div>
 

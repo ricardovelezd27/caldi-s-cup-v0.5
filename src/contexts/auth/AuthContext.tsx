@@ -87,8 +87,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const pending = localStorage.getItem(PENDING_TRIBE_SAVE_KEY);
       if (!pending) return;
+      const VALID_TRIBES = ['fox', 'owl', 'hummingbird', 'bee'];
       const result = JSON.parse(pending);
-      if (!result?.tribe) return;
+      if (!result || typeof result !== 'object' || !VALID_TRIBES.includes(result.tribe)) {
+        console.warn('[AuthContext] Invalid pending tribe save data, removing');
+        localStorage.removeItem(PENDING_TRIBE_SAVE_KEY);
+        return;
+      }
 
       await retryWithBackoff(
         async () => {

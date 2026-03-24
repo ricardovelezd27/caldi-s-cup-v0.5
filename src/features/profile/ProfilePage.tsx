@@ -11,11 +11,6 @@ import {
   FavoritesTable,
   InventoryTable,
   EditProfileDialog,
-  ProfileStreakCard,
-  ProfileDailyGoalCard,
-  ProfileXPCard,
-  ProfileFavoritesCard,
-  ProfileInventoryCard,
 } from "./components";
 import { WidgetGrid } from "@/features/dashboard/components";
 import { Separator } from "@/components/ui/separator";

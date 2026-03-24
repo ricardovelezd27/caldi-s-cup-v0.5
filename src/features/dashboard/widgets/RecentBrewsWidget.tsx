@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Coffee, Clock } from "lucide-react";
 import { format } from "date-fns";
@@ -10,17 +9,15 @@ export function RecentBrewsWidget({ widget }: WidgetComponentProps) {
   const { recentBrews } = useDashboardData();
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
-            <Clock className="h-5 w-5 text-primary" />
-            Recent Brews
-          </CardTitle>
-          <WidgetCategoryTag label="Experience" />
-        </div>
-      </CardHeader>
-      <CardContent>
+    <div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+      <div className="flex items-center justify-between px-5 pt-5 pb-3">
+        <h3 className="font-bangers text-lg flex items-center gap-2">
+          <Clock className="h-5 w-5 text-primary" />
+          Recent Brews
+        </h3>
+        <WidgetCategoryTag label="Experience" />
+      </div>
+      <div className="px-5 pb-5">
         {recentBrews.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <Coffee className="h-12 w-12 text-muted-foreground/50 mb-3" />
@@ -40,16 +37,10 @@ export function RecentBrewsWidget({ widget }: WidgetComponentProps) {
               <TableBody>
                 {recentBrews.slice(0, 5).map((brew) => (
                   <TableRow key={brew.id}>
-                    <TableCell className="font-medium truncate max-w-[120px]">
-                      {brew.coffee_name}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {brew.brew_method}
-                    </TableCell>
+                    <TableCell className="font-medium truncate max-w-[120px]">{brew.coffee_name}</TableCell>
+                    <TableCell className="text-muted-foreground">{brew.brew_method}</TableCell>
                     <TableCell className="text-right text-muted-foreground text-sm">
-                      {brew.brewed_at 
-                        ? format(new Date(brew.brewed_at), "MMM d")
-                        : "—"}
+                      {brew.brewed_at ? format(new Date(brew.brewed_at), "MMM d") : "—"}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -57,7 +48,7 @@ export function RecentBrewsWidget({ widget }: WidgetComponentProps) {
             </Table>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

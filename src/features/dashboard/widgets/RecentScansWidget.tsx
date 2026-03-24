@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { History, ScanLine } from "lucide-react";
 import { format } from "date-fns";
@@ -17,26 +16,13 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
     queryKey: ["recent-scans", user?.id],
     queryFn: async (): Promise<RecentScan[]> => {
       if (!user?.id) return [];
-      
       const { data, error } = await supabase
         .from("coffee_scans")
-        .select(`
-          id,
-          coffee_id,
-          image_url,
-          scanned_at,
-          coffees (
-            id,
-            name,
-            brand
-          )
-        `)
+        .select(`id, coffee_id, image_url, scanned_at, coffees (id, name, brand)`)
         .eq("user_id", user.id)
         .order("scanned_at", { ascending: false })
         .limit(3);
-
       if (error) throw error;
-      
       return (data ?? []).map((scan: any) => ({
         id: scan.id,
         coffeeId: scan.coffee_id,
@@ -50,59 +36,42 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
   });
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="font-bangers text-xl tracking-wide flex items-center gap-2">
-            <History className="h-5 w-5 text-secondary" />
-            Recent Scans
-          </CardTitle>
-          <WidgetCategoryTag label="Experience" />
-        </div>
-      </CardHeader>
-      <CardContent>
+    <div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+      <div className="flex items-center justify-between px-5 pt-5 pb-3">
+        <h3 className="font-bangers text-lg flex items-center gap-2">
+          <History className="h-5 w-5 text-secondary" />
+          Recent Scans
+        </h3>
+        <WidgetCategoryTag label="Experience" />
+      </div>
+      <div className="px-5 pb-5">
         {recentScans.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <ScanLine className="h-12 w-12 text-muted-foreground/50 mb-3" />
             <p className="text-muted-foreground mb-3">No scans yet</p>
             <Button asChild size="sm">
-              <Link to="/scanner">
-                <ScanLine className="h-4 w-4 mr-2" />
-                Start Scanning
-              </Link>
+              <Link to="/scanner"><ScanLine className="h-4 w-4 mr-2" />Start Scanning</Link>
             </Button>
           </div>
         ) : (
           <div className="space-y-3">
             {recentScans.map((scan) => (
-              <Link 
+              <Link
                 key={scan.id}
                 to={`/coffee/${scan.coffeeId}`}
                 className="flex items-center gap-3 p-2 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
               >
                 {scan.imageUrl && (
                   <div className="w-12 h-12 rounded border-2 border-border overflow-hidden shrink-0">
-                    <img 
-                      src={scan.imageUrl} 
-                      alt={scan.coffeeName}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={scan.imageUrl} alt={scan.coffeeName} className="w-full h-full object-cover" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate text-sm">
-                    {scan.coffeeName}
-                  </p>
-                  {scan.brand && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {scan.brand}
-                    </p>
-                  )}
+                  <p className="font-medium truncate text-sm">{scan.coffeeName}</p>
+                  {scan.brand && <p className="text-xs text-muted-foreground truncate">{scan.brand}</p>}
                 </div>
                 <span className="text-xs text-muted-foreground shrink-0">
-                  {scan.scannedAt 
-                    ? format(new Date(scan.scannedAt), "MMM d")
-                    : "—"}
+                  {scan.scannedAt ? format(new Date(scan.scannedAt), "MMM d") : "—"}
                 </span>
               </Link>
             ))}
@@ -111,7 +80,7 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
             </Button>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

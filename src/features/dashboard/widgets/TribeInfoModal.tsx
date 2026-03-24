@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth";
+import { useLanguage } from "@/contexts/language";
 import { getTribeDefinition } from "@/features/quiz/data/tribes";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,7 @@ interface TribeInfoModalProps {
 
 export function TribeInfoModal({ open, onOpenChange }: TribeInfoModalProps) {
   const { profile } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const tribeDef = profile?.coffee_tribe ? getTribeDefinition(profile.coffee_tribe) : null;
 
@@ -57,7 +59,7 @@ export function TribeInfoModal({ open, onOpenChange }: TribeInfoModalProps) {
 
             <Button variant="outline" className="w-full mt-2" onClick={handleRetake}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              Retake Coffee Quiz
+              {t("widgets.retakeQuiz")}
             </Button>
           </>
         ) : (
@@ -67,14 +69,14 @@ export function TribeInfoModal({ open, onOpenChange }: TribeInfoModalProps) {
                 <span className="text-3xl">☕</span>
               </div>
               <DialogTitle className="font-bangers text-2xl tracking-wide text-foreground">
-                Discover Your Tribe
+                {t("widgets.discoverYourTribe")}
               </DialogTitle>
               <DialogDescription>
-                You haven't discovered your coffee tribe yet.
+                {t("widgets.noTribeYet")}
               </DialogDescription>
             </DialogHeader>
             <Button className="w-full" onClick={() => { onOpenChange(false); navigate("/quiz"); }}>
-              Take the Quiz
+              {t("widgets.takeQuiz")}
             </Button>
           </>
         )}

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Package } from "lucide-react";
+import { useLanguage } from "@/contexts/language";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import { InventoryModal } from "@/features/profile/components/InventoryModal";
@@ -11,6 +12,7 @@ import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function InventoryWidget({ widget }: WidgetComponentProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [modalOpen, setModalOpen] = useState(false);
 
   const { data: totalCount = 0 } = useQuery({
@@ -52,17 +54,17 @@ export function InventoryWidget({ widget }: WidgetComponentProps) {
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <h3 className="font-bangers text-lg flex items-center gap-2">
             <Package className="h-5 w-5 text-accent" />
-            {totalCount > 0 ? `My Inventory (${totalCount})` : "My Inventory"}
+            {totalCount > 0 ? `${t("widgets.myInventory")} (${totalCount})` : t("widgets.myInventory")}
           </h3>
-          <WidgetCategoryTag label="Experience" />
+          <WidgetCategoryTag label={t("widgets.categoryExperience")} />
         </div>
         <div className="px-5 pb-5">
           {inventoryItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-6 text-center">
               <Package className="h-12 w-12 text-muted-foreground/50 mb-3" />
-              <p className="text-muted-foreground mb-3">No coffees in inventory</p>
+              <p className="text-muted-foreground mb-3">{t("widgets.noInventory")}</p>
               <Button variant="outline" size="sm" className="text-xs gap-1.5" onClick={(e) => e.stopPropagation()} asChild>
-                <Link to="/scanner">Scan to add →</Link>
+                <Link to="/scanner">{t("widgets.scanToAdd")}</Link>
               </Button>
             </div>
           ) : (
@@ -83,7 +85,7 @@ export function InventoryWidget({ widget }: WidgetComponentProps) {
               ))}
             </div>
           )}
-          <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-3">View all →</Button>
+          <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-3">{t("widgets.viewAll")}</Button>
         </div>
       </div>
       <InventoryModal open={modalOpen} onOpenChange={setModalOpen} />

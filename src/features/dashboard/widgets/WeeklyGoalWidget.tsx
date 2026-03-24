@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Target } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
+import { useLanguage } from "@/contexts/language";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { useStreak } from "@/hooks/gamification/useStreak";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function WeeklyGoalWidget({ widget }: WidgetComponentProps) {
   const { profile } = useAuth();
+  const { t } = useLanguage();
   const { weeklyBrewCount } = useDashboardData();
   const { streak } = useStreak();
   
@@ -27,9 +29,9 @@ export function WeeklyGoalWidget({ widget }: WidgetComponentProps) {
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <h3 className="font-bangers text-lg flex items-center gap-2">
           <Target className="h-5 w-5 text-secondary" />
-          Weekly Goal
+          {t("widgets.weeklyGoal")}
         </h3>
-        <WidgetCategoryTag label="Learn" />
+        <WidgetCategoryTag label={t("widgets.categoryLearn")} />
       </div>
       <div className="px-5 pb-5 flex flex-col items-center justify-center py-4">
         <div className="relative w-28 h-28">
@@ -45,25 +47,25 @@ export function WeeklyGoalWidget({ widget }: WidgetComponentProps) {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="font-bangers text-2xl text-foreground">{currentCount}/{targetCount}</span>
-            <span className="text-xs text-muted-foreground">Lessons</span>
+            <span className="text-xs text-muted-foreground">{t("widgets.lessons")}</span>
           </div>
         </div>
 
         <p className="text-sm text-muted-foreground mt-3 text-center">
           {isComplete ? (
-            <span className="text-secondary font-medium">🎉 Goal reached!</span>
+            <span className="text-secondary font-medium">{t("widgets.goalReached")}</span>
           ) : (
-            <span>{targetCount - currentCount} more to go this week</span>
+            <span>{targetCount - currentCount} {t("widgets.moreToGo")}</span>
           )}
         </p>
         {streak && streak.currentStreak > 0 && (
           <p className="text-xs text-muted-foreground mt-1 text-center">
-            🔥 {streak.currentStreak} day streak
+            🔥 {streak.currentStreak} {t("widgets.dayStreak")}
           </p>
         )}
 
         <Button asChild variant="outline" size="sm" className="text-xs gap-1.5 mt-4">
-          <Link to={ROUTES.learn}>Start learning →</Link>
+          <Link to={ROUTES.learn}>{t("widgets.startLearning")}</Link>
         </Button>
       </div>
     </div>

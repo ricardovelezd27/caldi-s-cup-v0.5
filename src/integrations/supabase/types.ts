@@ -205,6 +205,7 @@ export type Database = {
           id: string
           is_visible: boolean | null
           position: Json | null
+          sort_order: number
           updated_at: string | null
           user_id: string
           widget_type: Database["public"]["Enums"]["widget_type"]
@@ -215,6 +216,7 @@ export type Database = {
           id?: string
           is_visible?: boolean | null
           position?: Json | null
+          sort_order?: number
           updated_at?: string | null
           user_id: string
           widget_type: Database["public"]["Enums"]["widget_type"]
@@ -225,6 +227,7 @@ export type Database = {
           id?: string
           is_visible?: boolean | null
           position?: Json | null
+          sort_order?: number
           updated_at?: string | null
           user_id?: string
           widget_type?: Database["public"]["Enums"]["widget_type"]

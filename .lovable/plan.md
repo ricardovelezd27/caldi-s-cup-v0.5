@@ -1,56 +1,54 @@
 
 
-# Plan: Fix Silent Error Swallowing in ResultsPage
+# Plan: Validate localStorage Data Before Use
 
 ## Problem
 
-`ResultsPage.tsx` has 5 empty `catch` blocks that silently swallow errors. The most critical one (line 38) swallows localStorage JSON parse failures without logging or cleanup, which could leave corrupted data in place.
+Both `AuthContext.tsx` and `ResultsPage.tsx` parse localStorage JSON and use it without validating the shape matches expected types. Malformed or tampered data could cause runtime errors or write invalid values to the database.
 
-## Changes — `src/features/quiz/ResultsPage.tsx`
+## Changes
 
-### 1. Line 37 — `localStorage.setItem` for saving result (guest user)
-Currently: `catch { /* ignore */ }`
-Change: Log warning. This is a non-critical write failure (guest convenience), so logging is sufficient.
+### 1. `src/contexts/auth/AuthContext.tsx` — Validate pending tribe save
+
+In `recoverPendingTribeSave` (line 90-91), after `JSON.parse`, replace the loose `result?.tribe` check with a strict tribe validation:
+
 ```ts
-catch (err) { console.error("[ResultsPage] Failed to cache quiz result:", err); }
-```
-
-### 2. Line 38 — `localStorage.getItem` + `JSON.parse` for loading result
-Currently: `catch { navigate('/quiz'); }`
-Change: Log error, clear corrupted keys, then redirect.
-```ts
-catch (err) {
-  console.error("[ResultsPage] Failed to parse cached quiz result:", err);
-  localStorage.removeItem(RESULT_STORAGE_KEY);
-  localStorage.removeItem('caldi_quiz_state');
-  navigate('/quiz');
+const VALID_TRIBES = ['fox', 'owl', 'hummingbird', 'bee'];
+const result = JSON.parse(pending);
+if (!result || typeof result !== 'object' || !VALID_TRIBES.includes(result.tribe)) {
+  console.warn('[AuthContext] Invalid pending tribe save data, removing');
+  localStorage.removeItem(PENDING_TRIBE_SAVE_KEY);
+  return;
 }
 ```
 
-### 3. Line 63 — `localStorage.removeItem` cleanup after successful save
-Currently: `catch { /* ignore */ }`
-Change: Log warning. Non-critical cleanup failure.
+### 2. `src/features/quiz/ResultsPage.tsx` — Validate cached quiz result
+
+On line 38, after `JSON.parse(saved)`, validate the parsed object has valid `tribe`, `scores`, and `percentages` before calling `setResult`:
+
 ```ts
-catch (err) { console.error("[ResultsPage] Failed to clear localStorage after save:", err); }
+const parsed = JSON.parse(saved);
+const VALID_TRIBES = ['fox', 'owl', 'hummingbird', 'bee'];
+if (
+  !parsed || typeof parsed !== 'object' ||
+  !VALID_TRIBES.includes(parsed.tribe) ||
+  !parsed.scores || typeof parsed.scores !== 'object'
+) {
+  console.error("[ResultsPage] Invalid cached quiz result shape, clearing");
+  localStorage.removeItem(RESULT_STORAGE_KEY);
+  localStorage.removeItem('caldi_quiz_state');
+  navigate('/quiz');
+  return;
+}
+setResult(parsed);
 ```
 
-### 4. Line 67 — `localStorage.setItem` for pending tribe save fallback
-Currently: `catch { /* ignore */ }`
-Change: Log error. This is the fallback when the API save already failed — losing this too is worth knowing about.
-```ts
-catch (err) { console.error("[ResultsPage] Failed to persist pending tribe save:", err); }
-```
-
-### 5. Line 74 — `localStorage.removeItem` in `handleRetake`
-Currently: `catch { /* ignore */ }`
-Change: Log warning.
-```ts
-catch (err) { console.error("[ResultsPage] Failed to clear localStorage on retake:", err); }
-```
+Also validate `stateResult` from `location.state` (line 37) with the same check before using it.
 
 ## Files Modified
 
 | File | Change |
 |------|--------|
-| `ResultsPage.tsx` | Replace 5 empty catch blocks with `console.error` + cleanup where applicable |
+| `AuthContext.tsx` | Strict tribe enum validation on parsed pending save |
+| `ResultsPage.tsx` | Shape validation on cached quiz result + location state result |
 

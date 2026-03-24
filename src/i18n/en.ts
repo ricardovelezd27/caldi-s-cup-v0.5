@@ -321,6 +321,8 @@ export const en = {
     profileSaved: "Profile saved!",
     failedSave: "Failed to save profile",
     coverUpdated: "Cover updated!",
+    photos: "Photos",
+    addCover: "Add cover",
     editProfile: "Edit Profile",
     editProfileDesc: "Update your profile information.",
     passwordOptionalHint: "Leave blank to keep your current password.",

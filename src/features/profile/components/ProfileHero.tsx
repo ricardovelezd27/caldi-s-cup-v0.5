@@ -1,64 +1,23 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/auth";
 import { ProfileAvatar } from "./ProfileAvatar";
 import { EditProfileDialog } from "./EditProfileDialog";
 import { getTribeCoverStyle } from "../utils/tribeCoverStyles";
 import type { CoffeeTribe } from "@/features/quiz";
 import { Button } from "@/components/ui/button";
-import { Pencil, Camera, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Pencil } from "lucide-react";
 import { useLanguage } from "@/contexts/language";
-import { ProfileRankRow } from "./ProfileRankRow";
 import caldiLogo from "/lovable-uploads/8e78a6bd-5f00-45be-b082-c35b57fa9a7c.png";
 
 export function ProfileHero() {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile } = useAuth();
   const { t } = useLanguage();
   const [editOpen, setEditOpen] = useState(false);
-  const [uploadingCover, setUploadingCover] = useState(false);
-  const coverInputRef = useRef<HTMLInputElement>(null);
 
   if (!user || !profile) return null;
 
   const tribe = profile.coffee_tribe as CoffeeTribe | null;
   const coverStyle = getTribeCoverStyle(tribe);
-
-  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-
-    const ext = file.name.split(".").pop()?.toLowerCase() || "png";
-    const filePath = `${user.id}/cover.${ext}`;
-
-    setUploadingCover(true);
-    try {
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file, { upsert: true });
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(filePath);
-      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ cover_url: publicUrl })
-        .eq("id", user.id);
-      if (updateError) throw updateError;
-
-      await refreshProfile();
-      toast.success(t("profile.coverUpdated"));
-    } catch (err: any) {
-      toast.error(err.message || t("profile.failedSave"));
-    } finally {
-      setUploadingCover(false);
-      if (coverInputRef.current) coverInputRef.current.value = "";
-    }
-  };
-
   const hasCoverImage = !!profile.cover_url;
 
   return (
@@ -91,35 +50,12 @@ export function ProfileHero() {
             className="h-20 object-contain opacity-30 select-none pointer-events-none"
           />
         )}
-
-        <button
-          onClick={() => !uploadingCover && coverInputRef.current?.click()}
-          className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-foreground/60 backdrop-blur-sm text-background px-3 py-2 text-xs font-medium transition-colors active:bg-foreground/80 hover:bg-foreground/80"
-          aria-label={t("profile.editCover")}
-        >
-          {uploadingCover ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Camera className="h-4 w-4" />
-          )}
-          <span>{t("profile.editCover")}</span>
-        </button>
-
-        <input
-          ref={coverInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleCoverUpload}
-        />
       </div>
 
       {/* Content card overlapping cover */}
-      <div className="bg-background rounded-t-3xl md:rounded-none -mt-10 md:-mt-0 relative z-10">
+      <div className="bg-background rounded-t-3xl md:rounded-none -mt-10 md:-mt-0 relative z-10 md:pt-4">
         <div className="max-w-5xl mx-auto px-5 md:px-4">
-          {/* Avatar + info — centered on mobile, side-by-side on desktop */}
           <div className="flex flex-col items-center text-center md:flex-row md:items-end md:text-left gap-0 md:gap-6">
-            {/* Avatar overlapping cover */}
             <div className="-mt-16 md:-mt-16 shrink-0">
               <ProfileAvatar
                 avatarUrl={profile.avatar_url}
@@ -127,10 +63,10 @@ export function ProfileHero() {
                 email={user.email}
                 variant="circle"
                 className="w-28 h-28 md:w-32 md:h-32 border-4 border-background"
+                onClick={() => setEditOpen(true)}
               />
             </div>
 
-            {/* Info block */}
             <div className="flex-1 min-w-0 pt-3 md:pt-0 md:pb-4">
               <div className="flex items-center justify-center md:justify-start gap-1">
                 <h1 className="text-2xl md:text-3xl truncate">
@@ -147,7 +83,6 @@ export function ProfileHero() {
               )}
             </div>
           </div>
-
         </div>
       </div>
 

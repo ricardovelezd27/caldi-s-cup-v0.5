@@ -308,6 +308,8 @@ export const es = {
     profileSaved: "¡Perfil guardado!",
     failedSave: "Error al guardar perfil",
     coverUpdated: "¡Portada actualizada!",
+    photos: "Fotos",
+    addCover: "Añadir portada",
     editProfile: "Editar Perfil",
     editProfileDesc: "Actualiza tu información de perfil.",
     passwordOptionalHint: "Déjalo en blanco para mantener tu contraseña actual.",

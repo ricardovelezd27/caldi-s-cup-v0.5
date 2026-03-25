@@ -60,7 +60,7 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
       {/* Tribe values */}
       {tribeDef && (
         <div className="flex flex-wrap gap-1.5 mt-3">
-          {tribeDef.values.map((v) => (
+          {t(`tribes.${tribe}.values`).split(",").map((v) => (
             <span
               key={v}
               className="text-xs font-medium px-2 py-0.5 rounded-full border border-border/50 bg-muted/50 text-muted-foreground"

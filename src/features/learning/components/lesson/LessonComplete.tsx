@@ -119,6 +119,21 @@ export function LessonComplete({
         </div>
       </div>
 
+      {/* Anonymous signup CTA */}
+      {!user && (
+        <div className="bg-secondary/10 border-4 border-secondary/30 rounded-lg p-4 mb-4 w-full max-w-xs text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <CheckCircle className="w-4 h-4 text-secondary" />
+            <span className="font-bangers text-lg text-foreground tracking-wide">
+              {t("onboarding.saveProgress")}
+            </span>
+          </div>
+          <Button asChild className="w-full font-bangers tracking-wide">
+            <Link to={ROUTES.auth}>{t("onboarding.saveProgress")}</Link>
+          </Button>
+        </div>
+      )}
+
       <div className="flex gap-3">
         {onNext && (
           <Button onClick={onNext} className="font-bangers tracking-wide">

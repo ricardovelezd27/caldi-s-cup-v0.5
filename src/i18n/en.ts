@@ -167,6 +167,7 @@ export const en = {
     cta: "Decode My Coffee Ritual",
     timeEstimate: "Takes less than 2 minutes",
     skip: "Skip",
+    back: "Back",
     next: "Next",
     letsGo: "Let's Go!",
     scenario: "Scenario",

@@ -160,6 +160,7 @@ export const es = {
     cta: "Descifra Mi Ritual Cafetero",
     timeEstimate: "Toma menos de 2 minutos",
     skip: "Saltar",
+    back: "Atrás",
     next: "Siguiente",
     letsGo: "¡Vamos!",
     scenario: "Escenario",

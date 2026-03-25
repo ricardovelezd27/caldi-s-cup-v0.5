@@ -38,6 +38,7 @@ export const QuizPage = () => {
     nextScenario,
     skipScenario,
     startQuiz,
+    goToStep,
     getResult,
   } = useQuizState();
 
@@ -124,9 +125,11 @@ export const QuizPage = () => {
               <QuizNavigation
                 canProceed={!!selectedTribe || isComplete}
                 canSkip={currentStep < totalSteps && !isComplete}
+                canGoBack={currentStep > 1}
                 isLastStep={currentStep >= totalSteps || isComplete}
                 onNext={handleNext}
                 onSkip={skipScenario}
+                onBack={() => goToStep(currentStep - 1)}
               />
             </div>
           </div>

@@ -1,79 +1,87 @@
-## Plan: Learning Hub Widget + Persist Onboarding Choices — IMPLEMENTED
 
-### What was done
 
-1. **Database Migration** — Added `learning_hub` to `widget_type` enum
-2. **LearningHubWidget** — New dashboard widget showing daily XP goal ring, streak, and "Continue Learning" CTA linking to the user's preferred track
-3. **Widget Registration** — Registered in `widgetRegistry.ts` as a user-manageable widget (icon 📚, 2×1 default)
-4. **Persist Onboarding Choices** — `OnboardingFlow.tsx` now writes the daily goal to `learning_user_daily_goals` and auto-creates the Learning Hub widget with `preferredTrack` config for authenticated users
-5. **i18n** — Added `learningHub`, `continueLearning`, `dailyProgress` keys in EN and ES
+## Plan: Standardize All Dashboard Widgets to Match WeeklyGoal Layout
 
-### Files created
-- `src/features/dashboard/widgets/LearningHubWidget.tsx`
+### Reference Layout (WeeklyGoalWidget)
+```text
+┌─────────────────────────────────┐
+│ 🎯 TITLE                [TAG]  │  ← Header: icon + font-bangers title left, category tag right
+│                                 │
+│         ┌─────────┐             │
+│         │ graphic │             │  ← Center: visual/graphic + supporting text
+│         └─────────┘             │
+│      informational text         │
+│                                 │
+│    ┌─────────────────────┐      │
+│    │   CTA Button →      │      │  ← Bottom: full-width outline CTA button
+│    └─────────────────────┘      │
+└─────────────────────────────────┘
+```
 
-### Files modified
-- `src/features/onboarding/OnboardingFlow.tsx`
-- `src/features/dashboard/widgets/widgetRegistry.ts`
-- `src/features/dashboard/widgets/index.ts`
-- `src/i18n/en.ts`
-- `src/i18n/es.ts`
+### Widgets to Update (6 total)
 
-### New Files
+**1. QuickScanWidget** — Already close. Make CTA button full-width (`w-full`).
 
-#### 1. `src/features/onboarding/hooks/useOnboarding.ts`
-- Manages state in localStorage (`caldi_onboarding` key added to `storageKeys.ts`): `{ step: 'interest' | 'goal' | 'done', selectedTrackId, selectedGoalXp, hasCompleted }`
-- Provides `setTrack()`, `setGoal()`, `markCompleted()`, `reset()`
-- On mount, loads from localStorage; on every change, persists
+**2. RecommendationsWidget** — No CTA button. Add a full-width "Browse marketplace →" outline CTA at the bottom.
 
-#### 2. `src/features/onboarding/steps/InterestPicker.tsx`
-- Fetches tracks via `getTracks()` from learningService
-- Renders a 2x2 grid of track cards (icon + name + description, using existing `LearningTrack` data and `useLanguage` for ES/EN)
-- On select, calls `onSelect(trackId)` to advance
+**3. RecentBrewsWidget** — Uses a table layout in its populated state. Restructure: show a Coffee icon + count as the center graphic, supporting text below, full-width CTA "View brews →". In empty state, same pattern as others.
 
-#### 3. `src/features/onboarding/steps/GoalPicker.tsx`
-- Renders the 4 tiers from `dailyGoals.ts` in a vertical list (reuses the same layout as `DailyGoalSelector`)
-- On confirm, calls `onSelect(goalXp)` to advance
+**4. FavoritesWidget** — Has two buttons (scan link + "View all"). Remove the scan link, keep only one full-width CTA "View all →" at the bottom. Center the favorite coffee preview as the graphic.
 
-#### 4. `src/features/onboarding/OnboardingFlow.tsx`
-- Step machine: `interest` → `goal` → navigate to `/learn/<trackId>/<firstLessonId>`
-- After goal is selected, fetches the first lesson of the chosen track (sections → units → lessons, pick sort_order 0) and navigates
-- Uses `useOnboarding()` for state
-- For authenticated users, writes the selected daily goal to `learning_user_daily_goals` and auto-creates the Learning Hub widget with `preferredTrack` config
+**5. InventoryWidget** — Has a grid of items + "View all" button. Restructure: show Package icon + count as center graphic, supporting text, single full-width CTA "View all →".
 
-#### 5. `src/features/onboarding/index.ts`
-- Barrel export
+**6. RecentScansWidget** — Shows a list of scans + "Scan more" button. Restructure: show scan count/icon as center graphic, supporting text, full-width CTA. In empty state, already matches.
 
-### Modified Files
+**7. LearningHubWidget** — Currently horizontal layout (ring + stats side-by-side). Restructure to vertical: ring centered, stats text below, full-width CTA at bottom.
 
-#### 6. `src/constants/storageKeys.ts`
-- Add `ONBOARDING: 'caldi_onboarding'`
+**WelcomeHeroWidget** — Excluded (structural widget, intentionally different — no border/shadow).
 
-#### 7. `src/constants/app.ts`
-- Add `onboarding: "/onboarding"` to ROUTES
+### Standardized Widget Structure (code pattern)
+Every widget follows this exact wrapper:
+```tsx
+<div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+  {/* HEADER */}
+  <div className="flex items-center justify-between px-5 pt-5 pb-3">
+    <h3 className="font-bangers text-lg flex items-center gap-2">
+      <Icon className="h-5 w-5 text-{color}" />
+      {title}
+    </h3>
+    <WidgetCategoryTag label={category} />
+  </div>
+  {/* BODY: centered content + full-width CTA */}
+  <div className="px-5 pb-5 flex flex-col items-center justify-center py-4">
+    {/* Graphic element (icon circle, ring, image) */}
+    {/* Supporting text */}
+    {/* Full-width CTA */}
+    <Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-4">
+      <Link to={route}>{ctaLabel}</Link>
+    </Button>
+  </div>
+</div>
+```
 
-#### 8. `src/App.tsx`
-- Add lazy import for `OnboardingFlow` and `/onboarding` route
+### New Documentation File
+Create `docs/WIDGET_DESIGN_STANDARD.md` documenting:
+- The 3-zone layout (header, center content, bottom CTA)
+- CSS classes for the outer wrapper, header, body
+- Rules: one CTA per widget, always full-width outline button, centered graphic in body
+- Icon color conventions per category (secondary for Learn, primary for Experience, accent for others)
 
-#### 9. `src/pages/Index.tsx`
-- Add a "Start Learning Free →" button in the CTA row below the existing scanner CTA, linking to `/onboarding`
+### Files to Modify
+- `src/features/dashboard/widgets/QuickScanWidget.tsx` — CTA `w-full`
+- `src/features/dashboard/widgets/RecommendationsWidget.tsx` — add CTA
+- `src/features/dashboard/widgets/RecentBrewsWidget.tsx` — vertical center layout
+- `src/features/dashboard/widgets/FavoritesWidget.tsx` — single CTA, centered content
+- `src/features/dashboard/widgets/InventoryWidget.tsx` — center graphic + single CTA
+- `src/features/dashboard/widgets/RecentScansWidget.tsx` — center graphic + single CTA
+- `src/features/dashboard/widgets/LearningHubWidget.tsx` — vertical layout
 
-#### 10. `src/features/learning/components/lesson/LessonComplete.tsx`
-- For anonymous users (`!user`), show a "Create Account to Save Progress" CTA button (Link to `/auth`) below the XP breakdown, using the existing `SignupPrompt` benefit style
+### Files to Create
+- `docs/WIDGET_DESIGN_STANDARD.md`
 
-#### 11. `src/i18n/en.ts` & `src/i18n/es.ts`
-Add keys:
+### i18n Keys to Add
 | Key | EN | ES |
 |---|---|---|
-| `onboarding.pickInterest` | What do you want to learn? | ¿Qué quieres aprender? |
-| `onboarding.pickGoal` | Set your daily goal | Establece tu meta diaria |
-| `onboarding.startLearning` | Start Learning Free | Empieza a Aprender Gratis |
-| `onboarding.saveProgress` | Create Account to Save Progress | Crea una Cuenta para Guardar tu Progreso |
-| `onboarding.letsGo` | Let's go! | ¡Vamos! |
-| `learningHub` | Learning Hub | Hub de Aprendizaje |
-| `continueLearning` | Continue Learning | Continúa Aprendiendo |
-| `dailyProgress` | Daily Progress | Progreso Diario |
+| `widgets.viewBrews` | View brews → | Ver preparaciones → |
+| `widgets.browseMarketplace` | Browse marketplace → | Explorar tienda → |
 
-### Technical Details
-- First lesson lookup: After goal selection, query sections (sort_order 0) → units (sort_order 0) → lessons (sort_order 0) for the selected track to find the first lesson ID
-- The onboarding state persists so refreshing mid-flow resumes at the correct step
-- If a user has `hasCompleted: true` in localStorage and visits `/onboarding` again, redirect straight to `/learn`

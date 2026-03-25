@@ -1411,6 +1411,7 @@ export type Database = {
         | "quick_scan"
         | "recent_brews"
         | "recommendations"
+        | "learning_hub"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1580,6 +1581,7 @@ export const Constants = {
         "quick_scan",
         "recent_brews",
         "recommendations",
+        "learning_hub",
       ],
     },
   },

@@ -675,6 +675,9 @@ export const es = {
     intermediateNext: "Prueba 5 orígenes nuevos para subir de nivel",
     expertNext: "¡Has dominado el arte!",
     takeTheQuiz: "Hacer el quiz",
+    learningHub: "Centro de Aprendizaje",
+    continueLearning: "Continuar Aprendiendo →",
+    dailyProgress: "Progreso de Hoy",
   },
   common: {
     loading: "Cargando...",

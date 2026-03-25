@@ -7,6 +7,7 @@ import { RecentScansWidget } from "./RecentScansWidget";
 import { FavoritesWidget } from "./FavoritesWidget";
 import { InventoryWidget } from "./InventoryWidget";
 import { RecommendationsWidget } from "./RecommendationsWidget";
+import { LearningHubWidget } from "./LearningHubWidget";
 
 /**
  * Registry of all available widget types and their components.
@@ -93,6 +94,16 @@ export const WIDGET_REGISTRY: Partial<Record<WidgetType, WidgetRegistryEntry>> =
       description: "AI-powered suggestions",
       defaultSize: { width: 1, height: 1 },
       icon: "✨",
+    },
+  },
+  learning_hub: {
+    component: LearningHubWidget,
+    meta: {
+      type: "learning_hub",
+      name: "Learning Hub",
+      description: "Daily goal progress and streak",
+      defaultSize: { width: 2, height: 1 },
+      icon: "📚",
     },
   },
 };

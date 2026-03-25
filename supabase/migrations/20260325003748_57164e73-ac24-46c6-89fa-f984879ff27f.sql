@@ -1,0 +1,1 @@
+ALTER TYPE widget_type ADD VALUE 'learning_hub';

@@ -28,6 +28,7 @@ const LessonPage = lazy(() => import("./features/learning/pages/LessonPage"));
 const LeaderboardPage = lazy(() => import("./features/learning/pages/LeaderboardPage"));
 const AchievementsPage = lazy(() => import("./features/learning/pages/AchievementsPage"));
 
+const OnboardingFlow = lazy(() => import("./features/onboarding/OnboardingFlow"));
 const AdminLayout = lazy(() => import("./features/admin/layout/AdminLayout"));
 const AdminOverviewPage = lazy(() => import("./features/admin/pages/AdminOverviewPage"));
 const AdminComingSoonPage = lazy(() => import("./features/admin/pages/AdminComingSoonPage"));

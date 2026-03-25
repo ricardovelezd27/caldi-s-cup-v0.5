@@ -1,21 +1,15 @@
 
 
-## Plan: Fix Homepage "Start Learning" CTA
+## Plan: Guard OnboardingFlow for authenticated users
 
-### What
-Change the outline button on the homepage hero from linking to `/onboarding` with label `onboarding.startLearning` to linking to `/quiz` with a new i18n key like `hero.discoverTribe`.
+Add an auth check at the top of `OnboardingFlow` so unauthenticated visitors are redirected to `/quiz`.
 
 ### Changes
 
-**1. `src/pages/Index.tsx` (line ~63)**
-- Change `Link to={ROUTES.onboarding}` → `Link to={ROUTES.quiz}`
-- Change `t("onboarding.startLearning")` → `t("hero.discoverTribe")`
+**`src/features/onboarding/OnboardingFlow.tsx`**
+- After the existing hooks (`useAuth`, etc.), add an early `useEffect` or guard: if `!user && !isLoading`, redirect to `ROUTES.quiz` with `replace: true`
+- Return `null` while redirecting to prevent flash of onboarding UI
+- All existing logic remains untouched
 
-**2. `src/i18n/en.ts`**
-- Add `hero.discoverTribe: "Discover Your Coffee Tribe"`
-
-**3. `src/i18n/es.ts`**
-- Add `hero.discoverTribe: "Descubre Tu Tribu de Café"`
-
-No other files touched. Existing `onboarding.startLearning` key preserved.
+Single file, ~5 lines added.
 

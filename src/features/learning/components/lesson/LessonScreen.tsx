@@ -82,6 +82,10 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
       return;
     }
 
+    // Double-click guard
+    if (hasSubmittedRef.current) return;
+    hasSubmittedRef.current = true;
+
     setIsProcessingComplete(true);
     try {
       const existingProgress = await getLessonProgress(user.id, lessonId);
@@ -104,51 +108,83 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
       );
       setXpResult(xpCalc);
 
-      const [streakResult] = await Promise.all([
-        updateStreakViaRPC(user.id, xpCalc.totalXP),
-        addXPToDaily(user.id, xpCalc.totalXP),
-        addWeeklyXP(user.id, xpCalc.totalXP).catch(() => {}),
-      ]);
+      // 1. Streak RPC (critical)
+      let streakResult: { currentStreak: number; longestStreak: number; totalXp: number; totalLessonsCompleted: number } | null = null;
+      try {
+        streakResult = await updateStreakViaRPC(user.id, xpCalc.totalXP);
+      } catch (err) {
+        console.error("[Gamification] Streak RPC failed:", err);
+        toast.error("Could not update your streak. Your progress was still saved.");
+      }
 
-      const { data: currentProfile } = await supabase
-        .from("profiles")
-        .select("total_xp")
-        .eq("id", user.id)
-        .single();
-      const newTotalXp = ((currentProfile as any)?.total_xp ?? 0) + xpCalc.totalXP;
-      await supabase.from("profiles").update({ total_xp: newTotalXp }).eq("id", user.id);
+      // 2. Daily goal + league XP (non-critical)
+      try {
+        await addXPToDaily(user.id, xpCalc.totalXP);
+      } catch (err) {
+        console.error("[Gamification] Daily goal update failed:", err);
+      }
+      try {
+        await addWeeklyXP(user.id, xpCalc.totalXP);
+      } catch (err) {
+        console.error("[Gamification] League XP update failed:", err);
+      }
 
+      // 3. Profile XP update (non-critical)
+      try {
+        const { data: currentProfile } = await supabase
+          .from("profiles")
+          .select("total_xp")
+          .eq("id", user.id)
+          .single();
+        const newTotalXp = ((currentProfile as any)?.total_xp ?? 0) + xpCalc.totalXP;
+        await supabase.from("profiles").update({ total_xp: newTotalXp }).eq("id", user.id);
+      } catch (err) {
+        console.error("[Gamification] Profile XP update failed:", err);
+      }
+
+      // 4. Progress upsert (critical)
       const scorePercent =
         lesson.score.total > 0
           ? Math.round((lesson.score.correct / lesson.score.total) * 100)
           : 0;
-
-      await upsertLessonProgress({
-        userId: user.id,
-        lessonId,
-        isCompleted: true,
-        scorePercent,
-        exercisesCorrect: lesson.score.correct,
-        exercisesTotal: lesson.score.total,
-        timeSpentSeconds: lesson.timeSpent,
-        xpEarned: xpCalc.totalXP,
-      });
-
-      const unlocked = await checkAndUnlockAchievements({
-        currentStreak: streakResult.currentStreak,
-        totalLessonsCompleted: streakResult.totalLessonsCompleted,
-      } as any);
-      if (unlocked.length > 0) {
-        setNewAchievements(unlocked);
-        setShowAchievement(unlocked[0]);
-      } else {
-        onComplete();
+      try {
+        await upsertLessonProgress({
+          userId: user.id,
+          lessonId,
+          isCompleted: true,
+          scorePercent,
+          exercisesCorrect: lesson.score.correct,
+          exercisesTotal: lesson.score.total,
+          timeSpentSeconds: lesson.timeSpent,
+          xpEarned: xpCalc.totalXP,
+        });
+      } catch (err) {
+        console.error("[Gamification] Progress upsert failed:", err);
+        toast.error("Could not save your lesson progress. Please try again.");
       }
+
+      // 5. Achievements (non-critical)
+      try {
+        const unlocked = await checkAndUnlockAchievements({
+          currentStreak: streakResult?.currentStreak ?? currentStreak,
+          totalLessonsCompleted: streakResult?.totalLessonsCompleted ?? 0,
+        } as any);
+        if (unlocked.length > 0) {
+          setNewAchievements(unlocked);
+          setShowAchievement(unlocked[0]);
+          return; // don't call onComplete yet — achievement modal will
+        }
+      } catch (err) {
+        console.error("[Gamification] Achievement check failed:", err);
+      }
+
+      onComplete();
     } catch (err) {
-      console.error("Gamification update failed:", err);
+      console.error("Lesson completion unexpected error:", err);
       onComplete();
     } finally {
       setIsProcessingComplete(false);
+      hasSubmittedRef.current = false;
       refreshProfile();
     }
   }, [user, lesson, lessonId, streak, anonymousProgress, onComplete, addDailyXP, checkAndUnlockAchievements]);

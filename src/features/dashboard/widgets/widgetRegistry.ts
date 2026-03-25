@@ -101,7 +101,7 @@ export const WIDGET_REGISTRY: Partial<Record<WidgetType, WidgetRegistryEntry>> =
       type: "learning_hub",
       name: "Learning Hub",
       description: "Daily goal progress and streak",
-      defaultSize: { width: 2, height: 1 },
+      defaultSize: { width: 1, height: 1 },
       icon: "📚",
     },
   },

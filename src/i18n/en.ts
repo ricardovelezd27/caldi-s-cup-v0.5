@@ -688,6 +688,9 @@ export const en = {
     intermediateNext: "Try 5 new origins to level up",
     expertNext: "You've mastered the art!",
     takeTheQuiz: "Take the quiz",
+    learningHub: "Learning Hub",
+    continueLearning: "Continue Learning →",
+    dailyProgress: "Today's Progress",
   },
   common: {
     loading: "Loading...",

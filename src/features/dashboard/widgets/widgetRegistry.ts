@@ -7,6 +7,7 @@ import { RecentScansWidget } from "./RecentScansWidget";
 import { FavoritesWidget } from "./FavoritesWidget";
 import { InventoryWidget } from "./InventoryWidget";
 import { RecommendationsWidget } from "./RecommendationsWidget";
+import { LearningHubWidget } from "./LearningHubWidget";
 
 /**
  * Registry of all available widget types and their components.

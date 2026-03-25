@@ -197,7 +197,7 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
 
   const handleNextLesson = useCallback(() => {
     if (nextLessonId) {
-      navigate(`/learn/${trackId}/lesson/${nextLessonId}`);
+      navigate(`/learn/${trackId}/${nextLessonId}`);
     }
   }, [nextLessonId, trackId, navigate]);
 

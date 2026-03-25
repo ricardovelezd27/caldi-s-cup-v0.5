@@ -6,4 +6,5 @@ export const STORAGE_KEYS = {
   LANGUAGE: 'caldi_lang',
   LEARNING_PROGRESS: 'caldi_learning_progress',
   SOUND_MUTED: 'caldi_sound_muted',
+  ONBOARDING: 'caldi_onboarding',
 } as const;

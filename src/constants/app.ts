@@ -34,6 +34,7 @@ export const ROUTES = {
   profile: "/profile",
   blog: "/brew-log",
   admin: "/admin",
+  onboarding: "/onboarding",
 } as const;
 
 export const NAV_LINKS = [

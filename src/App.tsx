@@ -62,6 +62,7 @@ const App = () => (
                 <Route path="/contact_feedback" element={<FeedbackPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/brew-log" element={<BlogPage />} />
+                <Route path="/onboarding" element={<Suspense fallback={null}><OnboardingFlow /></Suspense>} />
                 <Route path="/learn" element={<Suspense fallback={null}><LearnPage /></Suspense>} />
                 <Route path="/learn/:trackId" element={<Suspense fallback={null}><TrackPage /></Suspense>} />
                 <Route path="/learn/:trackId/:lessonId" element={<Suspense fallback={null}><LessonPage /></Suspense>} />

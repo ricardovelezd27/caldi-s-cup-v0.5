@@ -128,6 +128,14 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                 {t("nav.brewLog")}
               </NavLink>
 
+              <button
+                onClick={() => setIsMuted(sounds.toggleMute())}
+                className="p-2 text-foreground hover:text-primary transition-colors"
+                aria-label={isMuted ? "Unmute sounds" : "Mute sounds"}
+              >
+                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              </button>
+
               {user ? (
                 <UserMenu
                   displayName={profile?.display_name}

@@ -51,7 +51,7 @@ export function TribeInfoModal({ open, onOpenChange }: TribeInfoModalProps) {
             </p>
 
             <div className="flex flex-wrap justify-center gap-2">
-              {tribeDef.values.map((v) => (
+              {t(`tribes.${tribe}.values`).split(",").map((v) => (
                 <span key={v} className="text-xs px-2 py-1 rounded-full border bg-muted text-muted-foreground">
                   {v}
                 </span>

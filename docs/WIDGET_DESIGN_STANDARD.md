@@ -59,10 +59,10 @@ All dashboard widgets (except structural ones like `WelcomeHero`) must follow th
 ## Zone 2 — Body (Centered Content)
 
 ```tsx
-<div className="px-5 pb-5 flex flex-col items-center justify-center py-4">
+<div className="px-5 pb-5 flex flex-col items-center flex-1">
   {/* Graphic element */}
   {/* Supporting text */}
-  {/* CTA button */}
+  {/* CTA button — mt-auto pushes it to the bottom */}
 </div>
 ```
 

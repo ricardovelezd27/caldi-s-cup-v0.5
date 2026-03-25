@@ -32,17 +32,13 @@ export const QuizPage = () => {
   
   const {
     state,
-    scores,
-    percentages,
     selectAnswer,
     nextScenario,
-    skipScenario,
     startQuiz,
     goToStep,
     getResult,
   } = useQuizState();
 
-  // Auto-start quiz when onboarding completes (skip hook screen)
   useEffect(() => {
     if (onboardingComplete && state.currentStep === 0) {
       startQuiz();
@@ -53,7 +49,6 @@ export const QuizPage = () => {
   const currentScenario = QUIZ_SCENARIOS[currentStep - 1];
   const selectedTribe = currentStep > 0 ? responses[currentStep] : undefined;
 
-  // Handle completing the quiz
   const handleComplete = () => {
     const result = getResult();
     if (result) {
@@ -61,7 +56,6 @@ export const QuizPage = () => {
     }
   };
 
-  // Handle next scenario or complete
   const handleNext = () => {
     if (currentStep >= totalSteps || isComplete) {
       handleComplete();
@@ -72,7 +66,6 @@ export const QuizPage = () => {
 
   return (
     <PageLayout showHeader={true} showFooter={false}>
-      {/* Onboarding Modal - shows if quiz not completed or force triggered */}
       <OnboardingModal 
         onComplete={handleOnboardingComplete} 
         forceShow={forceShowOnboarding}
@@ -81,10 +74,8 @@ export const QuizPage = () => {
       />
       
       <div className="min-h-[calc(100vh-80px)] flex flex-col py-8">
-        {/* Hook Screen (Step 0) */}
         {currentStep === 0 && (
           <div className="flex flex-col">
-            {/* What is this? button */}
             <div className="flex justify-end px-4 mb-4">
               <Button
                 variant="ghost"
@@ -100,10 +91,8 @@ export const QuizPage = () => {
           </div>
         )}
 
-        {/* Scenario Screens (Steps 1-5) */}
         {currentStep > 0 && currentScenario && (
           <div className="flex-1 flex flex-col">
-            {/* Progress */}
             <div className="mb-8 px-4">
               <QuizProgress 
                 currentStep={currentStep} 
@@ -111,7 +100,6 @@ export const QuizPage = () => {
               />
             </div>
 
-            {/* Scenario */}
             <div className="flex-1 flex items-center">
               <ScenarioScreen
                 scenario={currentScenario}
@@ -120,15 +108,12 @@ export const QuizPage = () => {
               />
             </div>
 
-            {/* Navigation */}
             <div className="px-4 pb-8">
               <QuizNavigation
                 canProceed={!!selectedTribe || isComplete}
-                canSkip={currentStep < totalSteps && !isComplete}
                 canGoBack={currentStep > 1}
                 isLastStep={currentStep >= totalSteps || isComplete}
                 onNext={handleNext}
-                onSkip={skipScenario}
                 onBack={() => goToStep(currentStep - 1)}
               />
             </div>

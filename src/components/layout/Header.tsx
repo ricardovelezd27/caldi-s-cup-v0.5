@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, MessageSquare, ScanLine, User, Users, Coffee, GraduationCap } from "lucide-react";
+import { Menu, MessageSquare, ScanLine, User, Users, Coffee, GraduationCap, Volume2, VolumeX } from "lucide-react";
+import { sounds } from "@/features/learning/utils/sounds";
 import { FeedbackDialog } from "@/features/feedback/components/FeedbackDialog";
 import { ROUTES } from "@/constants/app";
 import { useAuth } from "@/contexts/auth";
@@ -53,6 +54,7 @@ const LanguageSelector = () => {
 export const Header = ({ showLogo = true }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(() => sounds.isMuted());
   const { user, profile, signOut } = useAuth();
   const { t } = useLanguage();
 
@@ -126,6 +128,14 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                 {t("nav.brewLog")}
               </NavLink>
 
+              <button
+                onClick={() => setIsMuted(sounds.toggleMute())}
+                className="p-2 text-foreground hover:text-primary transition-colors"
+                aria-label={isMuted ? "Unmute sounds" : "Mute sounds"}
+              >
+                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              </button>
+
               {user ? (
                 <UserMenu
                   displayName={profile?.display_name}
@@ -165,9 +175,16 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                       />
                     </Link>
                   </SheetHeader>
-                  {/* Language Selector — inside mobile menu */}
-                  <div className="mb-4">
-                    <LanguageSelector />
+                   {/* Language & Sound controls */}
+                   <div className="mb-4 flex items-center gap-3">
+                     <LanguageSelector />
+                     <button
+                       onClick={() => setIsMuted(sounds.toggleMute())}
+                       className="p-2 text-foreground hover:text-primary transition-colors"
+                       aria-label={isMuted ? "Unmute sounds" : "Mute sounds"}
+                     >
+                       {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                     </button>
                   </div>
                   <nav className="flex flex-col gap-4">
                     <NavLink

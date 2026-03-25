@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { useLanguage } from "@/contexts/language";
 import { MascotCharacter } from "../mascot/MascotCharacter";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { sounds } from "../../utils/sounds";
 
 interface StreakMilestoneProps {
   milestone: number;
@@ -11,6 +13,10 @@ interface StreakMilestoneProps {
 
 export function StreakMilestone({ milestone, open, onOpenChange }: StreakMilestoneProps) {
   const { t } = useLanguage();
+
+  useEffect(() => {
+    if (open) sounds.playStreakMilestone();
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

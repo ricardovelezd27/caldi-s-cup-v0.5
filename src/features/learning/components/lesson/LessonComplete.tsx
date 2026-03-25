@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { useLanguage } from "@/contexts/language";
 import { MascotCharacter } from "../mascot/MascotCharacter";
 import { XPCounter } from "../gamification/XPCounter";
 import { XPGainAnimation } from "../gamification/XPGainAnimation";
 import { Button } from "@/components/ui/button";
+import { sounds } from "../../utils/sounds";
 import type { XPCalculation } from "../../services/xpService";
 
 interface LessonCompleteProps {
@@ -29,6 +31,9 @@ export function LessonComplete({
   isReview,
 }: LessonCompleteProps) {
   const { t } = useLanguage();
+
+  useEffect(() => { sounds.playLessonComplete(); }, []);
+
   const percent = total > 0 ? Math.round((correct / total) * 100) : 0;
   const minutes = Math.floor(timeSpent / 60);
   const seconds = timeSpent % 60;

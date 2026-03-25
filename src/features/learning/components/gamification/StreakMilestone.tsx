@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { useLanguage } from "@/contexts/language";
 import { MascotCharacter } from "../mascot/MascotCharacter";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { sounds } from "../../utils/sounds";
 
 interface StreakMilestoneProps {
   milestone: number;

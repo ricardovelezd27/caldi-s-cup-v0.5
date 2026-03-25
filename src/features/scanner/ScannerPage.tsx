@@ -30,7 +30,6 @@ export function ScannerPage() {
     shouldForceSignup,
     shouldShowSignupBanner,
   } = useAnonymousScanProgress();
-  const [activeTab, setActiveTab] = useState<ScannerTab>("scan");
   const {
     scanCoffee,
     scanResult,

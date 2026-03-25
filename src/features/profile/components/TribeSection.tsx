@@ -59,7 +59,7 @@ export function TribeSection({ tribe }: TribeSectionProps) {
       </div>
       <p className="text-sm text-foreground/80 leading-relaxed mb-4">{description}</p>
       <div className="flex flex-wrap gap-1.5">
-        {def.values.map((value) => (
+        {t(`tribes.${tribe}.values`).split(",").map((value) => (
           <span
             key={value}
             className="text-xs px-2.5 py-1 rounded-full border-2 border-border bg-muted font-medium"

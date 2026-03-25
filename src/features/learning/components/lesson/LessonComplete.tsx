@@ -1,10 +1,14 @@
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/language";
+import { useAuth } from "@/contexts/auth";
 import { MascotCharacter } from "../mascot/MascotCharacter";
 import { XPCounter } from "../gamification/XPCounter";
 import { XPGainAnimation } from "../gamification/XPGainAnimation";
 import { Button } from "@/components/ui/button";
 import { sounds } from "../../utils/sounds";
+import { ROUTES } from "@/constants/app";
+import { CheckCircle } from "lucide-react";
 import type { XPCalculation } from "../../services/xpService";
 
 interface LessonCompleteProps {

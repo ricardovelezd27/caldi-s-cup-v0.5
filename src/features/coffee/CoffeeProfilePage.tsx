@@ -21,6 +21,7 @@ export function CoffeeProfilePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const routeState = (location.state as CoffeeRouteState) ?? {};
   const hasScanData = !!routeState.coffee;
   const { data: fetchedCoffee, isLoading, error } = useCoffee(hasScanData ? undefined : id);
@@ -47,6 +48,7 @@ export function CoffeeProfilePage() {
           {scanMeta ? t('coffee.backToScanner') : t('coffee.back')}
         </Button>
         <CoffeeProfile coffee={coffee} scanMeta={scanMeta} isNewCoffee={isNewCoffee} isTemporaryImage={isTemporaryImage} additionalImages={additionalImages} actions={<CoffeeActions coffee={coffee} scanMeta={scanMeta} onScanAgain={scanMeta ? () => navigate("/scanner") : undefined} />} />
+        {!user && <WhatsNextCard />}
         <div className="mt-12"><FeedbackCTA /></div>
       </Container>
     </PageLayout>

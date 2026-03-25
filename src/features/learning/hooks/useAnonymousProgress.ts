@@ -38,9 +38,20 @@ export function useAnonymousProgress() {
   const { user } = useAuth();
   const [progress, setProgress] = useState<AnonymousProgress>(loadProgress);
 
-  // Clear localStorage when user logs in
+  // Migrate anonymous progress to DB when user logs in, then clear localStorage
   useEffect(() => {
-    if (user) {
+    if (!user) return;
+    const saved = loadProgress();
+    if (saved.lessonsCompleted.length > 0 || saved.totalXP > 0) {
+      import("@/features/learning/services/progressService")
+        .then(({ migrateAnonymousProgress }) =>
+          migrateAnonymousProgress(user.id, {
+            lessonsCompleted: saved.lessonsCompleted,
+            totalXP: saved.totalXP,
+          }),
+        )
+        .finally(() => localStorage.removeItem(STORAGE_KEY));
+    } else {
       localStorage.removeItem(STORAGE_KEY);
     }
   }, [user]);

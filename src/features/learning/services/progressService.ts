@@ -253,6 +253,44 @@ function isLessonCompletedAnonymously(lessonId: string): boolean {
   }
 }
 
+/**
+ * Migrate anonymous learning progress to the authenticated user's account.
+ * Fire-and-forget safe: never throws — errors are logged and swallowed.
+ */
+export async function migrateAnonymousProgress(
+  userId: string,
+  progress: { lessonsCompleted: string[]; totalXP: number },
+): Promise<void> {
+  try {
+    // Persist each completed lesson (xpEarned: 0 — XP handled separately)
+    for (const lessonId of progress.lessonsCompleted) {
+      await upsertLessonProgress({
+        userId,
+        lessonId,
+        isCompleted: true,
+        scorePercent: 100,
+        exercisesCorrect: 0,
+        exercisesTotal: 0,
+        timeSpentSeconds: 0,
+        xpEarned: 0,
+      });
+    }
+
+    // Award accumulated anonymous XP in one shot
+    if (progress.totalXP > 0) {
+      const { awardXP } = await import("@/services/gamification/xpService");
+      await awardXP(userId, "anonymous_migration", progress.totalXP);
+    }
+
+    console.log("[migrateAnonymousProgress] Migration complete", {
+      lessons: progress.lessonsCompleted.length,
+      xp: progress.totalXP,
+    });
+  } catch (err) {
+    console.error("[migrateAnonymousProgress] Migration failed (non-blocking):", err);
+  }
+}
+
 export async function recordExerciseHistory(history: {
   userId: string;
   exerciseId: string;

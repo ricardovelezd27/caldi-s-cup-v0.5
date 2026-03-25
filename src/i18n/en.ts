@@ -697,6 +697,13 @@ export const en = {
     cancel: "Cancel",
     comingSoon: "Soon",
   },
+  onboarding: {
+    pickInterest: "What do you want to learn?",
+    pickGoal: "Set your daily goal",
+    startLearning: "Start Learning Free",
+    saveProgress: "Create Account to Save Progress",
+    letsGo: "Let's go!",
+  },
 } as const;
 
 export type TranslationKeys = typeof en;

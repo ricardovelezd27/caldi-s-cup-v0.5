@@ -28,6 +28,7 @@ const LessonPage = lazy(() => import("./features/learning/pages/LessonPage"));
 const LeaderboardPage = lazy(() => import("./features/learning/pages/LeaderboardPage"));
 const AchievementsPage = lazy(() => import("./features/learning/pages/AchievementsPage"));
 
+const OnboardingFlow = lazy(() => import("./features/onboarding/OnboardingFlow"));
 const AdminLayout = lazy(() => import("./features/admin/layout/AdminLayout"));
 const AdminOverviewPage = lazy(() => import("./features/admin/pages/AdminOverviewPage"));
 const AdminComingSoonPage = lazy(() => import("./features/admin/pages/AdminComingSoonPage"));
@@ -61,6 +62,7 @@ const App = () => (
                 <Route path="/contact_feedback" element={<FeedbackPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/brew-log" element={<BlogPage />} />
+                <Route path="/onboarding" element={<Suspense fallback={null}><OnboardingFlow /></Suspense>} />
                 <Route path="/learn" element={<Suspense fallback={null}><LearnPage /></Suspense>} />
                 <Route path="/learn/:trackId" element={<Suspense fallback={null}><TrackPage /></Suspense>} />
                 <Route path="/learn/:trackId/:lessonId" element={<Suspense fallback={null}><LessonPage /></Suspense>} />

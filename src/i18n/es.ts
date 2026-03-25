@@ -684,4 +684,11 @@ export const es = {
     cancel: "Cancelar",
     comingSoon: "Pronto",
   },
+  onboarding: {
+    pickInterest: "¿Qué quieres aprender?",
+    pickGoal: "Establece tu meta diaria",
+    startLearning: "Empieza a Aprender Gratis",
+    saveProgress: "Crea una Cuenta para Guardar tu Progreso",
+    letsGo: "¡Vamos!",
+  },
 } as const;

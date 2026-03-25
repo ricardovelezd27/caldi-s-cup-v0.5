@@ -12,12 +12,6 @@ export function RetakeQuizSection() {
   const { t } = useLanguage();
 
   const handleRetake = () => {
-    try {
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_RESULT);
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE);
-    } catch {
-      // Ignore
-    }
     navigate("/quiz");
   };
 

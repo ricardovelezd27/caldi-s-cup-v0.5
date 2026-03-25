@@ -21,10 +21,6 @@ export function TribeInfoModal({ open, onOpenChange }: TribeInfoModalProps) {
   const tribeDef = tribe ? getTribeDefinition(tribe) : null;
 
   const handleRetake = () => {
-    try {
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_RESULT);
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE);
-    } catch { /* ignore */ }
     onOpenChange(false);
     navigate("/quiz");
   };

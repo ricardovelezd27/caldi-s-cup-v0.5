@@ -103,7 +103,7 @@ All dashboard widgets (except structural ones like `WelcomeHero`) must follow th
 - **Always full-width** — `w-full`
 - **Always outline variant** — `variant="outline"`
 - **Label ends with →** — e.g., "Start learning →", "View all →"
-- **Spacing** — `mt-4` from the last content element
+- **Spacing** — `mt-auto` to push CTA to the bottom of the widget (outer wrapper must be `flex flex-col`, body must be `flex-1`)
 
 ## Exceptions
 

@@ -22,7 +22,7 @@ All dashboard widgets (except structural ones like `WelcomeHero`) must follow th
 ## Outer Wrapper
 
 ```tsx
-<div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+<div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))] flex flex-col">
 ```
 
 - `border-4 border-border` — 4px Bean Black border

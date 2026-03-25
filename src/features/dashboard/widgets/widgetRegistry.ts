@@ -1,7 +1,6 @@
 import type { WidgetType, WidgetRegistryEntry } from "./types";
 import { WelcomeHeroWidget } from "./WelcomeHeroWidget";
 import { QuickScanWidget } from "./QuickScanWidget";
-import { WeeklyGoalWidget } from "./WeeklyGoalWidget";
 import { RecentBrewsWidget } from "./RecentBrewsWidget";
 import { RecentScansWidget } from "./RecentScansWidget";
 import { FavoritesWidget } from "./FavoritesWidget";

@@ -96,6 +96,16 @@ export const WIDGET_REGISTRY: Partial<Record<WidgetType, WidgetRegistryEntry>> =
       icon: "✨",
     },
   },
+  learning_hub: {
+    component: LearningHubWidget,
+    meta: {
+      type: "learning_hub",
+      name: "Learning Hub",
+      description: "Daily goal progress and streak",
+      defaultSize: { width: 2, height: 1 },
+      icon: "📚",
+    },
+  },
 };
 
 /** Structural widgets that users cannot add/remove */

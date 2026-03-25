@@ -8,3 +8,4 @@ export { RecentScansWidget } from "./RecentScansWidget";
 export { FavoritesWidget } from "./FavoritesWidget";
 export { InventoryWidget } from "./InventoryWidget";
 export { RecommendationsWidget } from "./RecommendationsWidget";
+export { LearningHubWidget } from "./LearningHubWidget";

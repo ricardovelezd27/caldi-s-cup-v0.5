@@ -60,7 +60,7 @@ const HeroSection = () => {
                   <Link to={ROUTES.scanner}>{t("hero.cta")}</Link>
                 </Button>
                 <Button size="lg" variant="outline" className="text-xl font-bangers px-8 py-6 tracking-wide w-full md:w-auto" asChild>
-                  <Link to={ROUTES.onboarding}>{t("onboarding.startLearning")}</Link>
+                  <Link to={ROUTES.quiz}>{t("hero.discoverTribe")}</Link>
                 </Button>
               </div>
               <button

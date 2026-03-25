@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { useLanguage } from "@/contexts/language";
 import { MascotCharacter } from "../mascot/MascotCharacter";
 import { XPCounter } from "../gamification/XPCounter";
 import { XPGainAnimation } from "../gamification/XPGainAnimation";
 import { Button } from "@/components/ui/button";
+import { sounds } from "../../utils/sounds";
 import type { XPCalculation } from "../../services/xpService";
 
 interface LessonCompleteProps {

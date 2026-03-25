@@ -17,7 +17,8 @@ export function TribeInfoModal({ open, onOpenChange }: TribeInfoModalProps) {
   const { profile } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const tribeDef = profile?.coffee_tribe ? getTribeDefinition(profile.coffee_tribe) : null;
+  const tribe = profile?.coffee_tribe ?? null;
+  const tribeDef = tribe ? getTribeDefinition(tribe) : null;
 
   const handleRetake = () => {
     try {

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useLanguage } from "@/contexts/language";
 import { MascotReaction } from "../mascot/MascotReaction";
 import { getRandomDialogue } from "../../data/mascotDialogues";
@@ -22,7 +23,8 @@ export function LessonIntro({
   onStart,
 }: LessonIntroProps) {
   const { t } = useLanguage();
-  const greeting = getRandomDialogue(mascot, "greeting");
+  // Stabilize: pick one greeting per mount, not per render
+  const greeting = useMemo(() => getRandomDialogue(mascot, "greeting"), [mascot]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">

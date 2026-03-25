@@ -234,3 +234,63 @@ export async function getLeagues(): Promise<LearningLeague[]> {
   if (error) throw error;
   return (data ?? []).map(toLeague);
 }
+
+/**
+ * Find the next lesson after the current one within the same track hierarchy.
+ * Checks same unit first, then next unit in the same section.
+ * Returns lesson ID or null if current lesson is the last.
+ */
+export async function getNextLessonInTrack(currentLessonId: string): Promise<string | null> {
+  // 1. Get current lesson
+  const { data: currentLesson, error: lessonErr } = await supabase
+    .from("learning_lessons")
+    .select("id, unit_id, sort_order")
+    .eq("id", currentLessonId)
+    .single();
+  if (lessonErr || !currentLesson) return null;
+
+  // 2. Try next lesson in the same unit
+  const { data: nextInUnit } = await supabase
+    .from("learning_lessons")
+    .select("id")
+    .eq("unit_id", currentLesson.unit_id)
+    .eq("is_active", true)
+    .gt("sort_order", currentLesson.sort_order)
+    .order("sort_order")
+    .limit(1)
+    .maybeSingle();
+
+  if (nextInUnit) return nextInUnit.id;
+
+  // 3. Get current unit to find section context
+  const { data: currentUnit } = await supabase
+    .from("learning_units")
+    .select("id, section_id, sort_order")
+    .eq("id", currentLesson.unit_id)
+    .single();
+  if (!currentUnit) return null;
+
+  // 4. Try first lesson of next unit in the same section
+  const { data: nextUnit } = await supabase
+    .from("learning_units")
+    .select("id")
+    .eq("section_id", currentUnit.section_id)
+    .eq("is_active", true)
+    .gt("sort_order", currentUnit.sort_order)
+    .order("sort_order")
+    .limit(1)
+    .maybeSingle();
+
+  if (!nextUnit) return null;
+
+  const { data: firstLesson } = await supabase
+    .from("learning_lessons")
+    .select("id")
+    .eq("unit_id", nextUnit.id)
+    .eq("is_active", true)
+    .order("sort_order")
+    .limit(1)
+    .maybeSingle();
+
+  return firstLesson?.id ?? null;
+}

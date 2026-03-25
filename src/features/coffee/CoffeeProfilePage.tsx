@@ -10,6 +10,8 @@ import { CoffeeActions } from "./components/CoffeeActions";
 import { useCoffee } from "./hooks/useCoffee";
 import { useCoffeeScanMeta } from "./hooks/useCoffeeScanMeta";
 import { useLanguage } from "@/contexts/language";
+import { useAuth } from "@/contexts/auth";
+import { WhatsNextCard } from "./components/WhatsNextCard";
 import type { Coffee, CoffeeScanMeta } from "./types";
 
 interface CoffeeRouteState { coffee?: Coffee; scanMeta?: CoffeeScanMeta; isNewCoffee?: boolean; isTemporaryImage?: boolean; additionalImages?: string[]; }

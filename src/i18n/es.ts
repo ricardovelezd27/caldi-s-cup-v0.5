@@ -413,6 +413,10 @@ export const es = {
     errorFavorites: "Error al actualizar favoritos. Intenta de nuevo.",
     errorInventory: "Error al agregar al inventario. Intenta de nuevo.",
     linkCopied: "¡Enlace copiado al portapapeles!",
+    whatsNextTitle: "¿Qué sigue?",
+    whatsNextDiscover: "Descubre Tu Tribu de Café",
+    whatsNextSignUp: "Regístrate para Guardar Este Café",
+    whatsNextScanAnother: "Escanear Otro Café",
   },
   shared: {
     feedbackTitle: "¿Tienes opiniones? Te escuchamos ☕",

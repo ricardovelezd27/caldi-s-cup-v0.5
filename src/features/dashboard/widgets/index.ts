@@ -2,7 +2,7 @@ export * from "./types";
 export * from "./widgetRegistry";
 export { WelcomeHeroWidget } from "./WelcomeHeroWidget";
 export { QuickScanWidget } from "./QuickScanWidget";
-export { WeeklyGoalWidget } from "./WeeklyGoalWidget";
+
 export { RecentBrewsWidget } from "./RecentBrewsWidget";
 export { RecentScansWidget } from "./RecentScansWidget";
 export { FavoritesWidget } from "./FavoritesWidget";

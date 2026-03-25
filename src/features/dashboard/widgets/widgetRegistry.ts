@@ -1,7 +1,6 @@
 import type { WidgetType, WidgetRegistryEntry } from "./types";
 import { WelcomeHeroWidget } from "./WelcomeHeroWidget";
 import { QuickScanWidget } from "./QuickScanWidget";
-import { WeeklyGoalWidget } from "./WeeklyGoalWidget";
 import { RecentBrewsWidget } from "./RecentBrewsWidget";
 import { RecentScansWidget } from "./RecentScansWidget";
 import { FavoritesWidget } from "./FavoritesWidget";
@@ -33,16 +32,6 @@ export const WIDGET_REGISTRY: Partial<Record<WidgetType, WidgetRegistryEntry>> =
       description: "Start scanning a coffee bag",
       defaultSize: { width: 1, height: 1 },
       icon: "📱",
-    },
-  },
-  weekly_goal: {
-    component: WeeklyGoalWidget,
-    meta: {
-      type: "weekly_goal",
-      name: "Weekly Goal",
-      description: "Track your weekly brew goal",
-      defaultSize: { width: 1, height: 1 },
-      icon: "🎯",
     },
   },
   recent_brews: {

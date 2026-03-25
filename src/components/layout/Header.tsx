@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, MessageSquare, ScanLine, User, Users, Coffee, GraduationCap } from "lucide-react";
+import { Menu, MessageSquare, ScanLine, User, Users, Coffee, GraduationCap, Volume2, VolumeX } from "lucide-react";
+import { sounds } from "@/features/learning/utils/sounds";
 import { FeedbackDialog } from "@/features/feedback/components/FeedbackDialog";
 import { ROUTES } from "@/constants/app";
 import { useAuth } from "@/contexts/auth";

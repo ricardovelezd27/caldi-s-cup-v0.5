@@ -31,6 +31,9 @@ export function LessonComplete({
   isReview,
 }: LessonCompleteProps) {
   const { t } = useLanguage();
+
+  useEffect(() => { sounds.playLessonComplete(); }, []);
+
   const percent = total > 0 ? Math.round((correct / total) * 100) : 0;
   const minutes = Math.floor(timeSpent / 60);
   const seconds = timeSpent % 60;

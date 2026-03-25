@@ -14,6 +14,10 @@ interface StreakMilestoneProps {
 export function StreakMilestone({ milestone, open, onOpenChange }: StreakMilestoneProps) {
   const { t } = useLanguage();
 
+  useEffect(() => {
+    if (open) sounds.playStreakMilestone();
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="text-center border-4 border-border shadow-[4px_4px_0px_0px_hsl(var(--border))] max-w-sm">

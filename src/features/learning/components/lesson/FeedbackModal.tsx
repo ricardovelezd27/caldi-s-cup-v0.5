@@ -1,9 +1,10 @@
+import { useMemo, useState } from "react";
 import { useLanguage } from "@/contexts/language";
 import { cn } from "@/lib/utils";
 import { Check, X, Flag } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { getRandomDialogue } from "../../data/mascotDialogues";
-import { useState } from "react";
+import { MascotCharacter } from "../mascot/MascotCharacter";
 import { ReportExerciseErrorDialog } from "./ReportExerciseErrorDialog";
 
 interface FeedbackModalProps {
@@ -27,7 +28,11 @@ export function FeedbackModal({
 }: FeedbackModalProps) {
   const { t } = useLanguage();
   const [showReport, setShowReport] = useState(false);
-  const dialogue = getRandomDialogue(mascot, isCorrect ? "correct" : "incorrect");
+  // Stabilize: pick one dialogue per modal open, keyed on open+isCorrect
+  const dialogue = useMemo(
+    () => getRandomDialogue(mascot, isCorrect ? "correct" : "incorrect"),
+    [open, isCorrect, mascot],
+  );
 
   const label = isCorrect
     ? t("learn.exercise.continue")
@@ -57,18 +62,22 @@ export function FeedbackModal({
               isCorrect ? "bg-[hsl(142_76%_90%)]" : "bg-accent/10",
             )}
           >
-            {isCorrect ? (
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[hsl(142_71%_45%)] flex items-center justify-center">
-                <Check className="w-6 h-6 text-white" />
-              </div>
-            ) : (
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-                <X className="w-6 h-6 text-white" />
-              </div>
-            )}
-            <p className="font-bangers text-2xl text-foreground tracking-wide">
-              {isCorrect ? t("learn.exercise.correct") : t("learn.exercise.incorrect")}
-            </p>
+            <MascotCharacter
+              mascot={mascot}
+              mood={isCorrect ? "celebrating" : "thinking"}
+              size="sm"
+              className="flex-shrink-0"
+            />
+            <div className="flex items-center gap-2">
+              {isCorrect ? (
+                <Check className="w-5 h-5 text-[hsl(142_71%_45%)]" />
+              ) : (
+                <X className="w-5 h-5 text-accent" />
+              )}
+              <p className="font-bangers text-2xl text-foreground tracking-wide">
+                {isCorrect ? t("learn.exercise.correct") : t("learn.exercise.incorrect")}
+              </p>
+            </div>
           </div>
 
           {/* Body */}

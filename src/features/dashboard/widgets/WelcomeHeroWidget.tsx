@@ -88,18 +88,18 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
       {/* Rank + Progress */}
       <div className="space-y-1.5 mt-4 pt-3 border-t border-border/30">
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className={`${currentRank.colorClass} border-2 text-xs font-bold`}>
+          <Badge variant="outline" className={`${currentRank.colorClass} border-2 text-sm font-bold`}>
             <span className="mr-1">{currentRank.icon}</span>
             {currentRank.name}
           </Badge>
           {nextRank && (
-            <span className="text-[10px] text-muted-foreground/70">
+            <span className="text-muted-foreground/70 text-sm">
               → {nextRank.icon} {nextRank.name}
             </span>
           )}
         </div>
         <Progress value={progressToNext} className="h-2" />
-        <p className="text-[11px] font-inter text-muted-foreground">
+        <p className="font-inter text-muted-foreground text-sm">
           {nextRank
             ? `${xpNeeded} ${t("widgets.xpTo")} ${nextRank.name}`
             : t("widgets.maxRank")}

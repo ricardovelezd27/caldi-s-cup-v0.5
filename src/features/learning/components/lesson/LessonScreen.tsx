@@ -1,9 +1,10 @@
-import { useState, useCallback, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { useLesson } from "../../hooks/useLesson";
 import { useAuth } from "@/contexts/auth";
 import { useLanguage } from "@/contexts/language";
@@ -16,6 +17,7 @@ import { calculateLessonXP } from "../../services/xpService";
 import { updateStreakViaRPC, addXPToDaily } from "../../services/streakService";
 import { addWeeklyXP } from "../../services/leagueService";
 import { upsertLessonProgress, getLessonProgress } from "../../services/progressService";
+import { getNextLessonInTrack } from "../../services/learningService";
 import { PageLayout } from "@/components/layout";
 import { LessonIntro } from "./LessonIntro";
 import { LessonProgress } from "./LessonProgress";
@@ -27,6 +29,7 @@ import { HeartsEmptyModal } from "../gamification/HeartsEmptyModal";
 import { AchievementUnlock } from "../gamification/AchievementUnlock";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { MascotCharacter } from "../mascot/MascotCharacter";
 import type { XPCalculation } from "../../services/xpService";
 import type { LearningAchievement } from "../../types";
 
@@ -41,6 +44,7 @@ interface LessonScreenProps {
 export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete }: LessonScreenProps) {
   const { user, refreshProfile } = useAuth();
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
   const lesson = useLesson(lessonId);
   const anonymousProgress = useAnonymousProgress();
   const { hearts, maxHearts, hasHearts, timeUntilRefill, loseHeart, isLoading: heartsLoading } = useHearts();
@@ -54,8 +58,17 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
   const [newAchievements, setNewAchievements] = useState<LearningAchievement[]>([]);
   const [showAchievement, setShowAchievement] = useState<LearningAchievement | null>(null);
   const [isProcessingComplete, setIsProcessingComplete] = useState(false);
+  const [processingDone, setProcessingDone] = useState(false);
   const [isReview, setIsReview] = useState(false);
   const hasSubmittedRef = useRef(false);
+
+  // Fetch next lesson ID
+  const { data: nextLessonId } = useQuery({
+    queryKey: ["next-lesson", lessonId],
+    queryFn: () => getNextLessonInTrack(lessonId),
+    enabled: lesson.state === "complete",
+    staleTime: Infinity,
+  });
 
   const handleSubmitAnswer = useCallback(
     (answer: any, isCorrect: boolean) => {
@@ -71,123 +84,122 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
 
   const REVIEW_XP_BASE = 5;
 
-  const handleLessonDone = useCallback(async () => {
-    if (!user) {
-      anonymousProgress.completeLesson(lessonId, 10);
-      if (anonymousProgress.shouldShowSignupPrompt || anonymousProgress.shouldForceSignup) {
-        setShowSignup(true);
+  // Auto-process results when lesson completes
+  useEffect(() => {
+    if (lesson.state !== "complete") return;
+    if (hasSubmittedRef.current) return;
+
+    const processResults = async () => {
+      if (!user) {
+        anonymousProgress.completeLesson(lessonId, 10);
+        setProcessingDone(true);
+        if (anonymousProgress.shouldShowSignupPrompt || anonymousProgress.shouldForceSignup) {
+          setShowSignup(true);
+        }
         return;
       }
-      onComplete();
-      return;
-    }
 
-    // Double-click guard
-    if (hasSubmittedRef.current) return;
-    hasSubmittedRef.current = true;
+      hasSubmittedRef.current = true;
+      setIsProcessingComplete(true);
 
-    setIsProcessingComplete(true);
-    try {
-      const existingProgress = await getLessonProgress(user.id, lessonId);
-      const isReviewAttempt = !!existingProgress?.isCompleted;
-      setIsReview(isReviewAttempt);
-
-      const fullBaseXp = lesson.lesson?.xpReward ?? 10;
-      const baseXpReward = isReviewAttempt ? REVIEW_XP_BASE : fullBaseXp;
-      const currentStreak = streak?.currentStreak ?? 0;
-      const today = new Date().toISOString().split("T")[0];
-      const isFirstToday = streak?.lastActivityDate !== today;
-
-      const xpCalc = calculateLessonXP(
-        baseXpReward,
-        lesson.score.correct,
-        lesson.score.total,
-        lesson.timeSpent,
-        currentStreak,
-        isFirstToday,
-      );
-      setXpResult(xpCalc);
-
-      // 1. Streak RPC (critical)
-      let streakResult: { currentStreak: number; longestStreak: number; totalXp: number; totalLessonsCompleted: number } | null = null;
       try {
-        streakResult = await updateStreakViaRPC(user.id, xpCalc.totalXP);
-      } catch (err) {
-        console.error("[Gamification] Streak RPC failed:", err);
-        toast.error("Could not update your streak. Your progress was still saved.");
-      }
+        const existingProgress = await getLessonProgress(user.id, lessonId);
+        const isReviewAttempt = !!existingProgress?.isCompleted;
+        setIsReview(isReviewAttempt);
 
-      // 2. Daily goal + league XP (non-critical)
-      try {
-        await addXPToDaily(user.id, xpCalc.totalXP);
-      } catch (err) {
-        console.error("[Gamification] Daily goal update failed:", err);
-      }
-      try {
-        await addWeeklyXP(user.id, xpCalc.totalXP);
-      } catch (err) {
-        console.error("[Gamification] League XP update failed:", err);
-      }
+        const fullBaseXp = lesson.lesson?.xpReward ?? 10;
+        const baseXpReward = isReviewAttempt ? REVIEW_XP_BASE : fullBaseXp;
+        const currentStreak = streak?.currentStreak ?? 0;
+        const today = new Date().toISOString().split("T")[0];
+        const isFirstToday = streak?.lastActivityDate !== today;
 
-      // 3. Profile XP update (non-critical)
-      try {
-        const { data: currentProfile } = await supabase
-          .from("profiles")
-          .select("total_xp")
-          .eq("id", user.id)
-          .single();
-        const newTotalXp = ((currentProfile as any)?.total_xp ?? 0) + xpCalc.totalXP;
-        await supabase.from("profiles").update({ total_xp: newTotalXp }).eq("id", user.id);
-      } catch (err) {
-        console.error("[Gamification] Profile XP update failed:", err);
-      }
+        const xpCalc = calculateLessonXP(
+          baseXpReward,
+          lesson.score.correct,
+          lesson.score.total,
+          lesson.timeSpent,
+          currentStreak,
+          isFirstToday,
+        );
+        setXpResult(xpCalc);
 
-      // 4. Progress upsert (critical)
-      const scorePercent =
-        lesson.score.total > 0
-          ? Math.round((lesson.score.correct / lesson.score.total) * 100)
-          : 0;
-      try {
-        await upsertLessonProgress({
-          userId: user.id,
-          lessonId,
-          isCompleted: true,
-          scorePercent,
-          exercisesCorrect: lesson.score.correct,
-          exercisesTotal: lesson.score.total,
-          timeSpentSeconds: lesson.timeSpent,
-          xpEarned: xpCalc.totalXP,
-        });
-      } catch (err) {
-        console.error("[Gamification] Progress upsert failed:", err);
-        toast.error("Could not save your lesson progress. Please try again.");
-      }
+        // 1. Streak RPC (critical)
+        let streakResult: { currentStreak: number; longestStreak: number; totalXp: number; totalLessonsCompleted: number } | null = null;
+        try {
+          streakResult = await updateStreakViaRPC(user.id, xpCalc.totalXP);
+        } catch (err) {
+          console.error("[Gamification] Streak RPC failed:", err);
+          toast.error("Could not update your streak. Your progress was still saved.");
+        }
 
-      // 5. Achievements (non-critical)
-      try {
-        const unlocked = await checkAndUnlockAchievements({
-          currentStreak: streakResult?.currentStreak ?? currentStreak,
-          totalLessonsCompleted: streakResult?.totalLessonsCompleted ?? 0,
-        } as any);
-        if (unlocked.length > 0) {
-          setNewAchievements(unlocked);
-          setShowAchievement(unlocked[0]);
-          return; // don't call onComplete yet — achievement modal will
+        // 2. Daily goal + league XP (non-critical)
+        try { await addXPToDaily(user.id, xpCalc.totalXP); } catch (err) { console.error("[Gamification] Daily goal update failed:", err); }
+        try { await addWeeklyXP(user.id, xpCalc.totalXP); } catch (err) { console.error("[Gamification] League XP update failed:", err); }
+
+        // 3. Profile XP update (non-critical)
+        try {
+          const { data: currentProfile } = await supabase
+            .from("profiles")
+            .select("total_xp")
+            .eq("id", user.id)
+            .single();
+          const newTotalXp = ((currentProfile as any)?.total_xp ?? 0) + xpCalc.totalXP;
+          await supabase.from("profiles").update({ total_xp: newTotalXp }).eq("id", user.id);
+        } catch (err) {
+          console.error("[Gamification] Profile XP update failed:", err);
+        }
+
+        // 4. Progress upsert (critical)
+        const scorePercent =
+          lesson.score.total > 0
+            ? Math.round((lesson.score.correct / lesson.score.total) * 100)
+            : 0;
+        try {
+          await upsertLessonProgress({
+            userId: user.id,
+            lessonId,
+            isCompleted: true,
+            scorePercent,
+            exercisesCorrect: lesson.score.correct,
+            exercisesTotal: lesson.score.total,
+            timeSpentSeconds: lesson.timeSpent,
+            xpEarned: xpCalc.totalXP,
+          });
+        } catch (err) {
+          console.error("[Gamification] Progress upsert failed:", err);
+          toast.error("Could not save your lesson progress. Please try again.");
+        }
+
+        // 5. Achievements (non-critical)
+        try {
+          const unlocked = await checkAndUnlockAchievements({
+            currentStreak: streakResult?.currentStreak ?? currentStreak,
+            totalLessonsCompleted: streakResult?.totalLessonsCompleted ?? 0,
+          } as any);
+          if (unlocked.length > 0) {
+            setNewAchievements(unlocked);
+            setShowAchievement(unlocked[0]);
+          }
+        } catch (err) {
+          console.error("[Gamification] Achievement check failed:", err);
         }
       } catch (err) {
-        console.error("[Gamification] Achievement check failed:", err);
+        console.error("Lesson completion unexpected error:", err);
+      } finally {
+        setIsProcessingComplete(false);
+        setProcessingDone(true);
+        refreshProfile();
       }
+    };
 
-      onComplete();
-    } catch (err) {
-      console.error("Lesson completion unexpected error:", err);
-      onComplete();
-    } finally {
-      setIsProcessingComplete(false);
-      hasSubmittedRef.current = false;
-      refreshProfile();
+    processResults();
+  }, [lesson.state]); // intentionally minimal deps — runs once when state becomes "complete"
+
+  const handleNextLesson = useCallback(() => {
+    if (nextLessonId) {
+      navigate(`/learn/${trackId}/lesson/${nextLessonId}`);
     }
-  }, [user, lesson, lessonId, streak, anonymousProgress, onComplete, addDailyXP, checkAndUnlockAchievements]);
+  }, [nextLessonId, trackId, navigate]);
 
   // --- Back link component ---
   const BackLink = () => (
@@ -304,6 +316,22 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
 
   // --- COMPLETE ---
   if (lesson.state === "complete") {
+    // Show loading while processing results
+    if (!processingDone) {
+      return (
+        <PageLayout>
+          <div className="container mx-auto px-4 py-8 max-w-2xl">
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+              <MascotCharacter mascot="caldi" mood="thinking" size="lg" />
+              <p className="font-bangers text-xl text-foreground tracking-wide animate-pulse">
+                {t("common.loading")}...
+              </p>
+            </div>
+          </div>
+        </PageLayout>
+      );
+    }
+
     return (
       <PageLayout>
         <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -313,8 +341,8 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
             xpEarned={xpResult?.totalXP ?? lesson.lesson?.xpReward ?? 10}
             xpBreakdown={xpResult ?? undefined}
             timeSpent={lesson.timeSpent}
-            onBackToTrack={handleLessonDone}
-            isProcessing={isProcessingComplete}
+            onNext={nextLessonId ? handleNextLesson : undefined}
+            onBackToTrack={onComplete}
             isReview={isReview}
           />
           <SignupPrompt
@@ -335,7 +363,6 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
                 if (!open) {
                   const remaining = newAchievements.filter((a) => a.id !== showAchievement.id);
                   setShowAchievement(remaining[0] ?? null);
-                  if (remaining.length === 0) onComplete();
                 }
               }}
             />

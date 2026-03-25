@@ -39,10 +39,10 @@ export function TribeInfoModal({ open, onOpenChange }: TribeInfoModalProps) {
                 <span className="text-3xl">{tribeDef.emoji}</span>
               </div>
               <DialogTitle className={cn("font-bangers text-3xl tracking-wide", tribeDef.colorClass)}>
-                {tribeDef.name}
+                {t(`tribes.${tribe}.name`)}
               </DialogTitle>
               <DialogDescription className="text-muted-foreground">
-                {tribeDef.title}
+                {t(`tribes.${tribe}.title`)}
               </DialogDescription>
             </DialogHeader>
 

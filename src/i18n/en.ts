@@ -19,6 +19,7 @@ export const en = {
     cta: "Give Caldi AI a Try!",
     ctaSecondary: "How it works",
     speechBubble: "Let's find your match!",
+    discoverTribe: "Discover Your Coffee Tribe",
   },
   features: {
     sectionTitle: "What Caldi Does For You",

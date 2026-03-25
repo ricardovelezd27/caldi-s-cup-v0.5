@@ -34,16 +34,6 @@ export const WIDGET_REGISTRY: Partial<Record<WidgetType, WidgetRegistryEntry>> =
       icon: "📱",
     },
   },
-  weekly_goal: {
-    component: WeeklyGoalWidget,
-    meta: {
-      type: "weekly_goal",
-      name: "Weekly Goal",
-      description: "Track your weekly brew goal",
-      defaultSize: { width: 1, height: 1 },
-      icon: "🎯",
-    },
-  },
   recent_brews: {
     component: RecentBrewsWidget,
     meta: {

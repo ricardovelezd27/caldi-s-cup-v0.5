@@ -175,9 +175,16 @@ export const Header = ({ showLogo = true }: HeaderProps) => {
                       />
                     </Link>
                   </SheetHeader>
-                  {/* Language Selector — inside mobile menu */}
-                  <div className="mb-4">
-                    <LanguageSelector />
+                   {/* Language & Sound controls */}
+                   <div className="mb-4 flex items-center gap-3">
+                     <LanguageSelector />
+                     <button
+                       onClick={() => setIsMuted(sounds.toggleMute())}
+                       className="p-2 text-foreground hover:text-primary transition-colors"
+                       aria-label={isMuted ? "Unmute sounds" : "Mute sounds"}
+                     >
+                       {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                     </button>
                   </div>
                   <nav className="flex flex-col gap-4">
                     <NavLink

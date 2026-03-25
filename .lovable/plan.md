@@ -1,87 +1,32 @@
 
 
-## Plan: Standardize All Dashboard Widgets to Match WeeklyGoal Layout
+## Plan: Fix Tribe Text Hierarchy, Spacing, and Widget Height
 
-### Reference Layout (WeeklyGoalWidget)
-```text
-┌─────────────────────────────────┐
-│ 🎯 TITLE                [TAG]  │  ← Header: icon + font-bangers title left, category tag right
-│                                 │
-│         ┌─────────┐             │
-│         │ graphic │             │  ← Center: visual/graphic + supporting text
-│         └─────────┘             │
-│      informational text         │
-│                                 │
-│    ┌─────────────────────┐      │
-│    │   CTA Button →      │      │  ← Bottom: full-width outline CTA button
-│    └─────────────────────┘      │
-└─────────────────────────────────┘
-```
+### Issues from Screenshots
+1. **Tribe description text too small** — `text-sm` and `text-xs` in WelcomeHeroWidget lose hierarchy vs widget content
+2. **Too much gap** between profile picture area and tribe section (WelcomeHeroWidget)
+3. **Widgets feel cramped** — CTA buttons crowd the content above (visible in Learning Hub, Recent Scans, Inventory)
 
-### Widgets to Update (6 total)
+### Changes
 
-**1. QuickScanWidget** — Already close. Make CTA button full-width (`w-full`).
+#### 1. WelcomeHeroWidget — Increase tribe text size + reduce top spacing
+- Tribe intro: `text-sm` → `text-base` ("You're a **The Owl** — the optimizer.")
+- Tribe description: `text-xs` → `text-sm`
+- Tribe values pills: `text-[10px]` → `text-xs`
+- Reduce top padding or margin to bring tribe section closer to profile picture
 
-**2. RecommendationsWidget** — No CTA button. Add a full-width "Browse marketplace →" outline CTA at the bottom.
+#### 2. All grid widgets — Add minimum height for breathing room
+In `WidgetGrid.tsx`, add `min-h-[320px]` to each widget grid cell so content doesn't feel squeezed against the CTA. This gives the body zone more vertical space.
 
-**3. RecentBrewsWidget** — Uses a table layout in its populated state. Restructure: show a Coffee icon + count as the center graphic, supporting text below, full-width CTA "View brews →". In empty state, same pattern as others.
+#### 3. Widget body zone — Add spacing before CTA
+Ensure all widgets have `gap-3` or equivalent spacing in the body flex column, so the CTA doesn't sit flush against list items or text.
 
-**4. FavoritesWidget** — Has two buttons (scan link + "View all"). Remove the scan link, keep only one full-width CTA "View all →" at the bottom. Center the favorite coffee preview as the graphic.
-
-**5. InventoryWidget** — Has a grid of items + "View all" button. Restructure: show Package icon + count as center graphic, supporting text, single full-width CTA "View all →".
-
-**6. RecentScansWidget** — Shows a list of scans + "Scan more" button. Restructure: show scan count/icon as center graphic, supporting text, full-width CTA. In empty state, already matches.
-
-**7. LearningHubWidget** — Currently horizontal layout (ring + stats side-by-side). Restructure to vertical: ring centered, stats text below, full-width CTA at bottom.
-
-**WelcomeHeroWidget** — Excluded (structural widget, intentionally different — no border/shadow).
-
-### Standardized Widget Structure (code pattern)
-Every widget follows this exact wrapper:
-```tsx
-<div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
-  {/* HEADER */}
-  <div className="flex items-center justify-between px-5 pt-5 pb-3">
-    <h3 className="font-bangers text-lg flex items-center gap-2">
-      <Icon className="h-5 w-5 text-{color}" />
-      {title}
-    </h3>
-    <WidgetCategoryTag label={category} />
-  </div>
-  {/* BODY: centered content + full-width CTA */}
-  <div className="px-5 pb-5 flex flex-col items-center justify-center py-4">
-    {/* Graphic element (icon circle, ring, image) */}
-    {/* Supporting text */}
-    {/* Full-width CTA */}
-    <Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-4">
-      <Link to={route}>{ctaLabel}</Link>
-    </Button>
-  </div>
-</div>
-```
-
-### New Documentation File
-Create `docs/WIDGET_DESIGN_STANDARD.md` documenting:
-- The 3-zone layout (header, center content, bottom CTA)
-- CSS classes for the outer wrapper, header, body
-- Rules: one CTA per widget, always full-width outline button, centered graphic in body
-- Icon color conventions per category (secondary for Learn, primary for Experience, accent for others)
+#### 4. Update `docs/WIDGET_DESIGN_STANDARD.md`
+- Document the `min-h-[320px]` on grid cells
+- Note updated text sizes for WelcomeHeroWidget
 
 ### Files to Modify
-- `src/features/dashboard/widgets/QuickScanWidget.tsx` — CTA `w-full`
-- `src/features/dashboard/widgets/RecommendationsWidget.tsx` — add CTA
-- `src/features/dashboard/widgets/RecentBrewsWidget.tsx` — vertical center layout
-- `src/features/dashboard/widgets/FavoritesWidget.tsx` — single CTA, centered content
-- `src/features/dashboard/widgets/InventoryWidget.tsx` — center graphic + single CTA
-- `src/features/dashboard/widgets/RecentScansWidget.tsx` — center graphic + single CTA
-- `src/features/dashboard/widgets/LearningHubWidget.tsx` — vertical layout
-
-### Files to Create
-- `docs/WIDGET_DESIGN_STANDARD.md`
-
-### i18n Keys to Add
-| Key | EN | ES |
-|---|---|---|
-| `widgets.viewBrews` | View brews → | Ver preparaciones → |
-| `widgets.browseMarketplace` | Browse marketplace → | Explorar tienda → |
+- `src/features/dashboard/widgets/WelcomeHeroWidget.tsx` — text sizes + spacing
+- `src/features/dashboard/components/WidgetGrid.tsx` — min-height on grid cells
+- `docs/WIDGET_DESIGN_STANDARD.md` — update standards
 

@@ -54,17 +54,18 @@ const HeroSection = () => {
             </p>
 
             {/* CTA row */}
-            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto">
-              <Button size="lg" className="text-xl font-bangers px-8 py-6 tracking-wide w-full md:w-auto" asChild>
-                <Link to={ROUTES.scanner}>{t("hero.cta")}</Link>
-              </Button>
-              <Button size="lg" variant="outline" className="text-xl font-bangers px-8 py-6 tracking-wide w-full md:w-auto" asChild>
-                <Link to={ROUTES.onboarding}>{t("onboarding.startLearning")}</Link>
-              </Button>
+            <div className="flex flex-col items-center md:items-start gap-4 w-full md:w-auto">
+              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full md:w-auto">
+                <Button size="lg" className="text-xl font-bangers px-8 py-6 tracking-wide w-full md:w-auto" asChild>
+                  <Link to={ROUTES.scanner}>{t("hero.cta")}</Link>
+                </Button>
+                <Button size="lg" variant="outline" className="text-xl font-bangers px-8 py-6 tracking-wide w-full md:w-auto" asChild>
+                  <Link to={ROUTES.onboarding}>{t("onboarding.startLearning")}</Link>
+                </Button>
+              </div>
               <button
                 onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
                 className="text-foreground hover:text-secondary font-inter text-sm font-medium underline underline-offset-4 transition-colors">
-
                 {t("hero.ctaSecondary")}
               </button>
             </div>

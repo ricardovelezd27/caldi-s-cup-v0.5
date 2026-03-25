@@ -14,7 +14,8 @@ import { WidgetCategoryTag } from "./WidgetCategoryTag";
 export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
   const { profile } = useAuth();
   const { t } = useLanguage();
-  const tribeDef = profile?.coffee_tribe ? getTribeDefinition(profile.coffee_tribe) : null;
+  const tribe = profile?.coffee_tribe ?? null;
+  const tribeDef = tribe ? getTribeDefinition(tribe) : null;
   const { currentRank, nextRank, progressToNext, xpNeeded } = useUserRank();
   const [modalOpen, setModalOpen] = useState(false);
 

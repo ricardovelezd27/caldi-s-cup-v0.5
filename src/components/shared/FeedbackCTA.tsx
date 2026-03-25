@@ -9,7 +9,7 @@ export const FeedbackCTA = () => {
   const { t } = useLanguage();
 
   return (
-    <section className="border-4 border-border rounded-lg p-6 shadow-[4px_4px_0px_0px_hsl(var(--border))] bg-card text-center space-y-3">
+    <section className="p-6 text-center space-y-3">
       <h3 className="font-bangers text-xl tracking-wide text-foreground">
         {t("shared.feedbackTitle")}
       </h3>

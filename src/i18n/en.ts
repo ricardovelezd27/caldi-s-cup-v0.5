@@ -691,6 +691,8 @@ export const en = {
     learningHub: "Learning Hub",
     continueLearning: "Continue Learning →",
     dailyProgress: "Today's Progress",
+    viewBrews: "View brews →",
+    browseMarketplace: "Browse marketplace →",
   },
   common: {
     loading: "Loading...",

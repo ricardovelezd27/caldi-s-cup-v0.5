@@ -18,12 +18,12 @@ export function QuickScanWidget({ widget }: WidgetComponentProps) {
         </h3>
         <WidgetCategoryTag label={t("widgets.categoryExperience")} />
       </div>
-      <div className="px-5 pb-5 flex flex-col items-center justify-center py-4 gap-3">
+      <div className="px-5 pb-5 flex flex-col items-center justify-center py-4">
         <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center border-4 border-border">
           <ScanLine className="h-8 w-8 text-secondary" />
         </div>
-        <p className="text-sm text-muted-foreground text-center">{t("widgets.discoverWithAI")}</p>
-        <Button asChild variant="outline" size="sm" className="text-xs gap-1.5">
+        <p className="text-sm text-muted-foreground text-center mt-3">{t("widgets.discoverWithAI")}</p>
+        <Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-4">
           <Link to={ROUTES.scanner}>{t("widgets.startScanning")}</Link>
         </Button>
       </div>

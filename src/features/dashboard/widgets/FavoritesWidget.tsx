@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { useLanguage } from "@/contexts/language";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { useFavorites } from "@/features/coffee/hooks/useFavorites";
 import { FavoritesModal } from "@/features/profile/components/FavoritesModal";
+import { Button } from "@/components/ui/button";
 import type { WidgetComponentProps } from "./types";
 import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
@@ -29,30 +28,32 @@ export function FavoritesWidget({ widget }: WidgetComponentProps) {
           </h3>
           <WidgetCategoryTag label={t("widgets.categoryExperience")} />
         </div>
-        <div className="px-5 pb-5">
+        <div className="px-5 pb-5 flex flex-col items-center justify-center py-4">
           {favorite ? (
-            <div className="block space-y-3">
-              {favorite.imageUrl && (
-                <div className="aspect-square w-full max-w-[120px] mx-auto rounded-lg border-4 border-border overflow-hidden">
+            <>
+              {favorite.imageUrl ? (
+                <div className="w-16 h-16 rounded-lg border-4 border-border overflow-hidden">
                   <img src={favorite.imageUrl} alt={favorite.name} className="w-full h-full object-cover" />
                 </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center border-4 border-border">
+                  <Heart className="h-8 w-8 text-destructive" />
+                </div>
               )}
-              <div className="text-center">
-                <h4 className="font-bangers text-lg tracking-wide truncate">{favorite.name}</h4>
-                {favorite.brand && <p className="text-sm text-muted-foreground">{t("widgets.by")} {favorite.brand}</p>}
-                {favorite.originCountry && <p className="text-xs text-muted-foreground mt-1">{favorite.originCountry}</p>}
-              </div>
-            </div>
+              <h4 className="font-bangers text-lg tracking-wide truncate mt-3 text-center max-w-full">{favorite.name}</h4>
+              {favorite.brand && <p className="text-sm text-muted-foreground text-center">{t("widgets.by")} {favorite.brand}</p>}
+            </>
           ) : (
-            <div className="flex flex-col items-center justify-center py-6 text-center">
-              <Heart className="h-12 w-12 text-muted-foreground/50 mb-3" />
-              <p className="text-muted-foreground mb-3">{t("widgets.noFavoritesYet")}</p>
-              <Button variant="outline" size="sm" className="text-xs gap-1.5" onClick={(e) => e.stopPropagation()} asChild>
-                <Link to="/scanner">{t("widgets.scanToDiscover")}</Link>
-              </Button>
-            </div>
+            <>
+              <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center border-4 border-border">
+                <Heart className="h-8 w-8 text-destructive" />
+              </div>
+              <p className="text-muted-foreground mt-3 text-center">{t("widgets.noFavoritesYet")}</p>
+            </>
           )}
-          <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-3">{t("widgets.viewAll")}</Button>
+          <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-4" onClick={(e) => e.stopPropagation()}>
+            {t("widgets.viewAll")}
+          </Button>
         </div>
       </div>
       <FavoritesModal open={modalOpen} onOpenChange={setModalOpen} />

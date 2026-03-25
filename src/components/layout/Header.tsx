@@ -54,6 +54,7 @@ const LanguageSelector = () => {
 export const Header = ({ showLogo = true }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(() => sounds.isMuted());
   const { user, profile, signOut } = useAuth();
   const { t } = useLanguage();
 

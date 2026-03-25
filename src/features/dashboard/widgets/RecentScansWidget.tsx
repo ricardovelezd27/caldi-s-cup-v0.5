@@ -45,7 +45,7 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
             {recentScans.map((scan: any) => {
               const coffee = scan.coffees as { name: string; brand: string | null } | null;
               return (
-                <li key={scan.id} className="flex items-center gap-2 rounded-md border-2 border-border px-3 py-2">
+                <li key={scan.id} className="flex items-center gap-2 px-3 py-2">
                   <ScanLine className="h-4 w-4 text-secondary shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate text-foreground">{coffee?.name ?? "Unknown"}</p>

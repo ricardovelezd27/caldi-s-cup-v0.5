@@ -51,7 +51,7 @@ export function InventoryWidget({ widget }: WidgetComponentProps) {
               {inventoryItems.map((item: any) => {
                 const coffee = item.coffees as { name: string; brand: string | null } | null;
                 return (
-                  <li key={item.id} className="flex items-center gap-2 rounded-md border-2 border-border px-3 py-2">
+                  <li key={item.id} className="flex items-center gap-2 px-3 py-2">
                     <Package className="h-4 w-4 text-accent shrink-0" />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate text-foreground">{coffee?.name ?? "Unknown"}</p>

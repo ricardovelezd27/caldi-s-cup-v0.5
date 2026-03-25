@@ -14,7 +14,8 @@ import { WidgetCategoryTag } from "./WidgetCategoryTag";
 export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
   const { profile } = useAuth();
   const { t } = useLanguage();
-  const tribeDef = profile?.coffee_tribe ? getTribeDefinition(profile.coffee_tribe) : null;
+  const tribe = profile?.coffee_tribe ?? null;
+  const tribeDef = tribe ? getTribeDefinition(tribe) : null;
   const { currentRank, nextRank, progressToNext, xpNeeded } = useUserRank();
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -26,10 +27,10 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
           {tribeDef ? (
             <>
               <p className="leading-relaxed text-primary-foreground text-lg font-medium">
-                {t("widgets.youreA")} <span className={`font-bold ${tribeDef.colorClass}`}>{tribeDef.name}</span> — {tribeDef.title.toLowerCase()}.
+                {t("widgets.youreA")} <span className={`font-bold ${tribeDef.colorClass}`}>{t(`tribes.${tribe}.name`)}</span> — {t(`tribes.${tribe}.title`).toLowerCase()}.
               </p>
               <p className="text-primary-foreground text-base">
-                {tribeDef.description}
+                {t(`tribes.${tribe}.description`)}
               </p>
             </>
           ) : (
@@ -59,7 +60,7 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
       {/* Tribe values */}
       {tribeDef && (
         <div className="flex flex-wrap gap-1.5 mt-3">
-          {tribeDef.values.map((v) => (
+          {t(`tribes.${tribe}.values`).split(",").map((v) => (
             <span
               key={v}
               className="text-xs font-medium px-2 py-0.5 rounded-full border border-border/50 bg-muted/50 text-muted-foreground"

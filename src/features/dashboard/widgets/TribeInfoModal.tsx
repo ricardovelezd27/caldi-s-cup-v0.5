@@ -17,7 +17,8 @@ export function TribeInfoModal({ open, onOpenChange }: TribeInfoModalProps) {
   const { profile } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const tribeDef = profile?.coffee_tribe ? getTribeDefinition(profile.coffee_tribe) : null;
+  const tribe = profile?.coffee_tribe ?? null;
+  const tribeDef = tribe ? getTribeDefinition(tribe) : null;
 
   const handleRetake = () => {
     try {
@@ -38,19 +39,19 @@ export function TribeInfoModal({ open, onOpenChange }: TribeInfoModalProps) {
                 <span className="text-3xl">{tribeDef.emoji}</span>
               </div>
               <DialogTitle className={cn("font-bangers text-3xl tracking-wide", tribeDef.colorClass)}>
-                {tribeDef.name}
+                {t(`tribes.${tribe}.name`)}
               </DialogTitle>
               <DialogDescription className="text-muted-foreground">
-                {tribeDef.title}
+                {t(`tribes.${tribe}.title`)}
               </DialogDescription>
             </DialogHeader>
 
             <p className="text-sm text-muted-foreground leading-relaxed text-center">
-              {tribeDef.description}
+              {t(`tribes.${tribe}.description`)}
             </p>
 
             <div className="flex flex-wrap justify-center gap-2">
-              {tribeDef.values.map((v) => (
+              {t(`tribes.${tribe}.values`).split(",").map((v) => (
                 <span key={v} className="text-xs px-2 py-1 rounded-full border bg-muted text-muted-foreground">
                   {v}
                 </span>

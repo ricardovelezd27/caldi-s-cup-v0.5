@@ -1,41 +1,38 @@
 
 
-## Plan: Harden Lesson Completion Pipeline
-
-### Problem
-`handleLessonDone` in `LessonScreen.tsx` has a single try/catch around multiple async operations — one failure blocks everything. No double-click guard exists, so rapid taps can award XP twice. `addXPToDaily` in `streakService.ts` hardcodes `is_achieved: xp >= 10` instead of using the user's actual daily goal.
+## Plan: Enhance Sound Design with Richer Audio and Mute Toggle
 
 ### Changes
 
-#### 1. `src/features/learning/components/lesson/LessonScreen.tsx`
+#### 1. `src/constants/storageKeys.ts` — Add mute key
+Add `SOUND_MUTED: 'caldi_sound_muted'` to the storage keys object.
 
-- Add `import { useRef } from "react"` and `import { toast } from "sonner"`
-- Add `const hasSubmittedRef = useRef(false)` inside the component
-- At top of `handleLessonDone`: early-return if `hasSubmittedRef.current` is true, then set it to true
-- Break the single try/catch into individually-wrapped operations:
-  - **Streak RPC** (critical): toast error on fail, continue
-  - **Daily goal + league XP**: catch individually, log, continue
-  - **Profile XP update**: catch, log, continue
-  - **Progress upsert** (critical): toast warning on fail
-  - **Achievements**: catch, continue, call `onComplete()` anyway
-- Reset `hasSubmittedRef.current = false` in the finally block
+#### 2. `src/features/learning/utils/sounds.ts` — Richer sounds + mute support
+- Add `muted` property initialized from `localStorage('caldi_sound_muted')`
+- Add `toggleMute()` method that flips the flag and persists to localStorage, returns new state
+- Add `isMuted()` getter
+- All `play*` methods early-return if muted
+- **`playCorrect()`**: 3-note arpeggio F#4(370Hz) → A#4(466Hz) → C#5(554Hz), 80ms spacing, sine wave
+- **`playIncorrect()`**: descending E4(330Hz) → C4(262Hz), triangle wave, 100ms spacing
+- **`playLessonComplete()`**: 5-note fanfare C5(523) → E5(659) → G5(784) → C6(1047) → E6(1319), 50ms intervals, last note sustains 300ms
+- **`playStreakMilestone()`**: deeper celebratory G4(392) → B4(494) → D5(587) → G5(784), 150ms each
 
-#### 2. `src/services/gamification/streakService.ts`
+#### 3. `src/features/learning/components/lesson/LessonComplete.tsx` — Play fanfare
+Add `useEffect` on mount that calls `sounds.playLessonComplete()`.
 
-- In `addXPToDaily()`, when inserting a new row (no existing goal), fetch the user's most recent `goal_xp` from `learning_user_daily_goals` to use as the threshold instead of hardcoded `10`:
-  ```
-  const { data: lastGoal } = await supabase
-    .from("learning_user_daily_goals")
-    .select("goal_xp")
-    .eq("user_id", userId)
-    .order("date", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const threshold = lastGoal?.goal_xp ?? 10;
-  ```
-- Use `threshold` in `is_achieved: xp >= threshold`
+#### 4. `src/features/learning/components/gamification/StreakMilestone.tsx` — Play streak sound
+Add `useEffect` when `open` becomes true that calls `sounds.playStreakMilestone()`.
+
+#### 5. `src/components/layout/Header.tsx` — Mute toggle button
+- Import `Volume2, VolumeX` from lucide-react and `sounds` from the sound manager
+- Add `isMuted` state initialized from `sounds.isMuted()`
+- Add a ghost icon button (Volume2/VolumeX) placed before the user menu on desktop, and at top of mobile nav next to the language selector
+- On click: call `sounds.toggleMute()` and update local state
 
 ### Files to modify
-- `src/features/learning/components/lesson/LessonScreen.tsx`
-- `src/services/gamification/streakService.ts`
+- `src/constants/storageKeys.ts`
+- `src/features/learning/utils/sounds.ts`
+- `src/features/learning/components/lesson/LessonComplete.tsx`
+- `src/features/learning/components/gamification/StreakMilestone.tsx`
+- `src/components/layout/Header.tsx`
 

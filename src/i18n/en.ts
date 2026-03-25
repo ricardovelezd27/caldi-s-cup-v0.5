@@ -426,6 +426,10 @@ export const en = {
     errorFavorites: "Failed to update favorites. Please try again.",
     errorInventory: "Failed to add to inventory. Please try again.",
     linkCopied: "Link copied to clipboard!",
+    whatsNextTitle: "What's Next?",
+    whatsNextDiscover: "Discover Your Coffee Tribe",
+    whatsNextSignUp: "Sign Up to Save This Coffee",
+    whatsNextScanAnother: "Scan Another Coffee",
   },
   shared: {
     feedbackTitle: "Got thoughts? We're all ears ☕",

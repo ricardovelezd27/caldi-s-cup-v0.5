@@ -1,40 +1,28 @@
 
 
-## Plan: Add "What's Next" Card for Anonymous Users on Coffee Profile
+## Plan: Migrate Anonymous Progress on Signup
 
 ### Summary
-Add a new component `WhatsNextCard` rendered at the bottom of the coffee profile page, visible only when no user is logged in. It features the Caldi mascot (celebrating mood) and three CTAs.
+Replace the `localStorage.removeItem` cleanup in `useAnonymousProgress` with a migration that persists anonymous lesson completions and XP to the database when a user signs in.
 
 ### Changes
 
-**1. New component: `src/features/coffee/components/WhatsNextCard.tsx`**
-- Uses `useAuth` to confirm `!user` (caller already gates rendering, but defensive)
-- Renders Caldi mascot via `MascotCharacter` with `mood="celebrating"` and `size="lg"`
-- Card styled with `border-4 border-border shadow-[4px_4px_0px_0px_hsl(var(--border))] rounded-lg`
-- Three CTAs using `Link` + `Button`:
-  - Primary: `t("coffee.whatsNext.discoverTribe")` → `/quiz`
-  - Secondary (outline): `t("coffee.whatsNext.signUp")` → `/auth`
-  - Tertiary (ghost): `t("coffee.whatsNext.scanAnother")` → `/scanner`
-- Heading: `t("coffee.whatsNext.title")` with `font-bangers`
+**1. `src/features/learning/services/progressService.ts`**
+- Add `migrateAnonymousProgress(userId, progress)` function
+- For each `lessonsCompleted` entry, call `upsertLessonProgress` with minimal data (isCompleted: true, xpEarned: 0 since XP is handled separately)
+- Award accumulated `totalXP` via `awardXP(userId, 'anonymous_migration', totalXP)` from xpService
+- Entire function wrapped in try/catch — errors logged but never thrown
 
-**2. `src/features/coffee/CoffeeProfilePage.tsx`**
-- Import `useAuth` and `WhatsNextCard`
-- Between `<CoffeeProfile>` and `<FeedbackCTA>`, conditionally render `<WhatsNextCard />` when `!user`
-- No changes to existing coffee profile logic
+**2. `src/features/learning/hooks/useAnonymousProgress.ts`**
+- Replace the `useEffect` that does `localStorage.removeItem` with one that:
+  1. Reads current progress
+  2. If `lessonsCompleted.length > 0`, calls `migrateAnonymousProgress(userId, progress)`
+  3. Then clears localStorage
+- Fire-and-forget pattern: `migrateAnonymousProgress(...).then(() => localStorage.removeItem(...))`
 
-**3. `src/i18n/en.ts`** — Add under `coffee`:
-```
-whatsNextTitle: "What's Next?",
-whatsNextDiscover: "Discover Your Coffee Tribe",
-whatsNextSignUp: "Sign Up to Save This Coffee",
-whatsNextScanAnother: "Scan Another Coffee",
-```
-
-**4. `src/i18n/es.ts`** — Add matching Spanish keys:
-```
-whatsNextTitle: "¿Qué sigue?",
-whatsNextDiscover: "Descubre Tu Tribu de Café",
-whatsNextSignUp: "Regístrate para Guardar Este Café",
-whatsNextScanAnother: "Escanear Otro Café",
-```
+### Key details
+- Uses existing `upsertLessonProgress` — no new DB calls
+- Uses existing `awardXP` from `xpService` for XP migration
+- Migration failures are caught and logged; login is never blocked
+- localStorage is only cleared after successful migration (or on error, to avoid retry loops)
 

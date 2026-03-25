@@ -55,6 +55,7 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
   const [showAchievement, setShowAchievement] = useState<LearningAchievement | null>(null);
   const [isProcessingComplete, setIsProcessingComplete] = useState(false);
   const [isReview, setIsReview] = useState(false);
+  const hasSubmittedRef = useRef(false);
 
   const handleSubmitAnswer = useCallback(
     (answer: any, isCorrect: boolean) => {

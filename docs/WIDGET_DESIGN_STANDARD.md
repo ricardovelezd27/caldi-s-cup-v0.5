@@ -92,7 +92,7 @@ All dashboard widgets (except structural ones like `WelcomeHero`) must follow th
 ## Zone 3 — CTA Button (Bottom)
 
 ```tsx
-<Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-4">
+<Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-auto">
   <Link to={route}>{ctaLabel}</Link>
 </Button>
 ```

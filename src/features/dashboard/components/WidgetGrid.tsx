@@ -77,7 +77,7 @@ export function WidgetGrid() {
       {gridWidgets.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {gridWidgets.map((widget) => (
-            <div key={widget.id}>
+            <div key={widget.id} className="min-h-[320px]">
               <WidgetWrapper
                 widget={widget}
                 isEditing={isEditing}

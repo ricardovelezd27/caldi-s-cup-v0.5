@@ -19,16 +19,16 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
-    <div className="relative h-full overflow-hidden rounded-lg bg-card p-5">
+    <div className="relative h-full overflow-hidden rounded-lg bg-card p-4">
       {/* Top row: tribe intro + desktop button */}
       <div className="relative flex items-start justify-between gap-3">
         <div className="flex-1 space-y-1">
           {tribeDef ? (
             <>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-base text-muted-foreground leading-relaxed">
                 {t("widgets.youreA")} <span className={`font-bold ${tribeDef.colorClass}`}>{tribeDef.name}</span> — {tribeDef.title.toLowerCase()}.
               </p>
-              <p className="text-xs text-muted-foreground/70">
+              <p className="text-sm text-muted-foreground/70">
                 {tribeDef.description}
               </p>
             </>
@@ -62,7 +62,7 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
           {tribeDef.values.map((v) => (
             <span
               key={v}
-              className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-border/50 bg-muted/50 text-muted-foreground"
+              className="text-xs font-medium px-2 py-0.5 rounded-full border border-border/50 bg-muted/50 text-muted-foreground"
             >
               {v}
             </span>

@@ -22,8 +22,10 @@ All dashboard widgets (except structural ones like `WelcomeHero`) must follow th
 ## Outer Wrapper
 
 ```tsx
-<div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))] flex flex-col">
+<div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))] flex flex-col min-h-[320px]">
 ```
+
+- `min-h-[320px]` — minimum height for breathing room (applied via grid cell or widget itself)
 
 - `border-4 border-border` — 4px Bean Black border
 - `shadow-[4px_4px_0px_0px_hsl(var(--border))]` — hard sticker shadow

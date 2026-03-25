@@ -19,6 +19,14 @@ export default function OnboardingFlow() {
   const { setGoal: setDailyGoal } = useDailyGoal();
   const { addWidget } = useDashboardWidgets();
   const [navigating, setNavigating] = useState(false);
+  const { isLoading } = useAuth();
+
+  // Unauthenticated users should use the quiz flow instead
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate(ROUTES.quiz, { replace: true });
+    }
+  }, [isLoading, user, navigate]);
 
   // If already completed, redirect to /learn
   useEffect(() => {

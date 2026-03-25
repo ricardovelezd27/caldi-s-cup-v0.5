@@ -1,5 +1,7 @@
+import { Link } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { useLanguage } from "@/contexts/language";
+import { Button } from "@/components/ui/button";
 import type { WidgetComponentProps } from "./types";
 import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
@@ -15,12 +17,13 @@ export function RecommendationsWidget({ widget }: WidgetComponentProps) {
         </h3>
         <WidgetCategoryTag label={t("widgets.categoryAI")} />
       </div>
-      <div className="px-5 pb-5">
-        <div className="flex flex-col items-center justify-center py-6 text-center">
-          <Sparkles className="h-12 w-12 text-muted-foreground/50 mb-3" />
-          <p className="text-muted-foreground">{t("widgets.aiComingSoon")}</p>
-          <p className="text-sm text-muted-foreground/70 mt-1">{t("widgets.scanMoreForRecs")}</p>
-        </div>
+      <div className="px-5 pb-5 flex flex-col items-center justify-center py-4">
+        <Sparkles className="h-12 w-12 text-muted-foreground/50 mb-3" />
+        <p className="text-muted-foreground text-center">{t("widgets.aiComingSoon")}</p>
+        <p className="text-sm text-muted-foreground/70 mt-1 text-center">{t("widgets.scanMoreForRecs")}</p>
+        <Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-4">
+          <Link to="/marketplace">{t("widgets.browseMarketplace")}</Link>
+        </Button>
       </div>
     </div>
   );

@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Package } from "lucide-react";
 import { useLanguage } from "@/contexts/language";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import { InventoryModal } from "@/features/profile/components/InventoryModal";
+import { Button } from "@/components/ui/button";
 import type { WidgetComponentProps } from "./types";
 import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
@@ -29,22 +28,6 @@ export function InventoryWidget({ widget }: WidgetComponentProps) {
     enabled: !!user?.id,
   });
 
-  const { data: inventoryItems = [] } = useQuery({
-    queryKey: ["inventory-preview", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from("user_coffee_inventory")
-        .select(`id, quantity_grams, coffee:coffees (id, name, brand, image_url)`)
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(4);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id,
-  });
-
   return (
     <>
       <div
@@ -58,34 +41,22 @@ export function InventoryWidget({ widget }: WidgetComponentProps) {
           </h3>
           <WidgetCategoryTag label={t("widgets.categoryExperience")} />
         </div>
-        <div className="px-5 pb-5">
-          {inventoryItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-6 text-center">
-              <Package className="h-12 w-12 text-muted-foreground/50 mb-3" />
-              <p className="text-muted-foreground mb-3">{t("widgets.noInventory")}</p>
-              <Button variant="outline" size="sm" className="text-xs gap-1.5" onClick={(e) => e.stopPropagation()} asChild>
-                <Link to="/scanner">{t("widgets.scanToAdd")}</Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-2">
-              {inventoryItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="p-2 rounded-lg border border-border bg-muted/30 text-center"
-                >
-                  {item.coffee?.image_url && (
-                    <div className="w-12 h-12 mx-auto rounded border-2 border-border overflow-hidden mb-2">
-                      <img src={item.coffee.image_url} alt={item.coffee?.name || "Coffee"} className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                  <p className="text-xs font-medium truncate">{item.coffee?.name || "Unknown"}</p>
-                  {item.quantity_grams && <p className="text-xs text-muted-foreground">{item.quantity_grams}g</p>}
-                </div>
-              ))}
-            </div>
-          )}
-          <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-3">{t("widgets.viewAll")}</Button>
+        <div className="px-5 pb-5 flex flex-col items-center justify-center py-4">
+          <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center border-4 border-border">
+            {totalCount > 0 ? (
+              <span className="font-bangers text-2xl text-foreground">{totalCount}</span>
+            ) : (
+              <Package className="h-8 w-8 text-accent" />
+            )}
+          </div>
+          <p className="text-muted-foreground text-center mt-3">
+            {totalCount > 0
+              ? `${totalCount} ${t("widgets.myInventory").toLowerCase()}`
+              : t("widgets.noInventory")}
+          </p>
+          <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-4" onClick={(e) => e.stopPropagation()}>
+            {t("widgets.viewAll")}
+          </Button>
         </div>
       </div>
       <InventoryModal open={modalOpen} onOpenChange={setModalOpen} />

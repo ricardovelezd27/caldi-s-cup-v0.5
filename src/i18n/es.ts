@@ -678,6 +678,8 @@ export const es = {
     learningHub: "Centro de Aprendizaje",
     continueLearning: "Continuar Aprendiendo →",
     dailyProgress: "Progreso de Hoy",
+    viewBrews: "Ver preparaciones →",
+    browseMarketplace: "Explorar tienda →",
   },
   common: {
     loading: "Cargando...",

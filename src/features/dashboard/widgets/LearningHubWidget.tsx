@@ -10,7 +10,7 @@ import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function LearningHubWidget({ widget }: WidgetComponentProps) {
   const { t } = useLanguage();
-  const { goal, isLoading } = useDailyGoal();
+  const { goal } = useDailyGoal();
   const { streak } = useStreak();
 
   const preferredTrack = (widget.config as { preferredTrack?: string })?.preferredTrack;
@@ -34,10 +34,9 @@ export function LearningHubWidget({ widget }: WidgetComponentProps) {
         </h3>
         <WidgetCategoryTag label={t("widgets.categoryLearn")} />
       </div>
-
-      <div className="px-5 pb-5 flex items-center gap-5">
+      <div className="px-5 pb-5 flex flex-col items-center justify-center py-4">
         {/* Daily goal ring */}
-        <div className="relative w-24 h-24 flex-shrink-0">
+        <div className="relative w-24 h-24">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
             <circle
@@ -57,28 +56,25 @@ export function LearningHubWidget({ widget }: WidgetComponentProps) {
           </div>
         </div>
 
-        {/* Stats + CTA */}
-        <div className="flex flex-col gap-2 flex-1 min-w-0">
-          <p className="text-sm font-medium text-foreground">
-            {t("widgets.dailyProgress")}
+        <p className="text-sm font-medium text-foreground mt-3">
+          {t("widgets.dailyProgress")}
+        </p>
+
+        {isGoalAchieved && (
+          <p className="text-xs text-secondary font-medium mt-1">
+            {t("widgets.goalReached")}
           </p>
+        )}
 
-          {isGoalAchieved && (
-            <p className="text-xs text-secondary font-medium">
-              {t("widgets.goalReached")}
-            </p>
-          )}
+        {streak && streak.currentStreak > 0 && (
+          <p className="text-xs text-muted-foreground mt-1">
+            🔥 {streak.currentStreak} {t("widgets.dayStreak")}
+          </p>
+        )}
 
-          {streak && streak.currentStreak > 0 && (
-            <p className="text-xs text-muted-foreground">
-              🔥 {streak.currentStreak} {t("widgets.dayStreak")}
-            </p>
-          )}
-
-          <Button asChild variant="outline" size="sm" className="text-xs gap-1.5 mt-1 w-fit">
-            <Link to={learnUrl}>{t("widgets.continueLearning")}</Link>
-          </Button>
-        </div>
+        <Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-4">
+          <Link to={learnUrl}>{t("widgets.continueLearning")}</Link>
+        </Button>
       </div>
     </div>
   );

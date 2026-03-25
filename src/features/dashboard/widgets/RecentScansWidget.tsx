@@ -2,37 +2,26 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { History, ScanLine } from "lucide-react";
-import { format } from "date-fns";
 import { useLanguage } from "@/contexts/language";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/auth";
 import type { WidgetComponentProps } from "./types";
-import type { RecentScan } from "../types/dashboard";
 import { WidgetCategoryTag } from "./WidgetCategoryTag";
 
 export function RecentScansWidget({ widget }: WidgetComponentProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
 
-  const { data: recentScans = [] } = useQuery({
-    queryKey: ["recent-scans", user?.id],
-    queryFn: async (): Promise<RecentScan[]> => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
+  const { data: scanCount = 0 } = useQuery({
+    queryKey: ["scan-count", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const { count, error } = await supabase
         .from("coffee_scans")
-        .select(`id, coffee_id, image_url, scanned_at, coffees (id, name, brand)`)
-        .eq("user_id", user.id)
-        .order("scanned_at", { ascending: false })
-        .limit(3);
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id);
       if (error) throw error;
-      return (data ?? []).map((scan: any) => ({
-        id: scan.id,
-        coffeeId: scan.coffee_id,
-        coffeeName: scan.coffees?.name ?? "Unknown Coffee",
-        brand: scan.coffees?.brand ?? null,
-        imageUrl: scan.image_url,
-        scannedAt: scan.scanned_at,
-      }));
+      return count ?? 0;
     },
     enabled: !!user?.id,
   });
@@ -46,42 +35,22 @@ export function RecentScansWidget({ widget }: WidgetComponentProps) {
         </h3>
         <WidgetCategoryTag label={t("widgets.categoryExperience")} />
       </div>
-      <div className="px-5 pb-5">
-        {recentScans.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-6 text-center">
-            <ScanLine className="h-12 w-12 text-muted-foreground/50 mb-3" />
-            <p className="text-muted-foreground mb-3">{t("widgets.noScansYet")}</p>
-            <Button asChild variant="outline" size="sm" className="text-xs gap-1.5">
-              <Link to="/scanner">{t("widgets.startScanning")}</Link>
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {recentScans.map((scan) => (
-              <Link
-                key={scan.id}
-                to={`/coffee/${scan.coffeeId}`}
-                className="flex items-center gap-3 p-2 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
-              >
-                {scan.imageUrl && (
-                  <div className="w-12 h-12 rounded border-2 border-border overflow-hidden shrink-0">
-                    <img src={scan.imageUrl} alt={scan.coffeeName} className="w-full h-full object-cover" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate text-sm">{scan.coffeeName}</p>
-                  {scan.brand && <p className="text-xs text-muted-foreground truncate">{scan.brand}</p>}
-                </div>
-                <span className="text-xs text-muted-foreground shrink-0">
-                  {scan.scannedAt ? format(new Date(scan.scannedAt), "MMM d") : "—"}
-                </span>
-              </Link>
-            ))}
-            <Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-3">
-              <Link to="/scanner">{t("widgets.scanMore")}</Link>
-            </Button>
-          </div>
-        )}
+      <div className="px-5 pb-5 flex flex-col items-center justify-center py-4">
+        <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center border-4 border-border">
+          {scanCount > 0 ? (
+            <span className="font-bangers text-2xl text-foreground">{scanCount}</span>
+          ) : (
+            <ScanLine className="h-8 w-8 text-secondary" />
+          )}
+        </div>
+        <p className="text-muted-foreground text-center mt-3">
+          {scanCount > 0
+            ? `${scanCount} ${t("widgets.recentScans").toLowerCase()}`
+            : t("widgets.noScansYet")}
+        </p>
+        <Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-4">
+          <Link to="/scanner">{scanCount > 0 ? t("widgets.scanMore") : t("widgets.startScanning")}</Link>
+        </Button>
       </div>
     </div>
   );

@@ -60,6 +60,7 @@
 | Track Navigation (TrackPathView) | ✅ Complete | L5 |
 | Lesson Exercise UI Polish | ✅ Complete | L6 |
 | Exercise Error Reporting | ✅ Complete | L6 |
+| Dashboard & Profile Polish | ✅ Complete | 8 |
 
 ---
 

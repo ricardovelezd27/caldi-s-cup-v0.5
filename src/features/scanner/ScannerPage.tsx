@@ -59,6 +59,11 @@ export function ScannerPage() {
         isTemporaryImage = true;
       }
 
+      // Record scan for anonymous gate tracking
+      if (!user) {
+        recordScan();
+      }
+
       if (user && individualImagesRef.current.length > 1) {
         uploadScanImages(user.id, coffeeId, individualImagesRef.current);
       }
@@ -99,6 +104,35 @@ export function ScannerPage() {
           </h1>
           <p className="text-muted-foreground mt-1">{t("scanner.subtitle")}</p>
         </div>
+
+        {/* Anonymous signup nudge banner */}
+        {!user && shouldShowSignupBanner && (
+          <Alert className="mb-6 border-4 border-secondary bg-secondary/5">
+            <UserPlus className="h-4 w-4 text-secondary" />
+            <AlertTitle className="font-bangers">{t("scanner.signupNudge")}</AlertTitle>
+            <AlertDescription className="flex items-center gap-3">
+              <span className="font-inter text-sm">{t("scanner.signupBenefit1")}</span>
+              <Button asChild size="sm" variant="secondary" className="ml-auto shrink-0">
+                <Link to={ROUTES.auth}>{t("scanner.signupNudgeCta")}</Link>
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Forced signup modal for anonymous users after max scans */}
+        {!user && shouldForceSignup && (
+          <SignupPrompt
+            open
+            onOpenChange={() => {}}
+            forceful
+            benefits={[
+              t("scanner.signupBenefit1"),
+              t("scanner.signupBenefit2"),
+              t("scanner.signupBenefit3"),
+              t("scanner.signupBenefit4"),
+            ]}
+          />
+        )}
 
         {/* Pill-style mode toggle */}
         <div className="mb-6 flex items-center gap-3">
@@ -196,7 +230,7 @@ export function ScannerPage() {
                   <TribeScannerPreview tribe={profile.coffee_tribe} />
                 )}
                 <div className="max-w-xl mx-auto">
-                  <ScanUploader onImagesReady={handleImagesReady} disabled={isScanning} />
+                  <ScanUploader onImagesReady={handleImagesReady} disabled={isScanning || (!user && shouldForceSignup)} />
                 </div>
                 <ScanningTips />
               </div>

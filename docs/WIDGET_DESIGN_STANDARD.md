@@ -124,8 +124,16 @@ All dashboard widgets (except structural ones like `WelcomeHero`) must follow th
 
 ## Exceptions
 
-- **WelcomeHeroWidget** — structural widget, no border/shadow, different layout
+- **WelcomeHeroWidget** — structural widget, no border/shadow, different layout. Text hierarchy: tribe intro `text-lg font-medium`, description `text-base`, values pills `text-xs`, rank badge `text-sm`, progress label `text-sm`. All tribe text uses `t()` i18n keys (`tribes.{id}.name/title/description/values`).
 - **CoffeeTribeWidget / BrewingLevelWidget** — hidden widgets, follow the standard but may not appear in the grid
+
+## i18n for Tribe Content
+
+All tribe-related text (name, title, description, values) must use `t("tribes.{tribe}.{field}")` — never read directly from `tribes.ts` definitions. The `values` field is stored as a comma-separated string in i18n dictionaries and split at render time: `t("tribes.owl.values").split(",")`.
+
+## FeedbackCTA
+
+The `FeedbackCTA` component is intentionally unstyled (no border, shadow, or card background) to visually distinguish it from dashboard widgets. It appears at the bottom of key pages (Profile, Scanner, Coffee Profile) as a lightweight feedback prompt.
 
 ## Clickable Widgets
 

@@ -4,6 +4,22 @@ All notable changes to Caldi's Cup are documented here.
 
 ---
 
+## [2.2.0] - 2026-03-25 - Dashboard & Profile Polish
+
+### Changed
+- **Widget Text Hierarchy**: Increased tribe intro text to `text-lg font-medium`, description to `text-base`, rank badge to `text-sm`, and progress labels to `text-sm` in WelcomeHeroWidget
+- **Widget Minimum Height**: Added `min-h-[320px]` to all widget grid cells for consistent vertical breathing room
+- **Tribe i18n**: All tribe name, title, description, and values text now uses `t()` translations instead of hardcoded English — affects WelcomeHeroWidget, TribeInfoModal, and TribeSection
+- **FeedbackCTA Styling**: Removed border, shadow, and card background so it no longer resembles a widget
+
+### Removed
+- **WeeklyGoalWidget**: Deleted widget (replaced by LearningHubWidget); removed from widget registry and type definitions
+
+### Documentation
+- Updated `docs/WIDGET_DESIGN_STANDARD.md` with min-height, i18n rules, and FeedbackCTA notes
+
+---
+
 ## [2.1.0] - 2026-03-09 - Lesson Exercise UI Polish (Phase L6)
 
 ### Added

@@ -19,7 +19,7 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
-    <div className="relative h-full overflow-hidden rounded-lg bg-card p-5">
+    <div className="relative h-full overflow-hidden rounded-lg bg-card p-4">
       {/* Top row: tribe intro + desktop button */}
       <div className="relative flex items-start justify-between gap-3">
         <div className="flex-1 space-y-1">

@@ -27,10 +27,10 @@ export function WelcomeHeroWidget({ widget }: WidgetComponentProps) {
           {tribeDef ? (
             <>
               <p className="leading-relaxed text-primary-foreground text-lg font-medium">
-                {t("widgets.youreA")} <span className={`font-bold ${tribeDef.colorClass}`}>{tribeDef.name}</span> — {tribeDef.title.toLowerCase()}.
+                {t("widgets.youreA")} <span className={`font-bold ${tribeDef.colorClass}`}>{t(`tribes.${tribe}.name`)}</span> — {t(`tribes.${tribe}.title`).toLowerCase()}.
               </p>
               <p className="text-primary-foreground text-base">
-                {tribeDef.description}
+                {t(`tribes.${tribe}.description`)}
               </p>
             </>
           ) : (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface MascotDialogueProps {
@@ -8,18 +8,21 @@ interface MascotDialogueProps {
 }
 
 export function MascotDialogue({ text, position = "right", className }: MascotDialogueProps) {
+  // Capture the first text value to prevent typewriter restart on re-renders
+  const stableText = useRef(text);
   const [displayed, setDisplayed] = useState("");
 
   useEffect(() => {
+    const target = stableText.current;
     setDisplayed("");
     let i = 0;
     const interval = setInterval(() => {
       i++;
-      setDisplayed(text.slice(0, i));
-      if (i >= text.length) clearInterval(interval);
+      setDisplayed(target.slice(0, i));
+      if (i >= target.length) clearInterval(interval);
     }, 25);
     return () => clearInterval(interval);
-  }, [text]);
+  }, []); // run once on mount only
 
   return (
     <div

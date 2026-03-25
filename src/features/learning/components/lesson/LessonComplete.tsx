@@ -35,6 +35,7 @@ export function LessonComplete({
   isReview,
 }: LessonCompleteProps) {
   const { t } = useLanguage();
+  const { user } = useAuth();
 
   useEffect(() => { sounds.playLessonComplete(); }, []);
 

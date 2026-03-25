@@ -32,6 +32,9 @@ export const useQuizState = () => {
           return parsed;
         }
       }
+      // If completed or no saved state, clear stale keys
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(RESULT_STORAGE_KEY);
     } catch {
       // Ignore errors, use initial state
     }
@@ -92,12 +95,12 @@ export const useQuizState = () => {
     }
   }, []);
 
-  // Start quiz (move from hook to first scenario)
+  // Start quiz (move from hook to first scenario, always from clean state)
   const startQuiz = useCallback(() => {
-    const newState = { ...state, currentStep: 1 };
+    const newState: QuizState = { ...initialState, currentStep: 1 };
     setState(newState);
     persistState(newState);
-  }, [state, persistState]);
+  }, [persistState]);
 
   // Select an answer for current scenario
   const selectAnswer = useCallback((scenarioId: number, tribe: CoffeeTribe) => {

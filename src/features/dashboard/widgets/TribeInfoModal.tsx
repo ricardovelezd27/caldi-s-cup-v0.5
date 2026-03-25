@@ -47,7 +47,7 @@ export function TribeInfoModal({ open, onOpenChange }: TribeInfoModalProps) {
             </DialogHeader>
 
             <p className="text-sm text-muted-foreground leading-relaxed text-center">
-              {tribeDef.description}
+              {t(`tribes.${tribe}.description`)}
             </p>
 
             <div className="flex flex-wrap justify-center gap-2">

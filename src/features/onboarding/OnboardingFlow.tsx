@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared";
 import { useOnboarding } from "./hooks/useOnboarding";
+import { useAuth } from "@/contexts/auth";
+import { useDailyGoal } from "@/features/learning/hooks/useDailyGoal";
+import { useDashboardWidgets } from "@/hooks/useDashboardWidgets";
 import { InterestPicker } from "./steps/InterestPicker";
 import { GoalPicker } from "./steps/GoalPicker";
 import { getSections, getUnits, getLessons } from "@/features/learning/services/learningService";
@@ -11,7 +14,10 @@ import { ROUTES } from "@/constants/app";
 
 export default function OnboardingFlow() {
   const navigate = useNavigate();
-  const { step, selectedTrackId, hasCompleted, setTrack, setGoal, markCompleted } = useOnboarding();
+  const { user } = useAuth();
+  const { step, selectedTrackId, selectedGoalXp, hasCompleted, setTrack, setGoal, markCompleted } = useOnboarding();
+  const { setGoal: setDailyGoal } = useDailyGoal();
+  const { addWidget } = useDashboardWidgets();
   const [navigating, setNavigating] = useState(false);
 
   // If already completed, redirect to /learn
@@ -21,7 +27,7 @@ export default function OnboardingFlow() {
     }
   }, [hasCompleted, navigate]);
 
-  // After goal step completes, find first lesson and navigate
+  // After goal step completes, persist to DB and find first lesson
   useEffect(() => {
     if (step !== "done" || !selectedTrackId || navigating) return;
 
@@ -30,6 +36,19 @@ export default function OnboardingFlow() {
 
     (async () => {
       try {
+        // Persist choices to DB for authenticated users
+        if (user && selectedGoalXp) {
+          try {
+            await setDailyGoal(selectedGoalXp);
+            await addWidget.mutateAsync({
+              widgetType: "learning_hub" as any,
+              config: { preferredTrack: selectedTrackId },
+            });
+          } catch (persistErr) {
+            console.warn("Onboarding: failed to persist choices to DB", persistErr);
+          }
+        }
+
         const sections = await getSections(selectedTrackId);
         if (cancelled || sections.length === 0) return;
         const firstSection = sections.sort((a, b) => a.sortOrder - b.sortOrder)[0];
@@ -52,7 +71,7 @@ export default function OnboardingFlow() {
     })();
 
     return () => { cancelled = true; };
-  }, [step, selectedTrackId, navigating, navigate, markCompleted]);
+  }, [step, selectedTrackId, navigating, navigate, markCompleted, user, selectedGoalXp, setDailyGoal, addWidget]);
 
   if (hasCompleted) return null;
 

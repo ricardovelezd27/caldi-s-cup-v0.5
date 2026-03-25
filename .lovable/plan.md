@@ -1,38 +1,63 @@
 
 
-## Plan: Enhance Sound Design with Richer Audio and Mute Toggle
+## Plan: Frictionless Onboarding Flow
 
-### Changes
+### Overview
+Build a dedicated `/onboarding` route that guides new visitors through: Interest Picker (choose a track) → Goal Picker (daily XP goal) → First lesson. After the first lesson, anonymous users see a signup CTA on the LessonComplete screen. The landing page gets a "Start Learning Free" button.
 
-#### 1. `src/constants/storageKeys.ts` — Add mute key
-Add `SOUND_MUTED: 'caldi_sound_muted'` to the storage keys object.
+### New Files
 
-#### 2. `src/features/learning/utils/sounds.ts` — Richer sounds + mute support
-- Add `muted` property initialized from `localStorage('caldi_sound_muted')`
-- Add `toggleMute()` method that flips the flag and persists to localStorage, returns new state
-- Add `isMuted()` getter
-- All `play*` methods early-return if muted
-- **`playCorrect()`**: 3-note arpeggio F#4(370Hz) → A#4(466Hz) → C#5(554Hz), 80ms spacing, sine wave
-- **`playIncorrect()`**: descending E4(330Hz) → C4(262Hz), triangle wave, 100ms spacing
-- **`playLessonComplete()`**: 5-note fanfare C5(523) → E5(659) → G5(784) → C6(1047) → E6(1319), 50ms intervals, last note sustains 300ms
-- **`playStreakMilestone()`**: deeper celebratory G4(392) → B4(494) → D5(587) → G5(784), 150ms each
+#### 1. `src/features/onboarding/hooks/useOnboarding.ts`
+- Manages state in localStorage (`caldi_onboarding` key added to `storageKeys.ts`): `{ step: 'interest' | 'goal' | 'done', selectedTrackId, selectedGoalXp, hasCompleted }`
+- Provides `setTrack()`, `setGoal()`, `markCompleted()`, `reset()`
+- On mount, loads from localStorage; on every change, persists
 
-#### 3. `src/features/learning/components/lesson/LessonComplete.tsx` — Play fanfare
-Add `useEffect` on mount that calls `sounds.playLessonComplete()`.
+#### 2. `src/features/onboarding/steps/InterestPicker.tsx`
+- Fetches tracks via `getTracks()` from learningService
+- Renders a 2x2 grid of track cards (icon + name + description, using existing `LearningTrack` data and `useLanguage` for ES/EN)
+- On select, calls `onSelect(trackId)` to advance
 
-#### 4. `src/features/learning/components/gamification/StreakMilestone.tsx` — Play streak sound
-Add `useEffect` when `open` becomes true that calls `sounds.playStreakMilestone()`.
+#### 3. `src/features/onboarding/steps/GoalPicker.tsx`
+- Renders the 4 tiers from `dailyGoals.ts` in a vertical list (reuses the same layout as `DailyGoalSelector`)
+- On confirm, calls `onSelect(goalXp)` to advance
 
-#### 5. `src/components/layout/Header.tsx` — Mute toggle button
-- Import `Volume2, VolumeX` from lucide-react and `sounds` from the sound manager
-- Add `isMuted` state initialized from `sounds.isMuted()`
-- Add a ghost icon button (Volume2/VolumeX) placed before the user menu on desktop, and at top of mobile nav next to the language selector
-- On click: call `sounds.toggleMute()` and update local state
+#### 4. `src/features/onboarding/OnboardingFlow.tsx`
+- Step machine: `interest` → `goal` → navigate to `/learn/<trackId>/<firstLessonId>`
+- After goal is selected, fetches the first lesson of the chosen track (sections → units → lessons, pick sort_order 0) and navigates
+- Uses `useOnboarding()` for state
 
-### Files to modify
-- `src/constants/storageKeys.ts`
-- `src/features/learning/utils/sounds.ts`
-- `src/features/learning/components/lesson/LessonComplete.tsx`
-- `src/features/learning/components/gamification/StreakMilestone.tsx`
-- `src/components/layout/Header.tsx`
+#### 5. `src/features/onboarding/index.ts`
+- Barrel export
+
+### Modified Files
+
+#### 6. `src/constants/storageKeys.ts`
+- Add `ONBOARDING: 'caldi_onboarding'`
+
+#### 7. `src/constants/app.ts`
+- Add `onboarding: "/onboarding"` to ROUTES
+
+#### 8. `src/App.tsx`
+- Add lazy import for `OnboardingFlow` and `/onboarding` route
+
+#### 9. `src/pages/Index.tsx`
+- Add a "Start Learning Free →" button in the CTA row below the existing scanner CTA, linking to `/onboarding`
+
+#### 10. `src/features/learning/components/lesson/LessonComplete.tsx`
+- For anonymous users (`!user`), show a "Create Account to Save Progress" CTA button (Link to `/auth`) below the XP breakdown, using the existing `SignupPrompt` benefit style
+
+#### 11. `src/i18n/en.ts` & `src/i18n/es.ts`
+Add keys:
+| Key | EN | ES |
+|---|---|---|
+| `onboarding.pickInterest` | What do you want to learn? | ¿Qué quieres aprender? |
+| `onboarding.pickGoal` | Set your daily goal | Establece tu meta diaria |
+| `onboarding.startLearning` | Start Learning Free | Empieza a Aprender Gratis |
+| `onboarding.saveProgress` | Create Account to Save Progress | Crea una Cuenta para Guardar tu Progreso |
+| `onboarding.letsGo` | Let's go! | ¡Vamos! |
+
+### Technical Details
+- First lesson lookup: After goal selection, query sections (sort_order 0) → units (sort_order 0) → lessons (sort_order 0) for the selected track to find the first lesson ID
+- The onboarding state persists so refreshing mid-flow resumes at the correct step
+- If a user has `hasCompleted: true` in localStorage and visits `/onboarding` again, redirect straight to `/learn`
 

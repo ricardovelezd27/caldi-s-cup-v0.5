@@ -1,18 +1,21 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AlertCircle, ScanLine, PenLine, Loader2 } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { AlertCircle, ScanLine, PenLine, Loader2, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { useLanguage } from "@/contexts/language";
 import { useCoffeeScanner } from "./hooks/useCoffeeScanner";
+import { useAnonymousScanProgress } from "./hooks/useAnonymousScanProgress";
 import { ScanUploader, ScanningTips, ScanProgress, TribeScannerPreview, ManualAddForm } from "./components";
 import { transformToCoffee, extractScanMeta } from "./utils/transformScanData";
 import { stitchImages } from "./utils/stitchImages";
 import { uploadScanImages } from "./utils/uploadScanImages";
+import { SignupPrompt } from "@/features/learning/components/gamification/SignupPrompt";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared";
 import { FeedbackCTA } from "@/components/shared/FeedbackCTA";
+import { ROUTES } from "@/constants/app";
 
 type ScannerTab = "scan" | "manual";
 
@@ -21,6 +24,12 @@ export function ScannerPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ScannerTab>("scan");
+  const {
+    recordScan,
+    dismissSignupPrompt,
+    shouldForceSignup,
+    shouldShowSignupBanner,
+  } = useAnonymousScanProgress();
   const {
     scanCoffee,
     scanResult,
@@ -48,6 +57,11 @@ export function ScannerPage() {
         const base64 = individualImagesRef.current[0];
         coffee.imageUrl = base64.startsWith("data:") ? base64 : `data:image/jpeg;base64,${base64}`;
         isTemporaryImage = true;
+      }
+
+      // Record scan for anonymous gate tracking
+      if (!user) {
+        recordScan();
       }
 
       if (user && individualImagesRef.current.length > 1) {
@@ -90,6 +104,35 @@ export function ScannerPage() {
           </h1>
           <p className="text-muted-foreground mt-1">{t("scanner.subtitle")}</p>
         </div>
+
+        {/* Anonymous signup nudge banner */}
+        {!user && shouldShowSignupBanner && (
+          <Alert className="mb-6 border-4 border-secondary bg-secondary/5">
+            <UserPlus className="h-4 w-4 text-secondary" />
+            <AlertTitle className="font-bangers">{t("scanner.signupNudge")}</AlertTitle>
+            <AlertDescription className="flex items-center gap-3">
+              <span className="font-inter text-sm">{t("scanner.signupBenefit1")}</span>
+              <Button asChild size="sm" variant="secondary" className="ml-auto shrink-0">
+                <Link to={ROUTES.auth}>{t("scanner.signupNudgeCta")}</Link>
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Forced signup modal for anonymous users after max scans */}
+        {!user && shouldForceSignup && (
+          <SignupPrompt
+            open
+            onOpenChange={() => {}}
+            forceful
+            benefits={[
+              t("scanner.signupBenefit1"),
+              t("scanner.signupBenefit2"),
+              t("scanner.signupBenefit3"),
+              t("scanner.signupBenefit4"),
+            ]}
+          />
+        )}
 
         {/* Pill-style mode toggle */}
         <div className="mb-6 flex items-center gap-3">
@@ -187,7 +230,7 @@ export function ScannerPage() {
                   <TribeScannerPreview tribe={profile.coffee_tribe} />
                 )}
                 <div className="max-w-xl mx-auto">
-                  <ScanUploader onImagesReady={handleImagesReady} disabled={isScanning} />
+                  <ScanUploader onImagesReady={handleImagesReady} disabled={isScanning || (!user && shouldForceSignup)} />
                 </div>
                 <ScanningTips />
               </div>

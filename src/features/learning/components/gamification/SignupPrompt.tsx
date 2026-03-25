@@ -17,12 +17,13 @@ interface SignupPromptProps {
   onOpenChange: (open: boolean) => void;
   onMaybeLater?: () => void;
   forceful?: boolean; // No "maybe later" when true
+  benefits?: string[]; // Custom benefit strings; falls back to learning defaults
 }
 
-export function SignupPrompt({ open, onOpenChange, onMaybeLater, forceful }: SignupPromptProps) {
+export function SignupPrompt({ open, onOpenChange, onMaybeLater, forceful, benefits: customBenefits }: SignupPromptProps) {
   const { t } = useLanguage();
 
-  const benefits = [
+  const benefits = customBenefits ?? [
     t("learn.signupPrompt.benefit1"),
     t("learn.signupPrompt.benefit2"),
     t("learn.signupPrompt.benefit3"),

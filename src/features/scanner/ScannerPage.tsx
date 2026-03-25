@@ -1,18 +1,21 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AlertCircle, ScanLine, PenLine, Loader2 } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { AlertCircle, ScanLine, PenLine, Loader2, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { useLanguage } from "@/contexts/language";
 import { useCoffeeScanner } from "./hooks/useCoffeeScanner";
+import { useAnonymousScanProgress } from "./hooks/useAnonymousScanProgress";
 import { ScanUploader, ScanningTips, ScanProgress, TribeScannerPreview, ManualAddForm } from "./components";
 import { transformToCoffee, extractScanMeta } from "./utils/transformScanData";
 import { stitchImages } from "./utils/stitchImages";
 import { uploadScanImages } from "./utils/uploadScanImages";
+import { SignupPrompt } from "@/features/learning/components/gamification/SignupPrompt";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageLayout } from "@/components/layout";
 import { Container } from "@/components/shared";
 import { FeedbackCTA } from "@/components/shared/FeedbackCTA";
+import { ROUTES } from "@/constants/app";
 
 type ScannerTab = "scan" | "manual";
 
@@ -20,6 +23,13 @@ export function ScannerPage() {
   const { user, profile } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<ScannerTab>("scan");
+  const {
+    recordScan,
+    dismissSignupPrompt,
+    shouldForceSignup,
+    shouldShowSignupBanner,
+  } = useAnonymousScanProgress();
   const [activeTab, setActiveTab] = useState<ScannerTab>("scan");
   const {
     scanCoffee,

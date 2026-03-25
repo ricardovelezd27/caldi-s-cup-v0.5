@@ -6,9 +6,6 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useLanguage } from '@/contexts/language';
 import { Sparkles } from 'lucide-react';
 import tribeIllustration from '@/assets/characters/illustration-coffee-tribe-onboarding.png';
-import { STORAGE_KEYS } from '@/constants/storageKeys';
-
-const QUIZ_RESULT_KEY = STORAGE_KEYS.QUIZ_RESULT;
 
 interface OnboardingModalProps {
   onComplete: () => void;
@@ -34,8 +31,8 @@ export const OnboardingModal = ({ onComplete, forceShow = false, onClose, isOnbo
   useEffect(() => {
     if (forceShow) { setCurrentSlide(0); setOpen(true); return; }
     if (isOnboarded) { onComplete(); return; }
-    const hasCompletedQuiz = localStorage.getItem(QUIZ_RESULT_KEY);
-    if (!hasCompletedQuiz) { setOpen(true); } else { onComplete(); }
+    // Always show onboarding for non-onboarded users
+    setOpen(true);
   }, [forceShow, onComplete, isOnboarded]);
 
   const handleNext = () => { if (isLastSlide) { handleComplete(); } else { setCurrentSlide(prev => prev + 1); } };
@@ -52,7 +49,6 @@ export const OnboardingModal = ({ onComplete, forceShow = false, onClose, isOnbo
       >
         <VisuallyHidden><DialogTitle>Welcome to Caldi</DialogTitle></VisuallyHidden>
 
-        {/* Skip button */}
         <Button
           variant="ghost"
           size="sm"
@@ -62,7 +58,6 @@ export const OnboardingModal = ({ onComplete, forceShow = false, onClose, isOnbo
           {t('quiz.skip')}
         </Button>
 
-        {/* Static illustration with gradient background */}
         <div className="relative w-full flex items-center justify-center pt-8 pb-2"
           style={{
             background: 'linear-gradient(180deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--background)) 100%)',
@@ -75,7 +70,6 @@ export const OnboardingModal = ({ onComplete, forceShow = false, onClose, isOnbo
           />
         </div>
 
-        {/* Text carousel area */}
         <div className="px-6 pb-2 pt-2 min-h-[140px] flex flex-col items-center text-center justify-center">
           <h2
             key={`headline-${currentSlide}`}
@@ -91,7 +85,6 @@ export const OnboardingModal = ({ onComplete, forceShow = false, onClose, isOnbo
           </p>
         </div>
 
-        {/* Dots + CTA */}
         <div className="px-6 pb-6 pt-2">
           <div className="flex justify-center gap-2 mb-5">
             {slides.map((_, index) => (

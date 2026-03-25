@@ -247,7 +247,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setProfile(null);
       errorLogger.clearUserContext();
       localStorage.removeItem(STORAGE_KEYS.PENDING_TRIBE_SAVE);
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_RESULT);
     } catch (err) {
       errorLogger.captureError(err as Error, { 
         component: "AuthContext", 

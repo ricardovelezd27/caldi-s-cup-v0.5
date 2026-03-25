@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth";
 import { useLanguage } from "@/contexts/language";
 import { getTribeDefinition } from "@/features/quiz/data/tribes";
-import { STORAGE_KEYS } from "@/constants/storageKeys";
+
 import { cn } from "@/lib/utils";
 import { RefreshCw } from "lucide-react";
 
@@ -21,10 +21,6 @@ export function TribeInfoModal({ open, onOpenChange }: TribeInfoModalProps) {
   const tribeDef = tribe ? getTribeDefinition(tribe) : null;
 
   const handleRetake = () => {
-    try {
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_RESULT);
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE);
-    } catch { /* ignore */ }
     onOpenChange(false);
     navigate("/quiz");
   };

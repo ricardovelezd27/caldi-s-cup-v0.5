@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RefreshCw, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/language";
-import { STORAGE_KEYS } from "@/constants/storageKeys";
+
 
 export function RetakeQuizSection() {
   const [open, setOpen] = useState(false);
@@ -12,12 +12,6 @@ export function RetakeQuizSection() {
   const { t } = useLanguage();
 
   const handleRetake = () => {
-    try {
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_RESULT);
-      localStorage.removeItem(STORAGE_KEYS.QUIZ_STATE);
-    } catch {
-      // Ignore
-    }
     navigate("/quiz");
   };
 

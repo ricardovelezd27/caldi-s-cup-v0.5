@@ -1,32 +1,21 @@
 
 
-## Plan: Fix Tribe Text Hierarchy, Spacing, and Widget Height
+## Plan: Fix Homepage "Start Learning" CTA
 
-### Issues from Screenshots
-1. **Tribe description text too small** — `text-sm` and `text-xs` in WelcomeHeroWidget lose hierarchy vs widget content
-2. **Too much gap** between profile picture area and tribe section (WelcomeHeroWidget)
-3. **Widgets feel cramped** — CTA buttons crowd the content above (visible in Learning Hub, Recent Scans, Inventory)
+### What
+Change the outline button on the homepage hero from linking to `/onboarding` with label `onboarding.startLearning` to linking to `/quiz` with a new i18n key like `hero.discoverTribe`.
 
 ### Changes
 
-#### 1. WelcomeHeroWidget — Increase tribe text size + reduce top spacing
-- Tribe intro: `text-sm` → `text-base` ("You're a **The Owl** — the optimizer.")
-- Tribe description: `text-xs` → `text-sm`
-- Tribe values pills: `text-[10px]` → `text-xs`
-- Reduce top padding or margin to bring tribe section closer to profile picture
+**1. `src/pages/Index.tsx` (line ~63)**
+- Change `Link to={ROUTES.onboarding}` → `Link to={ROUTES.quiz}`
+- Change `t("onboarding.startLearning")` → `t("hero.discoverTribe")`
 
-#### 2. All grid widgets — Add minimum height for breathing room
-In `WidgetGrid.tsx`, add `min-h-[320px]` to each widget grid cell so content doesn't feel squeezed against the CTA. This gives the body zone more vertical space.
+**2. `src/i18n/en.ts`**
+- Add `hero.discoverTribe: "Discover Your Coffee Tribe"`
 
-#### 3. Widget body zone — Add spacing before CTA
-Ensure all widgets have `gap-3` or equivalent spacing in the body flex column, so the CTA doesn't sit flush against list items or text.
+**3. `src/i18n/es.ts`**
+- Add `hero.discoverTribe: "Descubre Tu Tribu de Café"`
 
-#### 4. Update `docs/WIDGET_DESIGN_STANDARD.md`
-- Document the `min-h-[320px]` on grid cells
-- Note updated text sizes for WelcomeHeroWidget
-
-### Files to Modify
-- `src/features/dashboard/widgets/WelcomeHeroWidget.tsx` — text sizes + spacing
-- `src/features/dashboard/components/WidgetGrid.tsx` — min-height on grid cells
-- `docs/WIDGET_DESIGN_STANDARD.md` — update standards
+No other files touched. Existing `onboarding.startLearning` key preserved.
 

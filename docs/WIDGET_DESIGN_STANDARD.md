@@ -22,7 +22,7 @@ All dashboard widgets (except structural ones like `WelcomeHero`) must follow th
 ## Outer Wrapper
 
 ```tsx
-<div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+<div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))] flex flex-col">
 ```
 
 - `border-4 border-border` — 4px Bean Black border
@@ -59,10 +59,10 @@ All dashboard widgets (except structural ones like `WelcomeHero`) must follow th
 ## Zone 2 — Body (Centered Content)
 
 ```tsx
-<div className="px-5 pb-5 flex flex-col items-center justify-center py-4">
+<div className="px-5 pb-5 flex flex-col items-center flex-1">
   {/* Graphic element */}
   {/* Supporting text */}
-  {/* CTA button */}
+  {/* CTA button — mt-auto pushes it to the bottom */}
 </div>
 ```
 
@@ -92,7 +92,7 @@ All dashboard widgets (except structural ones like `WelcomeHero`) must follow th
 ## Zone 3 — CTA Button (Bottom)
 
 ```tsx
-<Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-4">
+<Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-auto">
   <Link to={route}>{ctaLabel}</Link>
 </Button>
 ```
@@ -103,7 +103,7 @@ All dashboard widgets (except structural ones like `WelcomeHero`) must follow th
 - **Always full-width** — `w-full`
 - **Always outline variant** — `variant="outline"`
 - **Label ends with →** — e.g., "Start learning →", "View all →"
-- **Spacing** — `mt-4` from the last content element
+- **Spacing** — `mt-auto` to push CTA to the bottom of the widget (outer wrapper must be `flex flex-col`, body must be `flex-1`)
 
 ## Exceptions
 

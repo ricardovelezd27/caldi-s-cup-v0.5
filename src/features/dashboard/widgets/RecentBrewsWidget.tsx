@@ -12,7 +12,7 @@ export function RecentBrewsWidget({ widget }: WidgetComponentProps) {
   const count = recentBrews.length;
 
   return (
-    <div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+    <div className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))] flex flex-col">
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <h3 className="font-bangers text-lg flex items-center gap-2">
           <Coffee className="h-5 w-5 text-primary" />
@@ -20,7 +20,7 @@ export function RecentBrewsWidget({ widget }: WidgetComponentProps) {
         </h3>
         <WidgetCategoryTag label={t("widgets.categoryExperience")} />
       </div>
-      <div className="px-5 pb-5 flex flex-col items-center justify-center py-4">
+      <div className="px-5 pb-5 flex flex-col items-center flex-1">
         <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center border-4 border-border">
           {count > 0 ? (
             <span className="font-bangers text-2xl text-foreground">{count}</span>
@@ -36,7 +36,7 @@ export function RecentBrewsWidget({ widget }: WidgetComponentProps) {
         {count === 0 && (
           <p className="text-sm text-muted-foreground/70 mt-1 text-center">{t("widgets.startBrewing")}</p>
         )}
-        <Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-4">
+        <Button asChild variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-auto">
           <Link to="/recipes">{t("widgets.viewBrews")}</Link>
         </Button>
       </div>

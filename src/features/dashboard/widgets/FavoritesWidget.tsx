@@ -18,7 +18,7 @@ export function FavoritesWidget({ widget }: WidgetComponentProps) {
   return (
     <>
       <div
-        className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))] cursor-pointer transition-opacity hover:opacity-90"
+        className="relative h-full overflow-hidden rounded-lg border-4 border-border bg-card p-0 shadow-[4px_4px_0px_0px_hsl(var(--border))] cursor-pointer transition-opacity hover:opacity-90 flex flex-col"
         onClick={() => setModalOpen(true)}
       >
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
@@ -28,7 +28,7 @@ export function FavoritesWidget({ widget }: WidgetComponentProps) {
           </h3>
           <WidgetCategoryTag label={t("widgets.categoryExperience")} />
         </div>
-        <div className="px-5 pb-5 flex flex-col items-center justify-center py-4">
+        <div className="px-5 pb-5 flex flex-col items-center flex-1">
           {favorite ? (
             <>
               {favorite.imageUrl ? (
@@ -51,7 +51,7 @@ export function FavoritesWidget({ widget }: WidgetComponentProps) {
               <p className="text-muted-foreground mt-3 text-center">{t("widgets.noFavoritesYet")}</p>
             </>
           )}
-          <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-4" onClick={(e) => e.stopPropagation()}>
+          <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 mt-auto" onClick={(e) => e.stopPropagation()}>
             {t("widgets.viewAll")}
           </Button>
         </div>

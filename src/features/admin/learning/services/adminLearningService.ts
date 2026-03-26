@@ -359,8 +359,6 @@ export async function upsertExercise(exercise: {
     .upsert(exercise as any);
   if (error) throw error;
 }
-  id?: string;
-  lesson_id: string;
   exercise_type: string;
   sort_order: number;
   is_active: boolean;

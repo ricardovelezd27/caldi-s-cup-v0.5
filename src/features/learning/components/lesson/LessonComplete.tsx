@@ -105,6 +105,17 @@ export function LessonComplete({
         </div>
       )}
 
+      {/* Leaderboard position snapshot */}
+      {user && leaderboardRank != null && leaderboardTotal != null && (
+        <div className="bg-secondary/10 border-4 border-secondary/30 rounded-lg px-4 py-2.5 mb-4 w-full max-w-xs text-center shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+          <p className="font-inter text-sm text-foreground">
+            📊 {t("learn.leaderboard.yourPosition")
+              .replace("{rank}", String(leaderboardRank))
+              .replace("{total}", String(leaderboardTotal))}
+          </p>
+        </div>
+      )}
+
       <div className="flex items-center gap-6 mb-8 text-sm font-inter text-muted-foreground">
         <div>
           <span className="font-bold text-foreground">{percent}%</span> {t("learn.score")}

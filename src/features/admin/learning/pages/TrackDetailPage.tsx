@@ -203,6 +203,14 @@ export default function TrackDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {trackId && (
+        <ImportTrackJsonModal
+          open={importTrackOpen}
+          onClose={() => setImportTrackOpen(false)}
+          trackId={trackId}
+        />
+      )}
     </div>
   );
 }

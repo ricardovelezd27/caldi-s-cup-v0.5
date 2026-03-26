@@ -584,6 +584,15 @@ export const en = {
       title: "Leaderboard",
       subtitle: "Compete with fellow coffee learners",
       comingSoon: "Leaderboard coming soon!",
+      joinByLearning: "Complete lessons to join the leaderboard and see how you rank!",
+      viewFull: "View Full Leaderboard",
+      you: "You",
+      yourPosition: "You're #{rank} of {total} learners this week",
+    },
+    rankProgress: {
+      title: "Your Rank",
+      xpToNext: "{xp} XP to {rank}",
+      maxRank: "You've reached the highest rank!",
     },
   },
   gamification: {

@@ -21,6 +21,8 @@ interface LessonCompleteProps {
   onBackToTrack: () => void;
   isProcessing?: boolean;
   isReview?: boolean;
+  leaderboardRank?: number;
+  leaderboardTotal?: number;
 }
 
 export function LessonComplete({
@@ -33,6 +35,8 @@ export function LessonComplete({
   onBackToTrack,
   isProcessing,
   isReview,
+  leaderboardRank,
+  leaderboardTotal,
 }: LessonCompleteProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -98,6 +102,17 @@ export function LessonComplete({
               <span className="font-bold">+{xpBreakdown.bonuses.firstOfDay}</span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Leaderboard position snapshot */}
+      {user && leaderboardRank != null && leaderboardTotal != null && (
+        <div className="bg-secondary/10 border-4 border-secondary/30 rounded-lg px-4 py-2.5 mb-4 w-full max-w-xs text-center shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+          <p className="font-inter text-sm text-foreground">
+            📊 {t("learn.leaderboard.yourPosition")
+              .replace("{rank}", String(leaderboardRank))
+              .replace("{total}", String(leaderboardTotal))}
+          </p>
         </div>
       )}
 

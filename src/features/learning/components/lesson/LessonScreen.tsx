@@ -15,7 +15,7 @@ import { useDailyGoal } from "../../hooks/useDailyGoal";
 import { useAchievements } from "../../hooks/useAchievements";
 import { calculateLessonXP } from "../../services/xpService";
 import { updateStreakViaRPC, addXPToDaily } from "../../services/streakService";
-import { addWeeklyXP } from "../../services/leagueService";
+import { addWeeklyXP, getLeaderboard, getUserLeague } from "../../services/leagueService";
 import { upsertLessonProgress, getLessonProgress } from "../../services/progressService";
 import { getNextLessonInTrack } from "../../services/learningService";
 import { PageLayout } from "@/components/layout";
@@ -60,6 +60,8 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
   const [isProcessingComplete, setIsProcessingComplete] = useState(false);
   const [processingDone, setProcessingDone] = useState(false);
   const [isReview, setIsReview] = useState(false);
+  const [leaderboardRank, setLeaderboardRank] = useState<number | undefined>();
+  const [leaderboardTotal, setLeaderboardTotal] = useState<number | undefined>();
   const hasSubmittedRef = useRef(false);
 
   // Fetch next lesson ID
@@ -174,7 +176,20 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
           toast.error("Could not save your lesson progress. Please try again.");
         }
 
-        // 5. Achievements (non-critical)
+        // 6. Leaderboard position (non-critical)
+        try {
+          const leagueData = await getUserLeague(user.id);
+          if (leagueData) {
+            const lb = await getLeaderboard(leagueData.league.id, leagueData.userLeague.weekStartDate);
+            const myEntry = lb.find((e) => e.userId === user.id);
+            if (myEntry) {
+              setLeaderboardRank(myEntry.rank);
+              setLeaderboardTotal(lb.length);
+            }
+          }
+        } catch (err) {
+          console.error("[Gamification] Leaderboard fetch failed:", err);
+        }
         try {
           const unlocked = await checkAndUnlockAchievements({
             currentStreak: streakResult?.currentStreak ?? currentStreak,
@@ -348,6 +363,8 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
             onNext={nextLessonId ? handleNextLesson : undefined}
             onBackToTrack={onComplete}
             isReview={isReview}
+            leaderboardRank={leaderboardRank}
+            leaderboardTotal={leaderboardTotal}
           />
           <SignupPrompt
             open={showSignup}

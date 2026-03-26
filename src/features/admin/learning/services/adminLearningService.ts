@@ -359,7 +359,6 @@ export async function upsertExercise(exercise: {
     .upsert(exercise as any);
   if (error) throw error;
 }
-  is_active: boolean;
   question_data: Json;
   difficulty_score: number;
   concept_tags: string[];

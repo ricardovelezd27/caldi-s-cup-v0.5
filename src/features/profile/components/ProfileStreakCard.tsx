@@ -1,12 +1,10 @@
 import { Flame } from "lucide-react";
 import { useStreak } from "@/hooks/gamification/useStreak";
-import { useAuth } from "@/contexts/auth";
 import { ProfileStatCard } from "./ProfileStatCard";
 
 export function ProfileStreakCard({ compact }: { compact?: boolean }) {
-  const { profile } = useAuth();
   const { streak } = useStreak();
-  const current = streak?.currentStreak ?? profile?.current_streak ?? 0;
+  const current = streak?.currentStreak ?? 0;
 
   return (
     <ProfileStatCard

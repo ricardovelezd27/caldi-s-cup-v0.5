@@ -136,32 +136,64 @@ export async function addXPToDaily(userId: string, xp: number): Promise<void> {
 
 export async function updateStreakOnAction(userId: string): Promise<void> {
   const today = new Date().toISOString().split("T")[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
 
-  // Check if user already has an XP log today
-  const { data: todayLogs, error: logError } = await supabase
-    .from("user_xp_logs")
-    .select("id")
+  // Read current streak state from the source of truth
+  const { data: streakRow, error: fetchError } = await supabase
+    .from("learning_user_streaks")
+    .select("current_streak, longest_streak, last_activity_date")
     .eq("user_id", userId)
-    .gte("created_at", `${today}T00:00:00Z`)
-    .limit(2);
+    .maybeSingle();
 
-  if (logError) throw logError;
+  if (fetchError) throw fetchError;
 
-  // If this is NOT the first action today (>1 log already), skip streak update
-  if (todayLogs && todayLogs.length > 1) return;
+  if (!streakRow) {
+    // No streak row yet — create one (first-ever action)
+    await supabase
+      .from("learning_user_streaks")
+      .insert({
+        user_id: userId,
+        current_streak: 1,
+        longest_streak: 1,
+        last_activity_date: today,
+        streak_start_date: today,
+        total_days_active: 1,
+      });
+    await supabase.from("profiles").update({ current_streak: 1 }).eq("id", userId);
+    return;
+  }
 
-  // First action of the day → update profiles.current_streak
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("current_streak")
-    .eq("id", userId)
-    .single();
+  const lastDate = streakRow.last_activity_date;
 
-  const newStreak = ((profile as any)?.current_streak ?? 0) + 1;
-  const { error } = await supabase
-    .from("profiles")
-    .update({ current_streak: newStreak })
-    .eq("id", userId);
+  // Already active today — nothing to do
+  if (lastDate === today) return;
 
-  if (error) throw error;
+  // Determine new streak value using same logic as the RPC
+  const isContinuation = lastDate === yesterday;
+  const newStreak = isContinuation ? streakRow.current_streak + 1 : 1;
+  const newLongest = Math.max(streakRow.longest_streak, newStreak);
+
+  // Update learning_user_streaks
+  const updates: Record<string, any> = {
+    current_streak: newStreak,
+    longest_streak: newLongest,
+    last_activity_date: today,
+    total_days_active: (streakRow as any).total_days_active
+      ? (streakRow as any).total_days_active + 1
+      : 1,
+    streak_freeze_used_today: false,
+  };
+  if (!isContinuation) {
+    updates.streak_start_date = today;
+  }
+
+  const { error: updateError } = await supabase
+    .from("learning_user_streaks")
+    .update(updates)
+    .eq("user_id", userId);
+
+  if (updateError) throw updateError;
+
+  // Keep profiles.current_streak in sync
+  await supabase.from("profiles").update({ current_streak: newStreak }).eq("id", userId);
 }

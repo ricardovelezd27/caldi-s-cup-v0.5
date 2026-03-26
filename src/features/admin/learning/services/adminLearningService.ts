@@ -320,6 +320,28 @@ export async function upsertLesson(lesson: {
   return data;
 }
 
+export async function upsertSection(section: {
+  id?: string;
+  track_id: string;
+  name: string;
+  name_es: string;
+  description: string;
+  description_es: string;
+  learning_goal: string;
+  learning_goal_es: string;
+  level: string;
+  sort_order: number;
+  is_active: boolean;
+}) {
+  const { data, error } = await supabase
+    .from("learning_sections")
+    .upsert(section as any)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export async function upsertExercise(exercise: {
   id?: string;
   lesson_id: string;
@@ -337,3 +359,5 @@ export async function upsertExercise(exercise: {
     .upsert(exercise as any);
   if (error) throw error;
 }
+
+

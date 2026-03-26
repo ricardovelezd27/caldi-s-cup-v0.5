@@ -12,15 +12,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ChevronDown, Upload, Trash2, Download } from "lucide-react";
+import { ChevronDown, Upload, Trash2, Download, FileUp } from "lucide-react";
 import AdminBreadcrumb from "../components/AdminBreadcrumb";
 import ImportUnitModal from "../components/ImportUnitModal";
+import ImportTrackJsonModal from "../components/ImportTrackJsonModal";
 
 export default function TrackDetailPage() {
   const { trackId } = useParams<{ trackId: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [importSection, setImportSection] = useState<{ sectionId: string; unitCount: number } | null>(null);
+  const [importTrackOpen, setImportTrackOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
 
@@ -80,10 +82,16 @@ export default function TrackDetailPage() {
             <h2 className="font-heading text-2xl flex items-center gap-2">
               <span>{track.icon}</span> {track.name}
             </h2>
-            <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
-              <Download className="h-3 w-3 mr-1" />
-              {exporting ? "Exporting…" : "Export Track JSON"}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setImportTrackOpen(true)}>
+                <FileUp className="h-3 w-3 mr-1" />
+                Import Track JSON
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
+                <Download className="h-3 w-3 mr-1" />
+                {exporting ? "Exporting…" : "Export Track JSON"}
+              </Button>
+            </div>
           </div>
           <p className="text-sm text-muted-foreground">{track.description}</p>
         </div>
@@ -195,6 +203,14 @@ export default function TrackDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {trackId && (
+        <ImportTrackJsonModal
+          open={importTrackOpen}
+          onClose={() => setImportTrackOpen(false)}
+          trackId={trackId}
+        />
+      )}
     </div>
   );
 }

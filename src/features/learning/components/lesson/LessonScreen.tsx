@@ -127,6 +127,10 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
         let streakResult: { currentStreak: number; longestStreak: number; totalXp: number; totalLessonsCompleted: number } | null = null;
         try {
           streakResult = await updateStreakViaRPC(user.id, xpCalc.totalXP);
+          // Sync profiles.current_streak with the authoritative value
+          if (streakResult) {
+            await supabase.from("profiles").update({ current_streak: streakResult.currentStreak }).eq("id", user.id);
+          }
         } catch (err) {
           console.error("[Gamification] Streak RPC failed:", err);
           toast.error("Could not update your streak. Your progress was still saved.");

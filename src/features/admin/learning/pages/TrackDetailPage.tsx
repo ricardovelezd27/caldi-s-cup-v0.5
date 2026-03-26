@@ -82,10 +82,16 @@ export default function TrackDetailPage() {
             <h2 className="font-heading text-2xl flex items-center gap-2">
               <span>{track.icon}</span> {track.name}
             </h2>
-            <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
-              <Download className="h-3 w-3 mr-1" />
-              {exporting ? "Exporting…" : "Export Track JSON"}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setImportTrackOpen(true)}>
+                <FileUp className="h-3 w-3 mr-1" />
+                Import Track JSON
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
+                <Download className="h-3 w-3 mr-1" />
+                {exporting ? "Exporting…" : "Export Track JSON"}
+              </Button>
+            </div>
           </div>
           <p className="text-sm text-muted-foreground">{track.description}</p>
         </div>

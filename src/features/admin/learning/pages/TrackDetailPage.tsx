@@ -12,15 +12,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ChevronDown, Upload, Trash2, Download } from "lucide-react";
+import { ChevronDown, Upload, Trash2, Download, FileUp } from "lucide-react";
 import AdminBreadcrumb from "../components/AdminBreadcrumb";
 import ImportUnitModal from "../components/ImportUnitModal";
+import ImportTrackJsonModal from "../components/ImportTrackJsonModal";
 
 export default function TrackDetailPage() {
   const { trackId } = useParams<{ trackId: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [importSection, setImportSection] = useState<{ sectionId: string; unitCount: number } | null>(null);
+  const [importTrackOpen, setImportTrackOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
 

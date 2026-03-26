@@ -359,14 +359,5 @@ export async function upsertExercise(exercise: {
     .upsert(exercise as any);
   if (error) throw error;
 }
-  question_data: Json;
-  difficulty_score: number;
-  concept_tags: string[];
-  mascot: string;
-  mascot_mood: string;
-}) {
-  const { error } = await supabase
-    .from("learning_exercises")
-    .upsert(exercise as any);
-  if (error) throw error;
-}
+
+

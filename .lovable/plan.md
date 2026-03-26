@@ -1,74 +1,98 @@
 
 
-## Plan: XP Audit + Leaderboard Integration
+## Plan: Track-Level JSON Importer with Exercise Format Transformer
 
-### Part 1: XP & Level Progression Audit
+### Problem
+The existing `ImportUnitModal` expects a pre-normalized unit JSON with `question_data` already packed. The user's AI-generated JSON uses a flat, human-readable format at the section level (section → units → lessons → exercises) with exercise fields like `question`, `correct_answer`, `options` spread at the top level instead of nested inside `question_data`.
 
-**Finding: XP pipeline is correct.** Reviewed `xpService.ts`, `LessonScreen.tsx`, `useUserRank`, and `useAwardXP`. The lesson completion pipeline correctly: (1) calculates XP with bonuses, (2) updates `learning_user_streaks.total_xp` via RPC, (3) updates `profiles.total_xp`, (4) updates daily goals and league weekly XP. The rank progression in `useUserRank` correctly maps `profiles.total_xp` to 6 Barista Ranks. No bugs found — no changes needed.
-
-### Part 2: Learn Page Two-Column Layout + Leaderboard Sidebar
-
-Redesign `LearnPage.tsx` into a responsive two-column layout inspired by the coffee profile page's `grid-cols-1 lg:grid-cols-12` pattern.
+### Architecture
 
 ```text
-┌─────────────────────────────────────────────┐
-│           Coffee Learning Hub               │
-├──────────────────────┬──────────────────────┤
-│  🔥 3  ⎯ 15/20 XP   │  🏆 Leaderboard      │
-│                      │  #1 User 🤎 45 XP    │
-│  Track Cards (list)  │  #2 You  💛 38 XP    │
-│  ☕ Bean Knowledge   │  #3 User 📄 25 XP    │
-│  🔬 Brewing Science  │                      │
-│  📖 History & Culture│  ┌──────────────────┐│
-│  🌿 Sustainability   │  │ Your Rank        ││
-│                      │  │ 🤎 Bronze Tamper ││
-│                      │  │ ████░░ 65%       ││
-│                      │  └──────────────────┘│
-└──────────────────────┴──────────────────────┘
+User JSON (flat exercises)
+       │
+       ▼
+ Zod Schema Validation (new TrackImportSchema)
+       │
+       ▼
+ Exercise Format Transformer (flat → question_data JSONB)
+       │
+       ▼
+ DB Upserts (section → units → lessons → exercises)
 ```
-
-Mobile: single column — tracks first, leaderboard + rank card below.
-
-### Part 3: Post-Lesson Leaderboard Snapshot
-
-After lesson completion, show the user their current leaderboard position: "📊 You're #3 of 25 learners this week."
-
----
 
 ### File Changes
 
-**1. `src/features/learning/pages/LearnPage.tsx`**
-- Restructure to `grid grid-cols-1 lg:grid-cols-12 gap-8`
-- Left column (`lg:col-span-7`): header, gamification bar, TrackGrid (force single-column with new prop)
-- Right column (`lg:col-span-5`): sticky sidebar with `LearnPageLeaderboard` + `RankProgressCard`
-- Anonymous signup banner below the grid
+**1. `src/features/admin/learning/types/adminTypes.ts`** — Add new Zod schema
+- Add `TrackImportExerciseSchema` that accepts the user's flat format (all fields like `question`, `question_es`, `correct_answer`, `options`, `pairs`, `steps`, `categories`, `items`, `variables`, `valid_combinations`, `images` as optional top-level fields)
+- Add `TrackImportLessonSchema`, `TrackImportUnitSchema`, `TrackImportSchema` for the full hierarchy
+- Add corresponding TypeScript types
 
-**2. New: `src/features/learning/components/gamification/LearnPageLeaderboard.tsx`**
-- Compact sidebar leaderboard card (top 10 users)
-- Reuses `useLeague` hook data
-- Current user row highlighted with secondary color
-- "View Full Leaderboard" link to `/leaderboard`
-- Empty state: "Complete lessons to join the leaderboard"
-- On-brand: thick borders, Bangers headings, card shadows
+**2. New: `src/features/admin/learning/services/exerciseFormatTransformer.ts`** — Core transformer
+- Function `transformFlatExerciseToQuestionData(type, exercise)` that maps each exercise type's flat fields into the exact `question_data` shape each component expects:
+  - `true_false` → `{ statement, statement_es, correct_answer, explanation, explanation_es }`
+  - `multiple_choice` → `{ question, question_es, options: [{id, text, text_es}], correct_answer, explanation, explanation_es }`
+  - `matching_pairs` → `{ instruction, instruction_es, pairs: [{id, left, left_es, right, right_es}], explanation, explanation_es }`
+  - `sequencing` → `{ instruction, instruction_es, items: [{id, text, text_es}], correct_order, explanation, explanation_es }`
+  - `categorization` → `{ instruction, instruction_es, categories, items, explanation, explanation_es }`
+  - `prediction` → `{ scenario, scenario_es, question, question_es, options: [{id, text, text_es}], correct_answer, explanation, explanation_es }`
+  - `comparison` → `{ question, question_es, item_a, item_b, correct_answer, explanation, explanation_es }`
+  - `troubleshooting` → `{ scenario, scenario_es, question, question_es, options: [{id, text, text_es, is_correct}], explanation, explanation_es }`
+  - `recipe_building` → `{ instruction, instruction_es, method, variables: [{id, name, name_es, type, options}], valid_combinations, explanation, explanation_es }`
+  - `image_identification` → `{ instruction, instruction_es, options, correct_answer, explanation, explanation_es }`
 
-**3. New: `src/features/learning/components/gamification/RankProgressCard.tsx`**
-- Shows current Barista Rank icon + name + total XP
-- Progress bar to next rank using existing `Progress` component
-- "X XP to next rank" label
-- Uses `useUserRank` hook
+**3. New: `src/features/admin/learning/components/ImportTrackJsonModal.tsx`** — New modal
+- 3-step workflow: Paste → Preview → Done (same pattern as `ImportUnitModal`)
+- Validates against `TrackImportSchema`
+- Preview shows section info, units count, lessons count, exercises with type badges
+- On publish:
+  1. Find or create the section within the current track (match by `section_id` slug)
+  2. For each unit: upsert unit, then for each lesson: upsert lesson + transform and upsert exercises
+- Override mode: clears existing units in the matched section before importing
+- File upload support: adds a file input button alongside the paste textarea
 
-**4. `src/features/learning/components/track/TrackGrid.tsx`**
-- Add optional `singleColumn` prop to force `grid-cols-1` layout (for sidebar-adjacent display)
+**4. `src/features/admin/learning/pages/TrackDetailPage.tsx`** — Add Import button
+- Add "Import Track JSON" button next to "Export Track JSON"
+- Wire up the new `ImportTrackJsonModal` with `trackId` prop
+- The modal handles section creation internally
 
-**5. `src/features/learning/components/lesson/LessonComplete.tsx`**
-- Add optional `leaderboardRank` and `leaderboardTotal` props
-- Render a compact info row: "📊 You're #X of Y learners this week" between XP breakdown and score stats
-- Only shown for logged-in users with league data
+**5. `src/features/admin/learning/services/contentValidator.ts`** — Add track-level validator
+- New `validateTrackImportJson(raw)` function using the new schema
+- Same warning logic (exercise count, variety, difficulty) applied per lesson
 
-**6. `src/features/learning/components/lesson/LessonScreen.tsx`**
-- After processing results, fetch leaderboard position via `getLeaderboard`
-- Pass `leaderboardRank` and `leaderboardTotal` to `LessonComplete`
+**6. `src/features/admin/learning/services/adminLearningService.ts`** — Add section upsert
+- New `upsertSection()` function to create/update sections within a track
+- Needed for the track-level importer to auto-create sections
 
-**7. `src/i18n/en.ts` + `src/i18n/es.ts`**
-- Add keys: `learn.leaderboard.yourPosition`, `learn.leaderboard.ofLearners`, `learn.leaderboard.joinByLearning`, `learn.leaderboard.viewFull`, `learn.rankProgress.title`, `learn.rankProgress.xpToNext`
+### Exercise Format Mapping (User JSON → DB question_data)
+
+Example for `true_false`:
+```text
+User JSON:                          DB question_data:
+{                                   {
+  "question": "Coffee was...",        "statement": "Coffee was...",
+  "question_es": "El café...",        "statement_es": "El café...",
+  "correct_answer": true,             "correct_answer": true,
+  "explanation": "Ethiopia...",       "explanation": "Ethiopia...",
+  "explanation_es": "Etiopía..."      "explanation_es": "Etiopía..."
+}                                   }
+```
+
+Example for `matching_pairs`:
+```text
+User JSON:                          DB question_data:
+{                                   {
+  "question": "Match the...",         "instruction": "Match the...",
+  "pairs": [                          "instruction_es": "Empareja...",
+    {"left":"Kaldi", ...}             "pairs": [
+  ]                                     {"id":"pair_0","left":"Kaldi",...}
+}                                     ],
+                                      "explanation": "..."
+                                    }
+```
+
+### Key Design Decisions
+- The transformer is a pure function — easy to unit test
+- Section matching uses a slug-based lookup (e.g., `history_and_culture` matches against existing sections by name similarity, or creates a new one)
+- Mascot normalization reuses the existing `normalizeMascot` logic
+- `mascot_feedback` / `mascot_feedback_es` from the user JSON are stored inside `question_data` as additional fields (harmless to components, useful for future mascot dialogue)
 

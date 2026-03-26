@@ -21,6 +21,8 @@ interface LessonCompleteProps {
   onBackToTrack: () => void;
   isProcessing?: boolean;
   isReview?: boolean;
+  leaderboardRank?: number;
+  leaderboardTotal?: number;
 }
 
 export function LessonComplete({
@@ -33,6 +35,8 @@ export function LessonComplete({
   onBackToTrack,
   isProcessing,
   isReview,
+  leaderboardRank,
+  leaderboardTotal,
 }: LessonCompleteProps) {
   const { t } = useLanguage();
   const { user } = useAuth();

@@ -571,6 +571,15 @@ export const es = {
       title: "Clasificación",
       subtitle: "Compite con otros aprendices del café",
       comingSoon: "¡Clasificación próximamente!",
+      joinByLearning: "¡Completa lecciones para unirte a la clasificación y ver tu posición!",
+      viewFull: "Ver Clasificación Completa",
+      you: "Tú",
+      yourPosition: "Eres #{rank} de {total} estudiantes esta semana",
+    },
+    rankProgress: {
+      title: "Tu Rango",
+      xpToNext: "{xp} XP para {rank}",
+      maxRank: "¡Has alcanzado el rango más alto!",
     },
   },
   gamification: {

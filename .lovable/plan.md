@@ -1,42 +1,74 @@
 
 
-## Gamification Audit: Streak + Daily Goal Fixes
+## Plan: XP Audit + Leaderboard Integration
 
-### Issues Found
+### Part 1: XP & Level Progression Audit
 
-**1. Broken `updateStreakOnAction` logic (Critical)**
-In `src/services/gamification/streakService.ts`, the `updateStreakOnAction` function blindly increments `profiles.current_streak` by 1 on the first action of each day — without checking whether the user was active yesterday. This means:
-- A user who skips 5 days and returns gets their streak incremented instead of reset to 1
-- `profiles.current_streak` drifts out of sync with the correct value in `learning_user_streaks.current_streak` (which is properly managed by the `update_streak_and_xp` RPC)
+**Finding: XP pipeline is correct.** Reviewed `xpService.ts`, `LessonScreen.tsx`, `useUserRank`, and `useAwardXP`. The lesson completion pipeline correctly: (1) calculates XP with bonuses, (2) updates `learning_user_streaks.total_xp` via RPC, (3) updates `profiles.total_xp`, (4) updates daily goals and league weekly XP. The rank progression in `useUserRank` correctly maps `profiles.total_xp` to 6 Barista Ranks. No bugs found — no changes needed.
 
-**2. `profiles.current_streak` never synced after lesson completion**
-`LessonScreen.tsx` calls `updateStreakViaRPC` which correctly updates `learning_user_streaks`, but never writes the resulting `currentStreak` back to `profiles.current_streak`. The `refreshProfile()` call at the end reads stale data.
+### Part 2: Learn Page Two-Column Layout + Leaderboard Sidebar
 
-**3. ProfileStreakCard inconsistency**
-`ProfileStreakCard` falls back from `streak?.currentStreak` (learning_user_streaks) to `profile?.current_streak` (profiles table). Since these two values diverge, users may see incorrect streaks depending on which loads first.
+Redesign `LearnPage.tsx` into a responsive two-column layout inspired by the coffee profile page's `grid-cols-1 lg:grid-cols-12` pattern.
 
-**4. Daily Goals — No issues found**
-The daily goal pipeline (create/upsert/read) is correctly implemented across `streakService.ts`, `useDailyGoal.ts`, `LearningHubWidget`, `ProfileDailyGoalCard`, and `LearnPage`. The `addXPToDaily` function correctly auto-creates a goal row using the user's last threshold, and all UI components render from the same query key.
+```text
+┌─────────────────────────────────────────────┐
+│           Coffee Learning Hub               │
+├──────────────────────┬──────────────────────┤
+│  🔥 3  ⎯ 15/20 XP   │  🏆 Leaderboard      │
+│                      │  #1 User 🤎 45 XP    │
+│  Track Cards (list)  │  #2 You  💛 38 XP    │
+│  ☕ Bean Knowledge   │  #3 User 📄 25 XP    │
+│  🔬 Brewing Science  │                      │
+│  📖 History & Culture│  ┌──────────────────┐│
+│  🌿 Sustainability   │  │ Your Rank        ││
+│                      │  │ 🤎 Bronze Tamper ││
+│                      │  │ ████░░ 65%       ││
+│                      │  └──────────────────┘│
+└──────────────────────┴──────────────────────┘
+```
+
+Mobile: single column — tracks first, leaderboard + rank card below.
+
+### Part 3: Post-Lesson Leaderboard Snapshot
+
+After lesson completion, show the user their current leaderboard position: "📊 You're #3 of 25 learners this week."
 
 ---
 
-### Plan
+### File Changes
 
-**File 1: `src/services/gamification/streakService.ts`**
-- Rewrite `updateStreakOnAction` to:
-  1. Read `learning_user_streaks.last_activity_date` and `current_streak`
-  2. Apply the same yesterday/reset/same-day logic as the RPC
-  3. Update both `learning_user_streaks` (last_activity_date, current_streak) and `profiles.current_streak` in sync
-  4. If no `learning_user_streaks` row exists, create one (upsert pattern)
-- This ensures non-lesson actions (scan, brew, rate) correctly maintain the streak
+**1. `src/features/learning/pages/LearnPage.tsx`**
+- Restructure to `grid grid-cols-1 lg:grid-cols-12 gap-8`
+- Left column (`lg:col-span-7`): header, gamification bar, TrackGrid (force single-column with new prop)
+- Right column (`lg:col-span-5`): sticky sidebar with `LearnPageLeaderboard` + `RankProgressCard`
+- Anonymous signup banner below the grid
 
-**File 2: `src/features/learning/components/lesson/LessonScreen.tsx`**
-- After `updateStreakViaRPC` succeeds, sync `profiles.current_streak` with the returned `streakResult.currentStreak` value
-- This is a single additional `supabase.from("profiles").update(...)` call right after the RPC
+**2. New: `src/features/learning/components/gamification/LearnPageLeaderboard.tsx`**
+- Compact sidebar leaderboard card (top 10 users)
+- Reuses `useLeague` hook data
+- Current user row highlighted with secondary color
+- "View Full Leaderboard" link to `/leaderboard`
+- Empty state: "Complete lessons to join the leaderboard"
+- On-brand: thick borders, Bangers headings, card shadows
 
-**File 3: `src/features/profile/components/ProfileStreakCard.tsx`**
-- Remove the `profile?.current_streak` fallback — use only the `streak?.currentStreak` value from the `useStreak` hook (which reads `learning_user_streaks`, the source of truth)
-- Show 0 while loading rather than a potentially stale profile value
+**3. New: `src/features/learning/components/gamification/RankProgressCard.tsx`**
+- Shows current Barista Rank icon + name + total XP
+- Progress bar to next rank using existing `Progress` component
+- "X XP to next rank" label
+- Uses `useUserRank` hook
 
-These changes keep all existing functionality intact while fixing the data consistency issues.
+**4. `src/features/learning/components/track/TrackGrid.tsx`**
+- Add optional `singleColumn` prop to force `grid-cols-1` layout (for sidebar-adjacent display)
+
+**5. `src/features/learning/components/lesson/LessonComplete.tsx`**
+- Add optional `leaderboardRank` and `leaderboardTotal` props
+- Render a compact info row: "📊 You're #X of Y learners this week" between XP breakdown and score stats
+- Only shown for logged-in users with league data
+
+**6. `src/features/learning/components/lesson/LessonScreen.tsx`**
+- After processing results, fetch leaderboard position via `getLeaderboard`
+- Pass `leaderboardRank` and `leaderboardTotal` to `LessonComplete`
+
+**7. `src/i18n/en.ts` + `src/i18n/es.ts`**
+- Add keys: `learn.leaderboard.yourPosition`, `learn.leaderboard.ofLearners`, `learn.leaderboard.joinByLearning`, `learn.leaderboard.viewFull`, `learn.rankProgress.title`, `learn.rankProgress.xpToNext`
 

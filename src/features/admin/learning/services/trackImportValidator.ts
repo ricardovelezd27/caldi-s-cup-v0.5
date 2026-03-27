@@ -66,6 +66,46 @@ export type TrackImportUnit = z.infer<typeof TrackImportUnitSchema>;
 export type TrackImportLesson = z.infer<typeof TrackImportLessonSchema>;
 export type TrackImportExercise = z.infer<typeof TrackImportExerciseSchema>;
 
+// ── Field Normalization (handle DB-export format) ──
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeExercise(ex: Record<string, any>): Record<string, any> {
+  const { exercise_type, question_data, ...rest } = ex;
+  return {
+    ...rest,
+    ...(question_data && typeof question_data === "object" ? question_data : {}),
+    type: ex.type ?? exercise_type,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeLesson(l: Record<string, any>): Record<string, any> {
+  return {
+    ...l,
+    lesson_title: l.lesson_title ?? l.name,
+    lesson_title_es: l.lesson_title_es ?? l.name_es,
+    exercises: (l.exercises ?? []).map(normalizeExercise),
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeUnit(u: Record<string, any>): Record<string, any> {
+  return {
+    ...u,
+    unit_title: u.unit_title ?? u.name,
+    unit_title_es: u.unit_title_es ?? u.name_es,
+    lessons: (u.lessons ?? []).map(normalizeLesson),
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeSection(s: Record<string, any>): Record<string, any> {
+  return {
+    ...s,
+    units: (s.units ?? []).map(normalizeUnit),
+  };
+}
+
 // ── Validation ──
 
 export interface TrackValidationResult {
@@ -97,6 +137,11 @@ export function validateTrackImportJson(raw: string): TrackValidationResult {
     } else if (obj.data && typeof obj.data === "object") {
       sectionPayload = obj.data;
     }
+  }
+
+  // Normalize field names (DB-export format → importer schema)
+  if (typeof sectionPayload === "object" && sectionPayload !== null) {
+    sectionPayload = normalizeSection(sectionPayload as Record<string, unknown>);
   }
 
   const result = TrackImportSchema.safeParse(sectionPayload);

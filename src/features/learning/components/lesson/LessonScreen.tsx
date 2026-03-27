@@ -64,6 +64,13 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
   const [leaderboardTotal, setLeaderboardTotal] = useState<number | undefined>();
   const hasSubmittedRef = useRef(false);
 
+  // Block lesson start when hearts are empty
+  useEffect(() => {
+    if (lesson.state === "intro" && user && !hasHearts && !heartsLoading) {
+      setShowHeartsEmpty(true);
+    }
+  }, [lesson.state, hasHearts, user, heartsLoading]);
+
   // Fetch next lesson ID
   const { data: nextLessonId } = useQuery({
     queryKey: ["next-lesson", lessonId],
@@ -253,18 +260,25 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
     const introText = lessonData ? (language === "es" ? lessonData.introTextEs : lessonData.introText) : undefined;
 
     return (
-      <PageLayout>
-        <div className="container mx-auto px-4 py-8 max-w-2xl">
-          <BackLink />
-          <LessonIntro
-            lessonName={lessonName}
-            introText={introText}
-            estimatedMinutes={lessonData?.estimatedMinutes}
-            xpReward={lessonData?.xpReward}
-            onStart={lesson.startLesson}
-          />
-        </div>
-      </PageLayout>
+      <>
+        <PageLayout>
+          <div className="container mx-auto px-4 py-8 max-w-2xl">
+            <BackLink />
+            <LessonIntro
+              lessonName={lessonName}
+              introText={introText}
+              estimatedMinutes={lessonData?.estimatedMinutes}
+              xpReward={lessonData?.xpReward}
+              onStart={lesson.startLesson}
+            />
+          </div>
+        </PageLayout>
+        <HeartsEmptyModal
+          open={showHeartsEmpty}
+          onOpenChange={setShowHeartsEmpty}
+          timeUntilRefill={timeUntilRefill}
+        />
+      </>
     );
   }
 
@@ -323,11 +337,6 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
             }
             lesson.nextExercise();
           }}
-        />
-        <HeartsEmptyModal
-          open={showHeartsEmpty}
-          onOpenChange={setShowHeartsEmpty}
-          timeUntilRefill={timeUntilRefill}
         />
       </PageLayout>
     );
@@ -395,11 +404,18 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
 
   // Fallback
   return (
-    <PageLayout>
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <BackLink />
-        <LessonIntro onStart={lesson.startLesson} />
-      </div>
-    </PageLayout>
+    <>
+      <PageLayout>
+        <div className="container mx-auto px-4 py-8 max-w-2xl">
+          <BackLink />
+          <LessonIntro onStart={lesson.startLesson} />
+        </div>
+      </PageLayout>
+      <HeartsEmptyModal
+        open={showHeartsEmpty}
+        onOpenChange={setShowHeartsEmpty}
+        timeUntilRefill={timeUntilRefill}
+      />
+    </>
   );
 }

@@ -23,6 +23,7 @@ import {
   PredictionForm,
   TroubleshootingForm,
   CategorizationForm,
+  RecipeBuildingForm,
   GenericJsonForm,
 } from "./exercise-forms";
 
@@ -202,6 +203,7 @@ export default function ExerciseEditor({ exercise, exercises, currentIndex, open
       case "prediction": return <PredictionForm data={questionData} onChange={setQuestionData} />;
       case "troubleshooting": return <TroubleshootingForm data={questionData} onChange={setQuestionData} />;
       case "categorization": return <CategorizationForm data={questionData} onChange={setQuestionData} />;
+      case "recipe_building": return <RecipeBuildingForm data={questionData} onChange={setQuestionData} />;
       default: return <GenericJsonForm data={questionData} onChange={setQuestionData} error={jsonError} onError={setJsonError} />;
     }
   };

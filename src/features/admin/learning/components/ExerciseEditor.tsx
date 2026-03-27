@@ -92,6 +92,25 @@ export default function ExerciseEditor({ exercise, exercises, currentIndex, open
     questionData: exercise.question_data,
   }));
 
+  // Rehydrate local state when exercise changes (navigation)
+  React.useEffect(() => {
+    setMascot(exercise.mascot);
+    setMood(exercise.mascot_mood);
+    setDifficulty(exercise.difficulty_score);
+    setActive(exercise.is_active);
+    setTags(exercise.concept_tags.join(", "));
+    setQuestionData(exercise.question_data as Record<string, any>);
+    setJsonError("");
+    initialSnapshot.current = JSON.stringify({
+      mascot: exercise.mascot,
+      mood: exercise.mascot_mood,
+      difficulty: exercise.difficulty_score,
+      active: exercise.is_active,
+      tags: exercise.concept_tags.join(", "),
+      questionData: exercise.question_data,
+    });
+  }, [exercise.id]);
+
   const [pendingNavDirection, setPendingNavDirection] = useState<number | null>(null);
 
   const hasChanges = useCallback(() => {

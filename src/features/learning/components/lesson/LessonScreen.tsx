@@ -63,6 +63,11 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
   const [leaderboardRank, setLeaderboardRank] = useState<number | undefined>();
   const [leaderboardTotal, setLeaderboardTotal] = useState<number | undefined>();
   const hasSubmittedRef = useRef(false);
+  // Local effective hearts ref — tracks hearts synchronously across wrong answers
+  const effectiveHeartsRef = useRef(hearts);
+  useEffect(() => {
+    effectiveHeartsRef.current = hearts;
+  }, [hearts]);
 
   // Block lesson start when hearts are empty
   useEffect(() => {
@@ -83,12 +88,14 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
     (answer: any, isCorrect: boolean) => {
       lesson.submitAnswer(isCorrect, answer);
       if (!isCorrect && user) {
-        // Show modal synchronously if this will drain the last heart
-        if (hearts <= 1) setShowHeartsEmpty(true);
+        // Decrement local effective hearts synchronously so the feedback
+        // modal's onContinue can check accurately (the async query hasn't
+        // invalidated yet when Continue is pressed).
+        effectiveHeartsRef.current = Math.max(0, effectiveHeartsRef.current - 1);
         loseHeart();
       }
     },
-    [lesson, user, loseHeart, hearts],
+    [lesson, user, loseHeart],
   );
 
   const REVIEW_XP_BASE = 5;
@@ -331,12 +338,17 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
           exerciseId={lesson.currentExercise.id}
           lessonId={lessonId}
           onContinue={() => {
-            if (hearts === 0 && user) {
+            if (effectiveHeartsRef.current <= 0 && user) {
               setShowHeartsEmpty(true);
               return;
             }
             lesson.nextExercise();
           }}
+        />
+        <HeartsEmptyModal
+          open={showHeartsEmpty}
+          onOpenChange={setShowHeartsEmpty}
+          timeUntilRefill={timeUntilRefill}
         />
       </PageLayout>
     );

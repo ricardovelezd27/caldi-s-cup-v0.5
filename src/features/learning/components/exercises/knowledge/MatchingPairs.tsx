@@ -109,7 +109,7 @@ export function MatchingPairs({ data, onSubmit, disabled }: Props) {
           </svg>
           <div className="flex gap-4" style={{ position: "relative", zIndex: 2 }}>
             <div className="flex-1 space-y-3">
-              {data.pairs.map((p) => {
+              {pairs.map((p) => {
                 const text = language === "es" && p.left_es ? p.left_es : p.left;
                 const connected = !!connections[p.id];
                 const isSelected = selectedLeft === p.id;
@@ -140,7 +140,7 @@ export function MatchingPairs({ data, onSubmit, disabled }: Props) {
             </div>
             <div className="flex-1 space-y-3">
               {shuffledRight.map((rId) => {
-                const pair = data.pairs.find((p) => p.id === rId)!;
+                const pair = pairs.find((p) => p.id === rId)!;
                 const text = language === "es" && pair.right_es ? pair.right_es : pair.right;
                 const isConnected = Object.values(connections).includes(rId);
                 const isCorrectPair = submitted && Object.entries(connections).some(([l, r]) => r === rId && l === rId);

@@ -24,6 +24,7 @@ export default function TrackDetailPage() {
   const [importSection, setImportSection] = useState<{ sectionId: string; unitCount: number } | null>(null);
   const [importTrackOpen, setImportTrackOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deleteSectionTarget, setDeleteSectionTarget] = useState<{ id: string; name: string } | null>(null);
   const [exporting, setExporting] = useState(false);
 
   const handleExport = async () => {
@@ -115,7 +116,20 @@ export default function TrackDetailPage() {
                       </CardTitle>
                       <p className="text-xs text-muted-foreground mt-1">{section.learning_goal}</p>
                     </div>
-                    <ChevronDown className="h-4 w-4 shrink-0" />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive/90 h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteSectionTarget({ id: section.id, name: section.name });
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <ChevronDown className="h-4 w-4 shrink-0" />
+                    </div>
                   </CardHeader>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -199,6 +213,32 @@ export default function TrackDetailPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!deleteSectionTarget} onOpenChange={(v) => !v && setDeleteSectionTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete section "{deleteSectionTarget?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this section and ALL its nested content (units, lessons, and exercises). This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!deleteSectionTarget) return;
+                await deleteEntity("learning_sections", deleteSectionTarget.id);
+                qc.invalidateQueries({ queryKey: ["admin", "sections"] });
+                qc.invalidateQueries({ queryKey: ["admin", "units-by-sections"] });
+                setDeleteSectionTarget(null);
+              }}
+            >
+              Delete Section
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

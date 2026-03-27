@@ -21,12 +21,22 @@ interface Props {
 
 export function Categorization({ data, onSubmit, disabled }: Props) {
   const { language } = useLanguage();
+
+  // Normalize items: ensure unique IDs and consistent category_id field
+  const [items] = useState(() =>
+    data.items.map((item, i) => ({
+      ...item,
+      id: item.id && item.id.trim() !== "" ? item.id : `item_${i}`,
+      category_id: item.category_id || (item as any).category || "",
+    })),
+  );
+
   const [placements, setPlacements] = useState<Record<string, string>>({});
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
   const instruction = language === "es" && data.instruction_es ? data.instruction_es : data.instruction;
-  const unplacedItems = data.items.filter((item) => !placements[item.id]);
+  const unplacedItems = items.filter((item) => !placements[item.id]);
   const allPlaced = unplacedItems.length === 0;
 
   const handleItemClick = (itemId: string) => {

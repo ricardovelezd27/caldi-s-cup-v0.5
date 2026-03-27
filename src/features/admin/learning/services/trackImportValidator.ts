@@ -139,6 +139,11 @@ export function validateTrackImportJson(raw: string): TrackValidationResult {
     }
   }
 
+  // Normalize field names (DB-export format → importer schema)
+  if (typeof sectionPayload === "object" && sectionPayload !== null) {
+    sectionPayload = normalizeSection(sectionPayload as Record<string, unknown>);
+  }
+
   const result = TrackImportSchema.safeParse(sectionPayload);
   if (!result.success) {
     return {

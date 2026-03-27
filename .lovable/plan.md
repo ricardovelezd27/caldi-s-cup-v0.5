@@ -1,33 +1,56 @@
 
 
-## Plan: Block Lesson Start When Hearts Are Empty
+## Plan: Hearts Modal Timing, Learn Page Redesign (Mobile)
 
-### Problem
-Users with 0 hearts can currently enter a lesson and see the intro screen. They should instead be shown the "Out of Hearts" modal immediately, preventing them from starting.
+### 1. Hearts Empty Modal — Show Immediately on Last Heart Lost
 
-### Change
+**Problem**: The modal only shows when entering a lesson with 0 hearts, not immediately when the last heart is lost during an exercise.
 
-**Single file: `LessonScreen.tsx`**
+**Fix in `LessonScreen.tsx`**: The `handleSubmitAnswer` callback checks `hearts <= 1` but `hearts` is stale (pre-mutation). The fix: after `loseHeart()` resolves, check the new count. Since `loseHeart` decrements by 1, if `hearts === 1` before the call, the result is 0 — so the condition `hearts <= 1` is correct but may race with the query invalidation. Fix by setting `showHeartsEmpty(true)` synchronously when `hearts === 1` (i.e., about to hit 0) before awaiting the mutation.
 
-In the `intro` state render block (around line 248), before rendering `LessonIntro`, check if the user is logged in and `hasHearts` is false. If so, show the `HeartsEmptyModal` instead of (or on top of) the intro screen.
+### 2. Learn Page Mobile Redesign
 
-Specifically:
-- When `lesson.state === "intro"` and `user` exists and `!hasHearts` (and hearts aren't still loading), auto-set `showHeartsEmpty = true`
-- Add a `useEffect` that watches `lesson.state`, `hasHearts`, and `user` — when all conditions met, opens the modal
-- The `HeartsEmptyModal` is already imported and rendered in the exercise block; move it to render unconditionally (outside any state block) so it works from the intro screen too
-- The modal is already non-dismissible with navigation buttons ("Go to Learn Home", "Go to Profile"), so the UX is already correct
+**New layout for logged-in mobile users:**
 
-### Minimal diff
-1. Add a `useEffect` after existing state declarations:
-```typescript
-useEffect(() => {
-  if (lesson.state === "intro" && user && !hasHearts && !heartsLoading) {
-    setShowHeartsEmpty(true);
-  }
-}, [lesson.state, hasHearts, user, heartsLoading]);
+```text
+┌─────────────────────────────┐
+│  [Avatar] Display Name      │  ← mini profile header
+├─────────────────────────────┤
+│  🔥 3   🎯 15/20   🏆 #4   │  ← 3 pills, centered
+├─────────────────────────────┤
+│  🎽 Green Apron → 🤎 Bronze│  ← rank progress bar
+│  ████████████░░░░  157 XP   │
+├─────────────────────────────┤
+│  ❤️❤️❤️🩶🩶               │  ← hearts pill
+├─────────────────────────────┤
+│  [Track cards...]           │
+└─────────────────────────────┘
 ```
 
-2. Move the `<HeartsEmptyModal>` render from inside the exercise block to the bottom of the component (before the final closing tags), so it renders regardless of lesson state.
+**Changes to `LearnPage.tsx`**:
+- Remove the "Learning Hub" title/subtitle header on mobile (keep on desktop)
+- Add a mini profile row: small circular `ProfileAvatar` (32px) + display name, left-aligned
+- Below: 3 pills centered — Streak, DailyGoalRing, Leaderboard position pill (showing `#N`)
+- Below: inline rank progress bar (reuse `RankProgressCard` logic but as a compact bar, not a card) showing `icon CurrentRank → icon NextRank` with progress bar and "X XP to NextRank"
+- Below: Hearts pill showing current heart count (using `HeartsDisplay` or a simplified version)
+- Remove `RankPillModal` — replaced by the inline bar
+- Keep `LeaderboardPillModal` but update the pill to show `🏆 #N` (user's rank from `useLeague().myRank`)
+- On desktop: keep existing two-column layout unchanged
 
-No new files needed. No schema changes.
+**New component: `RankProgressBar.tsx`** — a compact, card-less version of `RankProgressCard`:
+- Single row: `currentRank.icon CurrentRank.name → nextRank.icon NextRank.name`
+- Progress bar below
+- "X XP to NextRank" text
+
+**Hearts pill on Learn page**: Add `useHearts()` to `LearnPage.tsx`, render a pill with heart emoji + count. Tapping it could show `HeartsEmptyModal` if empty, otherwise just informational.
+
+### Files to Change
+
+| File | Change |
+|---|---|
+| `LessonScreen.tsx` | Fix hearts modal to show immediately when last heart lost (check `hearts === 1` before mutation) |
+| `LearnPage.tsx` | Redesign mobile layout: profile header, centered pills, rank bar, hearts pill; remove title on mobile |
+| `RankProgressBar.tsx` (new) | Compact inline rank progress bar component |
+| `LeaderboardPillModal.tsx` | Update pill to show `🏆 #N` using `useLeague().myRank` |
+| `HeartsDisplay.tsx` | Minor: ensure it works as a standalone pill on the learn page |
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -38,6 +38,30 @@ interface Props {
     is_active?: boolean;
     concept_tags?: string[];
   }) => Promise<void>;
+}
+class PreviewBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidUpdate(prev: { children: React.ReactNode }) {
+    if (prev.children !== this.props.children && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded border-2 border-dashed border-border p-4 text-sm text-muted-foreground text-center">
+          Preview unavailable for current data. You can still edit parameters on the left.
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 export default function ExerciseEditor({ exercise, open, onClose, onSave }: Props) {
@@ -202,12 +226,14 @@ export default function ExerciseEditor({ exercise, open, onClose, onSave }: Prop
               style={{ width: 375, maxHeight: 667 }}
             >
               <div className="p-4">
-                <ExerciseRenderer
-                  key={JSON.stringify(questionData)}
-                  exercise={previewExercise}
-                  onAnswer={handlePreviewAnswer}
-                  disabled={false}
-                />
+                <PreviewBoundary key={`boundary:${exercise.exercise_type}:${JSON.stringify(questionData)}`}>
+                  <ExerciseRenderer
+                    key={`${exercise.exercise_type}:${JSON.stringify(questionData)}`}
+                    exercise={previewExercise}
+                    onAnswer={handlePreviewAnswer}
+                    disabled={false}
+                  />
+                </PreviewBoundary>
               </div>
             </div>
           </div>

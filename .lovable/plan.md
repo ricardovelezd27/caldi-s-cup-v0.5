@@ -1,53 +1,59 @@
 
 
-## Plan: Fix Import JSON Deduplication, Add Move Lesson, Fix Unit Time
+## Plan: Fix Exercise Bugs + Mobile Leaderboard Pills
 
-Three issues to address:
+### Issue Analysis
 
-### 1. Import JSON: Merge Lessons into Existing Units (Instead of Creating Duplicates)
+1. **True/False missing question text**: The `TrueFalse` component renders `data.statement` but the statement field is empty or missing. The transformer maps `ex.question` → `statement`, which is correct. The real issue is likely the exercise was imported before the transformer existed, or the `question` field was empty in the JSON. Need to verify DB data — but the component-side fix is to also render `data.question` as fallback if `statement` is empty.
 
-**Problem**: When importing a JSON with a unit name that already exists in the section, the importer creates a duplicate unit instead of appending lessons to the existing one.
+2. **Multiple Choice correct answer not highlighting correctly (screenshots 2 & 3)**: The feedback modal shows "Not quite" even when the correct answer was selected. Looking at the code, `MultipleChoice` uses `selected === data.correct_answer` — the `correct_answer` field comes from the transformer which maps `ex.correct_answer_id ?? ex.correct_answer`. The issue is likely data: the `correct_answer` value in DB doesn't match any option `id`. Need to verify, but the fix is defensive: ensure the transformer correctly maps `correct_answer_id`.
 
-**Fix in `ImportTrackJsonModal.tsx`**:
-- In the preview step, after parsing, fetch existing units for the matched section
-- For each unit in the JSON, check if a unit with the same name already exists (case-insensitive match)
-- If a match is found, show a dropdown/select next to that unit in the preview letting the admin choose: "Create new unit" or "Merge into: [existing unit name]"
-- Default to the matched existing unit when names match
-- On publish: if merging, skip unit creation, use existing unit ID, append lessons with `sort_order` starting after the last existing lesson in that unit
-- After publishing, update the existing unit's `lesson_count` and `estimated_minutes` to reflect the new totals
+3. **Matching Pairs: clicking one left item selects all**: The bug is in the `global border-width: 4px !important` CSS rule from the style guide. All buttons get `border-width: 4px !important` and `box-shadow: 4px 4px 0px 0px var(--border) !important`, which overrides the conditional border styling. The `border-primary` class for the selected item is applied, but the `border-border/30` for unselected items may be visually indistinguishable because the thick 4px border makes all items look "selected." The right column not being clickable is because `disabled={!selectedLeft}` — the user must first click a left item. The visual issue is the global CSS making all items look the same.
 
-**New state**: `unitMappings: Record<number, string | "new">` — maps each JSON unit index to either an existing unit ID or "new"
+4. **Mobile layout for leaderboard/rank**: Convert the bottom LearnPageLeaderboard and RankProgressCard cards into pills on mobile, with tap-to-open modals showing the full content.
 
-### 2. Move Lesson to Another Unit
+### File Changes
 
-**Problem**: No way to move a lesson between units.
+**1. `TrueFalse.tsx`** — Add fallback for empty statement
+- Render `data.statement || (data as any).question || ""` as the statement text
+- This handles exercises where `statement` is empty but `question` exists
 
-**Changes**:
-- **`adminLearningService.ts`**: Add `moveLessonToUnit(lessonId, targetUnitId, newSortOrder)` — updates `learning_lessons.unit_id` and `sort_order`, then recalculates `lesson_count` and `estimated_minutes` on both the source and target units
-- **`UnitDetailPage.tsx`**: Add a "Move" button (ArrowRightLeft icon) next to the delete button in each lesson row. Clicking opens a small dialog/select listing all units in the current track (grouped by section). On confirm, calls `moveLessonToUnit` and invalidates queries
-- New component: **`MoveLessonDialog.tsx`** — a simple dialog with a Select dropdown of available units (excluding current), confirm button
+**2. `MultipleChoice.tsx`** — No component changes needed (logic is correct)
+- The issue is data-level. The transformer already handles `correct_answer_id` → `correct_answer`.
+- Need to check if the specific lesson data has mismatched IDs. Will add a defensive normalization.
 
-### 3. Fix Unit `estimated_minutes` to Sum Lesson Times
+**3. `exerciseFormatTransformer.ts`** — Harden the `multiple_choice` transformer
+- Ensure `correct_answer` is always set to `correct_answer_id` when present
+- For `true_false`, ensure `statement` is never empty by falling back to `question`
 
-**Problem**: Unit `estimated_minutes` is hardcoded to the JSON value (default 15) instead of being calculated from its lessons.
+**4. `MatchingPairs.tsx`** — Fix visual bug with global CSS
+- The `border-2` class is overridden by the global `border-width: 4px !important` rule
+- Fix: use inline styles for border-width to override the `!important` or use more specific class selectors
+- Also ensure right column buttons are clickable even without a left selection (allow right-first selection pattern)
+- Fix the visual distinction: when no item is selected, use a lighter/no border; when selected, use the primary colored border clearly
 
-**Fix in `ImportTrackJsonModal.tsx`**:
-- Replace `unit.estimated_minutes ?? 15` with the sum of all lesson `estimated_minutes` values: `unit.lessons.reduce((sum, l) => sum + (l.estimated_minutes ?? 4), 0)`
-- This ensures the unit time reflects actual lesson content
+**5. `LearnPage.tsx`** — Mobile: convert sidebar to pills + modals
+- On mobile (`lg:` breakpoint), hide the sidebar cards
+- Add two new pills to the gamification bar row: "🏆 Leaderboard" and rank icon pill
+- Clicking each pill opens a Dialog/Sheet with the full `LearnPageLeaderboard` or `RankProgressCard` content
+- On desktop: keep the current two-column layout unchanged
 
-**Fix in `TrackDetailPage.tsx`** (display):
-- The `estimated_minutes` column already reads from DB, so fixing the import is sufficient. But for accuracy on existing data, also add a `recalculateUnitStats` service function that can be triggered manually or runs during import.
+**6. New: `src/features/learning/components/gamification/LeaderboardPillModal.tsx`**
+- A pill button + Dialog that wraps `LearnPageLeaderboard` content
+- Matches the existing pill style (rounded-full, border-2, shadow)
 
-**`adminLearningService.ts`**: Add `recalculateUnitStats(unitId)` — queries all lessons for the unit, sums `estimated_minutes`, counts lessons, updates the unit row. Called after import and after move-lesson operations.
+**7. New: `src/features/learning/components/gamification/RankPillModal.tsx`**
+- A pill button + Dialog that wraps `RankProgressCard` content
+- Shows current rank icon + name in the pill
 
----
+### Summary of Changes
 
-### Files to Change
-
-| File | Change |
+| File | Fix |
 |---|---|
-| `ImportTrackJsonModal.tsx` | Add unit-matching UI in preview step; merge logic on publish; fix time calculation |
-| `UnitDetailPage.tsx` | Add "Move" button per lesson row, wire up MoveLessonDialog |
-| `MoveLessonDialog.tsx` (new) | Dialog with unit selector for moving a lesson |
-| `adminLearningService.ts` | Add `moveLessonToUnit()`, `recalculateUnitStats()`, `getAllUnitsForTrack()` |
+| `TrueFalse.tsx` | Fallback to `question` field if `statement` is empty |
+| `exerciseFormatTransformer.ts` | Ensure `statement` is never empty for true_false |
+| `MatchingPairs.tsx` | Fix border styling to work with global 4px !important CSS; improve visual distinction between selected/unselected |
+| `LearnPage.tsx` | Add leaderboard + rank pills on mobile; hide sidebar cards on mobile |
+| `LeaderboardPillModal.tsx` (new) | Pill + modal for mobile leaderboard |
+| `RankPillModal.tsx` (new) | Pill + modal for mobile rank progress |
 

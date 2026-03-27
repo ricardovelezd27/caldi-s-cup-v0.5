@@ -7,8 +7,11 @@ import { DailyGoalRing } from "../components/gamification/DailyGoalRing";
 import { LeagueCard } from "../components/gamification/LeagueCard";
 import { LearnPageLeaderboard } from "../components/gamification/LearnPageLeaderboard";
 import { RankProgressCard } from "../components/gamification/RankProgressCard";
+import { LeaderboardPillModal } from "../components/gamification/LeaderboardPillModal";
+import { RankPillModal } from "../components/gamification/RankPillModal";
 import { useLearningTracks } from "../hooks/useLearningTracks";
 import { useStreak } from "../hooks/useStreak";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/constants/app";
 import type { CoffeeTribe, LearningTrackId } from "../types";
@@ -25,6 +28,7 @@ export default function LearnPage() {
   const { user, profile } = useAuth();
   const { tracks, progressMap, isLoading } = useLearningTracks();
   const { streak, dailyGoal } = useStreak();
+  const isMobile = useIsMobile();
 
   const recommendedTrackId = profile?.coffee_tribe
     ? TRIBE_TRACK_MAP[profile.coffee_tribe as CoffeeTribe]
@@ -49,13 +53,20 @@ export default function LearnPage() {
           <div className="lg:col-span-7 space-y-6">
             {/* Gamification bar for logged-in users */}
             {user && (
-              <div className="flex items-center justify-start gap-4 flex-wrap">
+              <div className="flex items-center justify-start gap-3 flex-wrap">
                 <StreakDisplay currentStreak={streak?.currentStreak ?? 0} />
                 <DailyGoalRing
                   earnedXp={dailyGoal?.earnedXp ?? 0}
                   goalXp={dailyGoal?.goalXp ?? 10}
                 />
-                <LeagueCard />
+                {isMobile ? (
+                  <>
+                    <LeaderboardPillModal />
+                    <RankPillModal />
+                  </>
+                ) : (
+                  <LeagueCard />
+                )}
               </div>
             )}
 
@@ -69,33 +80,35 @@ export default function LearnPage() {
             />
           </div>
 
-          {/* Right column: leaderboard + rank progress */}
-          <aside className="lg:col-span-5 space-y-6">
-            <div className="lg:sticky lg:top-24">
-              <div className="space-y-6">
-                {user && <LearnPageLeaderboard />}
-                {user && <RankProgressCard />}
+          {/* Right column: leaderboard + rank progress (desktop only) */}
+          {!isMobile && (
+            <aside className="lg:col-span-5 space-y-6">
+              <div className="lg:sticky lg:top-24">
+                <div className="space-y-6">
+                  {user && <LearnPageLeaderboard />}
+                  {user && <RankProgressCard />}
 
-                {/* Anonymous signup banner */}
-                {!user && (
-                  <div className="border-4 border-border rounded-lg bg-card p-5 shadow-[4px_4px_0px_0px_hsl(var(--border))] text-center">
-                    <p className="font-bangers text-xl text-foreground tracking-wide mb-3">
-                      {t("learn.leaderboard.title")}
-                    </p>
-                    <p className="text-sm text-muted-foreground font-inter mb-4">
-                      {t("learn.leaderboard.joinByLearning")}
-                    </p>
-                    <Link
-                      to={ROUTES.auth}
-                      className="inline-block px-6 py-3 border-4 border-border rounded-lg bg-primary/10 text-foreground font-inter font-medium hover:bg-primary/20 transition-colors shadow-[4px_4px_0px_0px_hsl(var(--border))]"
-                    >
-                      {t("learn.signupBanner")}
-                    </Link>
-                  </div>
-                )}
+                  {/* Anonymous signup banner */}
+                  {!user && (
+                    <div className="border-4 border-border rounded-lg bg-card p-5 shadow-[4px_4px_0px_0px_hsl(var(--border))] text-center">
+                      <p className="font-bangers text-xl text-foreground tracking-wide mb-3">
+                        {t("learn.leaderboard.title")}
+                      </p>
+                      <p className="text-sm text-muted-foreground font-inter mb-4">
+                        {t("learn.leaderboard.joinByLearning")}
+                      </p>
+                      <Link
+                        to={ROUTES.auth}
+                        className="inline-block px-6 py-3 border-4 border-border rounded-lg bg-primary/10 text-foreground font-inter font-medium hover:bg-primary/20 transition-colors shadow-[4px_4px_0px_0px_hsl(var(--border))]"
+                      >
+                        {t("learn.signupBanner")}
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </aside>
+            </aside>
+          )}
         </div>
       </div>
     </PageLayout>

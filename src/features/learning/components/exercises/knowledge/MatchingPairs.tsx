@@ -103,20 +103,26 @@ export function MatchingPairs({ data, onSubmit, disabled }: Props) {
               {data.pairs.map((p) => {
                 const text = language === "es" && p.left_es ? p.left_es : p.left;
                 const connected = !!connections[p.id];
+                const isSelected = selectedLeft === p.id;
                 return (
                   <button key={p.id} type="button" data-left={p.id}
                     onClick={() => handleLeftClick(p.id)}
                     disabled={disabled || submitted}
                     className={cn(
-                      "w-full px-3 py-3 rounded-xl border-2 text-sm font-inter transition-all duration-200",
-                      selectedLeft === p.id && "border-primary bg-primary/10",
-                      connected && !submitted && "border-secondary/60 bg-secondary/5",
-                      submitted && connections[p.id] === p.id && "border-[hsl(142_71%_45%)] bg-[hsl(142_76%_90%)]",
-                      submitted && connections[p.id] !== p.id && "border-destructive bg-destructive/5",
-                      !connected && selectedLeft !== p.id && "border-border/30 bg-card",
+                      "w-full px-3 py-3 rounded-xl text-sm font-inter transition-all duration-200",
                       !disabled && !submitted && "active:scale-[0.97]",
                     )}
-                    style={{ boxShadow: "0 2px 0 0 hsl(var(--border) / 0.2)" }}
+                    style={{
+                      borderWidth: "2px",
+                      borderStyle: "solid",
+                      borderColor: submitted
+                        ? connections[p.id] === p.id ? "hsl(142 71% 45%)" : "hsl(var(--destructive))"
+                        : isSelected ? "hsl(var(--primary))" : connected ? "hsl(var(--secondary) / 0.6)" : "hsl(var(--border) / 0.3)",
+                      backgroundColor: submitted
+                        ? connections[p.id] === p.id ? "hsl(142 76% 90%)" : "hsl(var(--destructive) / 0.05)"
+                        : isSelected ? "hsl(var(--primary) / 0.1)" : connected ? "hsl(var(--secondary) / 0.05)" : "hsl(var(--card))",
+                      boxShadow: "0 2px 0 0 hsl(var(--border) / 0.2)",
+                    }}
                   >
                     {text}
                   </button>
@@ -128,19 +134,27 @@ export function MatchingPairs({ data, onSubmit, disabled }: Props) {
                 const pair = data.pairs.find((p) => p.id === rId)!;
                 const text = language === "es" && pair.right_es ? pair.right_es : pair.right;
                 const isConnected = Object.values(connections).includes(rId);
+                const isCorrectPair = submitted && Object.entries(connections).some(([l, r]) => r === rId && l === rId);
                 return (
                   <button key={rId} type="button" data-right={rId}
                     onClick={() => handleRightClick(rId)}
                     disabled={disabled || submitted || !selectedLeft}
                     className={cn(
-                      "w-full px-3 py-3 rounded-xl border-2 text-sm font-inter transition-all duration-200",
-                      isConnected && !submitted && "border-secondary/60 bg-secondary/5",
-                      submitted && Object.entries(connections).some(([l, r]) => r === rId && l === rId) && "border-[hsl(142_71%_45%)] bg-[hsl(142_76%_90%)]",
-                      !isConnected && "border-border/30 bg-card",
-                      selectedLeft && !isConnected && "hover:border-primary/40",
+                      "w-full px-3 py-3 rounded-xl text-sm font-inter transition-all duration-200",
+                      selectedLeft && !isConnected && !submitted && "hover:opacity-80",
                       !disabled && !submitted && "active:scale-[0.97]",
                     )}
-                    style={{ boxShadow: "0 2px 0 0 hsl(var(--border) / 0.2)" }}
+                    style={{
+                      borderWidth: "2px",
+                      borderStyle: "solid",
+                      borderColor: submitted
+                        ? isCorrectPair ? "hsl(142 71% 45%)" : "hsl(var(--border) / 0.3)"
+                        : isConnected ? "hsl(var(--secondary) / 0.6)" : "hsl(var(--border) / 0.3)",
+                      backgroundColor: submitted
+                        ? isCorrectPair ? "hsl(142 76% 90%)" : "hsl(var(--card))"
+                        : isConnected ? "hsl(var(--secondary) / 0.05)" : "hsl(var(--card))",
+                      boxShadow: "0 2px 0 0 hsl(var(--border) / 0.2)",
+                    }}
                   >
                     {text}
                   </button>

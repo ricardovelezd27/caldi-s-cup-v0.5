@@ -338,12 +338,17 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
           exerciseId={lesson.currentExercise.id}
           lessonId={lessonId}
           onContinue={() => {
-            if (hearts === 0 && user) {
+            if (effectiveHeartsRef.current <= 0 && user) {
               setShowHeartsEmpty(true);
               return;
             }
             lesson.nextExercise();
           }}
+        />
+        <HeartsEmptyModal
+          open={showHeartsEmpty}
+          onOpenChange={setShowHeartsEmpty}
+          timeUntilRefill={timeUntilRefill}
         />
       </PageLayout>
     );

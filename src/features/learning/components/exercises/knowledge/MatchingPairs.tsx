@@ -20,11 +20,20 @@ interface Props {
 
 export function MatchingPairs({ data, onSubmit, disabled }: Props) {
   const { language } = useLanguage();
+
+  // Ensure every pair has a unique, stable ID — fallback to index-based if missing
+  const [pairs] = useState(() =>
+    data.pairs.map((p, i) => ({
+      ...p,
+      id: p.id && p.id.trim() !== "" ? p.id : `pair_${i}`,
+    })),
+  );
+
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
   const [connections, setConnections] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [shuffledRight] = useState(() =>
-    [...data.pairs].sort(() => Math.random() - 0.5).map((p) => p.id),
+    [...pairs].sort(() => Math.random() - 0.5).map((p) => p.id),
   );
   const containerRef = useRef<HTMLDivElement>(null);
   const [lines, setLines] = useState<{ x1: number; y1: number; x2: number; y2: number; id: string }[]>([]);
@@ -74,17 +83,17 @@ export function MatchingPairs({ data, onSubmit, disabled }: Props) {
     setSelectedLeft(null);
   };
 
-  const allConnected = Object.keys(connections).length === data.pairs.length;
+  const allConnected = Object.keys(connections).length === pairs.length;
 
   const handleCheck = () => {
-    const correct = data.pairs.every((p) => connections[p.id] === p.id);
+    const correct = pairs.every((p) => connections[p.id] === p.id);
     correct ? sounds.playCorrect() : sounds.playIncorrect();
     setSubmitted(true);
     onSubmit(connections, correct);
   };
 
   const btnState = submitted
-    ? data.pairs.every((p) => connections[p.id] === p.id) ? "correct" : "incorrect"
+    ? pairs.every((p) => connections[p.id] === p.id) ? "correct" : "incorrect"
     : allConnected ? "ready" : "disabled";
 
   return (
@@ -100,7 +109,7 @@ export function MatchingPairs({ data, onSubmit, disabled }: Props) {
           </svg>
           <div className="flex gap-4" style={{ position: "relative", zIndex: 2 }}>
             <div className="flex-1 space-y-3">
-              {data.pairs.map((p) => {
+              {pairs.map((p) => {
                 const text = language === "es" && p.left_es ? p.left_es : p.left;
                 const connected = !!connections[p.id];
                 const isSelected = selectedLeft === p.id;
@@ -131,7 +140,7 @@ export function MatchingPairs({ data, onSubmit, disabled }: Props) {
             </div>
             <div className="flex-1 space-y-3">
               {shuffledRight.map((rId) => {
-                const pair = data.pairs.find((p) => p.id === rId)!;
+                const pair = pairs.find((p) => p.id === rId)!;
                 const text = language === "es" && pair.right_es ? pair.right_es : pair.right;
                 const isConnected = Object.values(connections).includes(rId);
                 const isCorrectPair = submitted && Object.entries(connections).some(([l, r]) => r === rId && l === rId);

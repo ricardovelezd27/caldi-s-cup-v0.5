@@ -360,4 +360,47 @@ export async function upsertExercise(exercise: {
   if (error) throw error;
 }
 
+// ── Get all units for a track (across all sections) ──
+
+export async function getAllUnitsForTrack(trackId: string): Promise<(AdminUnitRow & { section_name: string })[]> {
+  const sections = await getAdminSections(trackId);
+  if (!sections.length) return [];
+  const sectionIds = sections.map((s) => s.id);
+  const units = await getAdminUnitsBySectionIds(sectionIds);
+  return units.map((u) => ({
+    ...u,
+    section_name: sections.find((s) => s.id === u.section_id)?.name ?? "",
+  }));
+}
+
+// ── Recalculate unit stats from its lessons ──
+
+export async function recalculateUnitStats(unitId: string) {
+  const lessons = await getAdminLessons(unitId);
+  const totalMinutes = lessons.reduce((sum, l) => sum + (l.estimated_minutes || 4), 0);
+  const { error } = await supabase
+    .from("learning_units")
+    .update({ estimated_minutes: totalMinutes, lesson_count: lessons.length })
+    .eq("id", unitId);
+  if (error) throw error;
+}
+
+// ── Move lesson to another unit ──
+
+export async function moveLessonToUnit(lessonId: string, sourceUnitId: string, targetUnitId: string) {
+  // Get max sort_order in target unit
+  const targetLessons = await getAdminLessons(targetUnitId);
+  const maxSort = targetLessons.length > 0 ? Math.max(...targetLessons.map((l) => l.sort_order)) + 1 : 0;
+
+  const { error } = await supabase
+    .from("learning_lessons")
+    .update({ unit_id: targetUnitId, sort_order: maxSort })
+    .eq("id", lessonId);
+  if (error) throw error;
+
+  // Recalculate both units
+  await recalculateUnitStats(sourceUnitId);
+  await recalculateUnitStats(targetUnitId);
+}
+
 

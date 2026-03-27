@@ -24,7 +24,9 @@ export function TrueFalse({ data, onSubmit, disabled }: Props) {
   const [selected, setSelected] = useState<boolean | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
-  const statement = language === "es" && data.statement_es ? data.statement_es : data.statement;
+  const rawStatement = data.statement || (data as any).question || "";
+  const rawStatementEs = data.statement_es || (data as any).question_es || "";
+  const statement = language === "es" && rawStatementEs ? rawStatementEs : rawStatement;
 
   const handleCheck = () => {
     if (selected === null) return;

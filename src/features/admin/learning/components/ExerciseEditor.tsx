@@ -39,8 +39,32 @@ interface Props {
     concept_tags?: string[];
   }) => Promise<void>;
 }
+class PreviewBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidUpdate(prev: { children: React.ReactNode }) {
+    if (prev.children !== this.props.children && this.state.hasError) {
+      this.setState({ hasError: false });
+    }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded border-2 border-dashed border-border p-4 text-sm text-muted-foreground text-center">
+          Preview unavailable for current data. You can still edit parameters on the left.
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
-export default function ExerciseEditor({ exercise, open, onClose, onSave }: Props) {
+
   const [mascot, setMascot] = useState(exercise.mascot);
   const [mood, setMood] = useState(exercise.mascot_mood);
   const [difficulty, setDifficulty] = useState(exercise.difficulty_score);

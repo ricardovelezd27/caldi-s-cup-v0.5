@@ -21,12 +21,22 @@ interface Props {
 
 export function Categorization({ data, onSubmit, disabled }: Props) {
   const { language } = useLanguage();
+
+  // Normalize items: ensure unique IDs and consistent category_id field
+  const [items] = useState(() =>
+    data.items.map((item, i) => ({
+      ...item,
+      id: item.id && item.id.trim() !== "" ? item.id : `item_${i}`,
+      category_id: item.category_id || (item as any).category || "",
+    })),
+  );
+
   const [placements, setPlacements] = useState<Record<string, string>>({});
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
   const instruction = language === "es" && data.instruction_es ? data.instruction_es : data.instruction;
-  const unplacedItems = data.items.filter((item) => !placements[item.id]);
+  const unplacedItems = items.filter((item) => !placements[item.id]);
   const allPlaced = unplacedItems.length === 0;
 
   const handleItemClick = (itemId: string) => {
@@ -49,14 +59,14 @@ export function Categorization({ data, onSubmit, disabled }: Props) {
   };
 
   const handleCheck = () => {
-    const correct = data.items.every((item) => placements[item.id] === item.category_id);
+    const correct = items.every((item) => placements[item.id] === item.category_id);
     correct ? sounds.playCorrect() : sounds.playIncorrect();
     setSubmitted(true);
     onSubmit(placements, correct);
   };
 
   const btnState = submitted
-    ? data.items.every((item) => placements[item.id] === item.category_id) ? "correct" : "incorrect"
+    ? items.every((item) => placements[item.id] === item.category_id) ? "correct" : "incorrect"
     : allPlaced ? "ready" : "disabled";
 
   return (
@@ -67,7 +77,7 @@ export function Categorization({ data, onSubmit, disabled }: Props) {
         <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(data.categories.length, 3)}, 1fr)` }}>
           {data.categories.map((cat) => {
             const name = language === "es" && cat.name_es ? cat.name_es : cat.name;
-            const catItems = data.items.filter((i) => placements[i.id] === cat.id);
+            const catItems = items.filter((i) => placements[i.id] === cat.id);
             return (
               <button key={cat.id} type="button" onClick={() => handleCategoryClick(cat.id)}
                 disabled={disabled || submitted || !selectedItem}

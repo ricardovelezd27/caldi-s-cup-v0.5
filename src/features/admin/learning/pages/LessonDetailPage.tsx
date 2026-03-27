@@ -129,15 +129,17 @@ export default function LessonDetailPage() {
         </div>
       )}
 
-      {editingExercise && (
+      {editingExercise && exercises && (
         <ExerciseEditor
           exercise={editingExercise}
+          exercises={exercises}
+          currentIndex={exercises.findIndex((e) => e.id === editingExercise.id)}
           open={!!editingExercise}
           onClose={() => setEditingExercise(null)}
-          onSave={async (updates) => {
-            await updateExercise(editingExercise.id, updates);
+          onNavigate={(index) => setEditingExercise(exercises[index])}
+          onSave={async (exerciseId, updates) => {
+            await updateExercise(exerciseId, updates);
             qc.invalidateQueries({ queryKey: ["admin", "exercises"] });
-            setEditingExercise(null);
           }}
         />
       )}

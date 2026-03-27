@@ -64,7 +64,7 @@ class PreviewBoundary extends React.Component<
   }
 }
 
-
+export default function ExerciseEditor({ exercise, open, onClose, onSave }: Props) {
   const [mascot, setMascot] = useState(exercise.mascot);
   const [mood, setMood] = useState(exercise.mascot_mood);
   const [difficulty, setDifficulty] = useState(exercise.difficulty_score);

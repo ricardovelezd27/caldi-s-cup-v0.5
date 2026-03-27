@@ -83,17 +83,17 @@ export function MatchingPairs({ data, onSubmit, disabled }: Props) {
     setSelectedLeft(null);
   };
 
-  const allConnected = Object.keys(connections).length === data.pairs.length;
+  const allConnected = Object.keys(connections).length === pairs.length;
 
   const handleCheck = () => {
-    const correct = data.pairs.every((p) => connections[p.id] === p.id);
+    const correct = pairs.every((p) => connections[p.id] === p.id);
     correct ? sounds.playCorrect() : sounds.playIncorrect();
     setSubmitted(true);
     onSubmit(connections, correct);
   };
 
   const btnState = submitted
-    ? data.pairs.every((p) => connections[p.id] === p.id) ? "correct" : "incorrect"
+    ? pairs.every((p) => connections[p.id] === p.id) ? "correct" : "incorrect"
     : allConnected ? "ready" : "disabled";
 
   return (

@@ -86,7 +86,20 @@ export function validateTrackImportJson(raw: string): TrackValidationResult {
     return { valid: false, errors: ["Invalid JSON syntax"], warnings: [] };
   }
 
-  const result = TrackImportSchema.safeParse(parsed);
+  // Unwrap common wrapper formats
+  let sectionPayload: unknown = parsed;
+  if (typeof parsed === "object" && parsed !== null) {
+    const obj = parsed as Record<string, unknown>;
+    if (Array.isArray(obj.sections) && obj.sections.length > 0) {
+      sectionPayload = obj.sections[0];
+    } else if (obj.track && typeof obj.track === "object") {
+      sectionPayload = obj.track;
+    } else if (obj.data && typeof obj.data === "object") {
+      sectionPayload = obj.data;
+    }
+  }
+
+  const result = TrackImportSchema.safeParse(sectionPayload);
   if (!result.success) {
     return {
       valid: false,

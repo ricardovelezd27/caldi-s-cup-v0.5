@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, CheckCircle, Upload, FileUp } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,8 @@ import {
   deleteExercisesByLessonId,
   deleteLessonsByUnitId,
   deleteEntity,
+  recalculateUnitStats,
+  type AdminUnitRow,
 } from "../services/adminLearningService";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -44,8 +47,42 @@ export default function ImportTrackJsonModal({ open, onClose, trackId }: Props) 
   const [publishing, setPublishing] = useState(false);
   const [publishResult, setPublishResult] = useState<{ success: boolean; message: string } | null>(null);
   const [overrideMode, setOverrideMode] = useState(false);
+  const [existingUnits, setExistingUnits] = useState<AdminUnitRow[]>([]);
+  const [unitMappings, setUnitMappings] = useState<Record<number, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
+
+  // When entering preview, fetch existing units for the matched section
+  useEffect(() => {
+    if (step !== "preview" || !validation?.data) return;
+    (async () => {
+      const sections = await getAdminSections(trackId);
+      const matchedSection = sections.find(
+        (s) =>
+          s.name.toLowerCase().replace(/[^a-z0-9]+/g, "_") ===
+            (validation.data!.section_id ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "_") ||
+          s.name.toLowerCase() === validation.data!.section_title.toLowerCase(),
+      );
+      if (matchedSection) {
+        const units = await getAdminUnits(matchedSection.id);
+        setExistingUnits(units);
+        // Auto-map units with matching names
+        const mappings: Record<number, string> = {};
+        validation.data!.units.forEach((u, i) => {
+          const match = units.find(
+            (eu) => eu.name.toLowerCase().trim() === u.unit_title.toLowerCase().trim(),
+          );
+          mappings[i] = match ? match.id : "new";
+        });
+        setUnitMappings(mappings);
+      } else {
+        setExistingUnits([]);
+        const mappings: Record<number, string> = {};
+        validation.data!.units.forEach((_, i) => { mappings[i] = "new"; });
+        setUnitMappings(mappings);
+      }
+    })();
+  }, [step, validation?.data, trackId]);
 
   const handleParse = () => {
     const result = validateTrackImportJson(rawJson);
@@ -99,10 +136,10 @@ export default function ImportTrackJsonModal({ open, onClose, trackId }: Props) 
 
       // 2. Override: delete existing units in section
       if (overrideMode) {
-        const existingUnits = await getAdminUnits(sectionId);
-        for (const eu of existingUnits) {
-          const existingLessons = await getAdminLessons(eu.id);
-          for (const el of existingLessons) {
+        const existingUnitsInSection = await getAdminUnits(sectionId);
+        for (const eu of existingUnitsInSection) {
+          const eLessons = await getAdminLessons(eu.id);
+          for (const el of eLessons) {
             await deleteExercisesByLessonId(el.id);
           }
           await deleteLessonsByUnitId(eu.id);
@@ -113,21 +150,39 @@ export default function ImportTrackJsonModal({ open, onClose, trackId }: Props) 
       // 3. Import units → lessons → exercises
       let totalLessons = 0;
       let totalExercises = 0;
+      let mergedUnits = 0;
       const existingUnitsCount = overrideMode ? 0 : (await getAdminUnits(sectionId)).length;
 
       for (const [ui, unit] of importData.units.entries()) {
-        const insertedUnit = await upsertUnit({
-          section_id: sectionId,
-          name: unit.unit_title,
-          name_es: unit.unit_title_es,
-          description: unit.description ?? "",
-          description_es: unit.description_es ?? "",
-          icon: unit.icon ?? "📖",
-          sort_order: existingUnitsCount + ui,
-          estimated_minutes: unit.estimated_minutes ?? 15,
-          lesson_count: unit.lessons.length,
-          is_active: true,
-        });
+        const mapping = unitMappings[ui];
+        const isMerge = mapping && mapping !== "new";
+        let unitId: string;
+
+        if (isMerge) {
+          // Merge into existing unit
+          unitId = mapping;
+          mergedUnits++;
+        } else {
+          // Create new unit — calculate time from lessons
+          const unitTime = unit.lessons.reduce((sum, l) => sum + (l.estimated_minutes ?? 4), 0);
+          const insertedUnit = await upsertUnit({
+            section_id: sectionId,
+            name: unit.unit_title,
+            name_es: unit.unit_title_es,
+            description: unit.description ?? "",
+            description_es: unit.description_es ?? "",
+            icon: unit.icon ?? "📖",
+            sort_order: existingUnitsCount + ui,
+            estimated_minutes: unitTime,
+            lesson_count: unit.lessons.length,
+            is_active: true,
+          });
+          unitId = insertedUnit.id;
+        }
+
+        // Get existing lessons count for sort_order offset
+        const existingLessonsInUnit = isMerge ? await getAdminLessons(unitId) : [];
+        const sortOffset = existingLessonsInUnit.length;
 
         for (const [li, lesson] of unit.lessons.entries()) {
           const avgDiff =
@@ -136,12 +191,12 @@ export default function ImportTrackJsonModal({ open, onClose, trackId }: Props) 
           const xpReward = Math.round(10 + (avgDiff / 100) * 10);
 
           const insertedLesson = await upsertLesson({
-            unit_id: insertedUnit.id,
+            unit_id: unitId,
             name: lesson.lesson_title,
             name_es: lesson.lesson_title_es,
             intro_text: lesson.intro_text ?? "",
             intro_text_es: lesson.intro_text_es ?? "",
-            sort_order: li,
+            sort_order: sortOffset + li,
             estimated_minutes: lesson.estimated_minutes ?? 4,
             xp_reward: xpReward,
             exercise_count: lesson.exercises.length,
@@ -165,11 +220,17 @@ export default function ImportTrackJsonModal({ open, onClose, trackId }: Props) 
           }
           totalLessons++;
         }
+
+        // Recalculate stats for merged units
+        if (isMerge) {
+          await recalculateUnitStats(unitId);
+        }
       }
 
+      const mergeNote = mergedUnits > 0 ? ` (${mergedUnits} merged into existing)` : "";
       setPublishResult({
         success: true,
-        message: `Published ${importData.units.length} unit(s), ${totalLessons} lesson(s), ${totalExercises} exercise(s) to "${importData.section_title}".`,
+        message: `Published ${importData.units.length} unit(s)${mergeNote}, ${totalLessons} lesson(s), ${totalExercises} exercise(s) to "${importData.section_title}".`,
       });
       setStep("done");
       qc.invalidateQueries({ queryKey: ["admin"] });
@@ -188,6 +249,8 @@ export default function ImportTrackJsonModal({ open, onClose, trackId }: Props) 
     setValidation(null);
     setPublishResult(null);
     setOverrideMode(false);
+    setExistingUnits([]);
+    setUnitMappings({});
     onClose();
   };
 
@@ -199,101 +262,36 @@ export default function ImportTrackJsonModal({ open, onClose, trackId }: Props) 
         </DialogHeader>
 
         {step === "paste" && (
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fileRef.current?.click()}
-              >
-                <FileUp className="h-3 w-3 mr-1" /> Upload File
-              </Button>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".json"
-                className="hidden"
-                onChange={handleFileUpload}
-              />
-            </div>
-            <Textarea
-              value={rawJson}
-              onChange={(e) => {
-                setRawJson(e.target.value);
-                setValidation(null);
-              }}
-              placeholder="Paste your AI-generated track JSON here..."
-              className="font-mono text-xs min-h-[300px]"
-              spellCheck={false}
-            />
-            <div className="flex items-center gap-3">
-              <Switch id="override-track" checked={overrideMode} onCheckedChange={setOverrideMode} />
-              <Label htmlFor="override-track" className="text-sm font-medium cursor-pointer">
-                Override existing content
-              </Label>
-            </div>
-            {overrideMode && (
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription className="text-xs">
-                  This will delete all existing units, lessons, and exercises in the matched section before importing.
-                </AlertDescription>
-              </Alert>
-            )}
-            {validation && !validation.valid && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <ul className="list-disc pl-4 text-xs">
-                    {validation.errors.map((e, i) => (
-                      <li key={i}>{e}</li>
-                    ))}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            )}
-            <DialogFooter>
-              <Button variant="outline" onClick={handleClose}>Cancel</Button>
-              <Button onClick={handleParse} disabled={!rawJson.trim()}>Parse & Preview</Button>
-            </DialogFooter>
-          </div>
+          <PasteStep
+            rawJson={rawJson}
+            setRawJson={(v) => { setRawJson(v); setValidation(null); }}
+            overrideMode={overrideMode}
+            setOverrideMode={setOverrideMode}
+            validation={validation}
+            fileRef={fileRef}
+            onFileUpload={handleFileUpload}
+            onParse={handleParse}
+            onClose={handleClose}
+          />
         )}
 
         {step === "preview" && validation?.data && (
-          <div className="space-y-4">
-            {validation.warnings.length > 0 && (
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <ul className="list-disc pl-4 text-xs">
-                    {validation.warnings.map((w, i) => (
-                      <li key={i}>{w}</li>
-                    ))}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <StagedTrackPreview data={validation.data} />
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setStep("paste")}>Back</Button>
-              <Button onClick={handlePublish} disabled={publishing}>
-                <Upload className="h-4 w-4 mr-1" />
-                {publishing ? "Publishing…" : "Publish to Database"}
-              </Button>
-            </DialogFooter>
-          </div>
+          <PreviewStep
+            data={validation.data}
+            warnings={validation.warnings}
+            existingUnits={existingUnits}
+            unitMappings={unitMappings}
+            onMappingChange={(idx, val) => setUnitMappings((prev) => ({ ...prev, [idx]: val }))}
+            publishing={publishing}
+            onBack={() => setStep("paste")}
+            onPublish={handlePublish}
+          />
         )}
 
         {step === "done" && publishResult && (
           <div className="space-y-4">
             <Alert variant={publishResult.success ? "default" : "destructive"}>
-              {publishResult.success ? (
-                <CheckCircle className="h-4 w-4" />
-              ) : (
-                <AlertTriangle className="h-4 w-4" />
-              )}
+              {publishResult.success ? <CheckCircle className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
               <AlertDescription>{publishResult.message}</AlertDescription>
             </Alert>
             <DialogFooter>
@@ -306,18 +304,100 @@ export default function ImportTrackJsonModal({ open, onClose, trackId }: Props) 
   );
 }
 
-// ── Inline preview ──
+// ── Paste Step ──
 
-function StagedTrackPreview({ data }: { data: TrackImportData }) {
+function PasteStep({
+  rawJson, setRawJson, overrideMode, setOverrideMode, validation, fileRef, onFileUpload, onParse, onClose,
+}: {
+  rawJson: string;
+  setRawJson: (v: string) => void;
+  overrideMode: boolean;
+  setOverrideMode: (v: boolean) => void;
+  validation: TrackValidationResult | null;
+  fileRef: React.RefObject<HTMLInputElement>;
+  onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onParse: () => void;
+  onClose: () => void;
+}) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+          <FileUp className="h-3 w-3 mr-1" /> Upload File
+        </Button>
+        <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={onFileUpload} />
+      </div>
+      <Textarea
+        value={rawJson}
+        onChange={(e) => setRawJson(e.target.value)}
+        placeholder="Paste your AI-generated track JSON here..."
+        className="font-mono text-xs min-h-[300px]"
+        spellCheck={false}
+      />
+      <div className="flex items-center gap-3">
+        <Switch id="override-track" checked={overrideMode} onCheckedChange={setOverrideMode} />
+        <Label htmlFor="override-track" className="text-sm font-medium cursor-pointer">
+          Override existing content
+        </Label>
+      </div>
+      {overrideMode && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="text-xs">
+            This will delete all existing units, lessons, and exercises in the matched section before importing.
+          </AlertDescription>
+        </Alert>
+      )}
+      {validation && !validation.valid && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <ul className="list-disc pl-4 text-xs">
+              {validation.errors.map((e, i) => <li key={i}>{e}</li>)}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <Button onClick={onParse} disabled={!rawJson.trim()}>Parse & Preview</Button>
+      </DialogFooter>
+    </div>
+  );
+}
+
+// ── Preview Step ──
+
+function PreviewStep({
+  data, warnings, existingUnits, unitMappings, onMappingChange, publishing, onBack, onPublish,
+}: {
+  data: TrackImportData;
+  warnings: string[];
+  existingUnits: AdminUnitRow[];
+  unitMappings: Record<number, string>;
+  onMappingChange: (idx: number, val: string) => void;
+  publishing: boolean;
+  onBack: () => void;
+  onPublish: () => void;
+}) {
+  return (
+    <div className="space-y-4">
+      {warnings.length > 0 && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <ul className="list-disc pl-4 text-xs">
+              {warnings.map((w, i) => <li key={i}>{w}</li>)}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card>
         <CardHeader className="py-3">
           <CardTitle className="text-base font-heading">
             📂 {data.section_title}
-            <span className="text-xs text-muted-foreground font-normal ml-2">
-              / {data.section_title_es}
-            </span>
+            <span className="text-xs text-muted-foreground font-normal ml-2">/ {data.section_title_es}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
@@ -330,12 +410,37 @@ function StagedTrackPreview({ data }: { data: TrackImportData }) {
       {data.units.map((unit, ui) => (
         <Card key={ui} className="ml-2">
           <CardHeader className="py-2">
-            <CardTitle className="text-sm font-heading">
-              {unit.icon ?? "📖"} {unit.unit_title}
-              <span className="text-xs text-muted-foreground font-normal ml-2">
-                ({unit.lessons.length} lesson{unit.lessons.length !== 1 ? "s" : ""})
-              </span>
-            </CardTitle>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-sm font-heading">
+                {unit.icon ?? "📖"} {unit.unit_title}
+                <span className="text-xs text-muted-foreground font-normal ml-2">
+                  ({unit.lessons.length} lesson{unit.lessons.length !== 1 ? "s" : ""})
+                </span>
+              </CardTitle>
+              {existingUnits.length > 0 && (
+                <Select
+                  value={unitMappings[ui] ?? "new"}
+                  onValueChange={(val) => onMappingChange(ui, val)}
+                >
+                  <SelectTrigger className="w-[220px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">➕ Create new unit</SelectItem>
+                    {existingUnits.map((eu) => (
+                      <SelectItem key={eu.id} value={eu.id}>
+                        🔗 Merge into: {eu.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            {unitMappings[ui] && unitMappings[ui] !== "new" && (
+              <p className="text-xs text-secondary mt-1">
+                ✓ Lessons will be appended to existing unit
+              </p>
+            )}
           </CardHeader>
           <CardContent className="py-2 space-y-2">
             {unit.lessons.map((lesson, li) => (
@@ -355,6 +460,14 @@ function StagedTrackPreview({ data }: { data: TrackImportData }) {
           </CardContent>
         </Card>
       ))}
+
+      <DialogFooter>
+        <Button variant="outline" onClick={onBack}>Back</Button>
+        <Button onClick={onPublish} disabled={publishing}>
+          <Upload className="h-4 w-4 mr-1" />
+          {publishing ? "Publishing…" : "Publish to Database"}
+        </Button>
+      </DialogFooter>
     </div>
   );
 }

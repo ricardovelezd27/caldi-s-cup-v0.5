@@ -8,14 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Trash2 } from "lucide-react";
+import { Trash2, ArrowRightLeft } from "lucide-react";
 import AdminBreadcrumb from "../components/AdminBreadcrumb";
+import MoveLessonDialog from "../components/MoveLessonDialog";
 
 export default function UnitDetailPage() {
   const { trackId, unitId } = useParams<{ trackId: string; unitId: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [moveTarget, setMoveTarget] = useState<{ id: string; name: string } | null>(null);
 
   const { data: track } = useQuery({
     queryKey: ["admin", "track", trackId],
@@ -94,9 +96,19 @@ export default function UnitDetailPage() {
                   />
                 </TableCell>
                 <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-                  <Button size="sm" variant="destructive" onClick={() => setDeleteTarget(l.id)}>
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center justify-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setMoveTarget({ id: l.id, name: l.name })}
+                      title="Move to another unit"
+                    >
+                      <ArrowRightLeft className="h-3 w-3" />
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => setDeleteTarget(l.id)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -120,6 +132,17 @@ export default function UnitDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {moveTarget && trackId && unitId && (
+        <MoveLessonDialog
+          open={!!moveTarget}
+          onClose={() => setMoveTarget(null)}
+          lessonId={moveTarget.id}
+          lessonName={moveTarget.name}
+          currentUnitId={unitId}
+          trackId={trackId}
+        />
+      )}
     </div>
   );
 }

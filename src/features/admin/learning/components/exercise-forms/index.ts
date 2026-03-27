@@ -6,4 +6,5 @@ export { SequencingForm } from "./SequencingForm";
 export { PredictionForm } from "./PredictionForm";
 export { TroubleshootingForm } from "./TroubleshootingForm";
 export { CategorizationForm } from "./CategorizationForm";
+export { RecipeBuildingForm } from "./RecipeBuildingForm";
 export { GenericJsonForm } from "./GenericJsonForm";

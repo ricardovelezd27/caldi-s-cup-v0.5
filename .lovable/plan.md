@@ -1,58 +1,72 @@
 
 
-## Plan: Admin Exercise Preview + Immediate Reflect on Delete/Deactivate
+## Plan: Fix Track JSON Import to Handle Wrapped Format
 
-### Overview
-Add a live preview panel to the Exercise Editor dialog so admins can test-run any exercise exactly as students see it. Also ensure delete/deactivate operations immediately reflect in the published app.
+### Problem
+The importer's `TrackImportSchema` expects a flat object with `section_title`, `section_title_es`, and `units` at the top level. But the actual JSON has a wrapper structure:
 
-### 1. Widen ExerciseEditor Dialog to Side-by-Side Layout
+```json
+{
+  "id": "...",
+  "track_id": "history_culture",
+  "name": "History & Culture",
+  "sections": [
+    {
+      "section_title": "History & Culture",
+      "section_title_es": "Historia y Cultura",
+      "units": [...]
+    }
+  ]
+}
+```
 
-**File: `ExerciseEditor.tsx`**
+The validator parses the outer object and fails because `section_title` doesn't exist at that level.
 
-- Change dialog `max-w-2xl` to `max-w-6xl`
-- Split content into a two-column grid: left column = existing parameter form, right column = live preview
-- The preview renders the same `ExerciseRenderer` component used by students, fed with the current `questionData` state (live-updating as admin edits)
-- Map admin data to the `LearningExercise` shape expected by `ExerciseRenderer`:
-  ```typescript
-  const previewExercise: LearningExercise = {
-    id: exercise.id,
-    lessonId: "",
-    exerciseType: exercise.exercise_type as ExerciseType,
-    sortOrder: 0,
-    isActive: active,
-    questionData: questionData as Json,
-    imageUrl: exercise.image_url ?? null,
-    audioUrl: null,
-    difficultyScore: difficulty,
-    conceptTags: tags.split(",").map(t => t.trim()).filter(Boolean),
-    mascot,
-    mascotMood: mood,
-    createdAt: "",
-    updatedAt: "",
-  };
-  ```
-- Wrap the preview in a phone-frame styled container (rounded border, fixed max-width ~375px, max-height ~667px with overflow scroll) to simulate mobile view
-- The `ExerciseRenderer`'s `onAnswer` callback in preview mode will be a no-op (or show a toast "Preview: correct/incorrect") — no persistence
-- Add a `key={JSON.stringify(questionData)}` on the preview to force re-mount when data changes, resetting internal exercise state
-- Add footer buttons: Cancel, Save, (preview is always visible on right)
+### Fix
 
-### 2. Immediate Reflect on Delete/Deactivate
+**File: `src/features/admin/learning/services/trackImportValidator.ts`**
 
-**File: `LessonDetailPage.tsx`**
+Update `validateTrackImportJson` to detect and unwrap common wrapper formats before validation:
 
-The `handleToggle` and `handleDelete` functions already call `qc.invalidateQueries`. The student-facing app fetches exercises with `is_active = true` filter. This should already work since both use the same Supabase backend.
+1. If parsed object has a `sections` array, iterate each section and validate individually (for now, take the first section or process all)
+2. If parsed object has a `track` or `data` wrapper key, unwrap it
+3. If it's already a flat section object (has `section_title` + `units`), use as-is
 
-- Verify that `toggleActive` in `adminLearningService.ts` actually updates the DB (it does — it's a direct update call)
-- The invalidation only affects admin queries (`["admin", "exercises"]`). Student queries use different keys and will pick up changes on next fetch. This is correct — no additional changes needed since student data isn't cached in the admin app.
+Additionally, update the return type to support multiple sections from a single import, or flatten by processing the first section found.
+
+**Specific change in `validateTrackImportJson`:**
+```typescript
+let parsed: unknown;
+try {
+  parsed = JSON.parse(raw);
+} catch {
+  return { valid: false, errors: ["Invalid JSON syntax"], warnings: [] };
+}
+
+// Unwrap common wrapper formats
+let sectionPayload: unknown = parsed;
+if (typeof parsed === "object" && parsed !== null) {
+  const obj = parsed as Record<string, unknown>;
+  // Wrapped in { sections: [...] } (track-level export)
+  if (Array.isArray(obj.sections) && obj.sections.length > 0) {
+    sectionPayload = obj.sections[0]; // Import first section
+  }
+  // Wrapped in { track: { ... } } or { data: { ... } }
+  else if (obj.track && typeof obj.track === "object") {
+    sectionPayload = obj.track;
+  } else if (obj.data && typeof obj.data === "object") {
+    sectionPayload = obj.data;
+  }
+}
+```
+
+Then validate `sectionPayload` against `TrackImportSchema` instead of `parsed`.
 
 ### Files to Change
 
 | File | Change |
 |---|---|
-| `ExerciseEditor.tsx` | Widen dialog, add two-column layout with live preview panel using `ExerciseRenderer` |
+| `trackImportValidator.ts` | Add unwrapping logic before schema validation to handle wrapped JSON formats |
 
-### Technical Notes
-- Reuses the exact same `ExerciseRenderer` component students see — zero divergence risk
-- Preview updates live as admin edits question data fields
-- No new dependencies or database changes needed
+No other files need changes. The downstream import logic in `ImportTrackJsonModal.tsx` already works correctly once validation passes.
 

@@ -3,9 +3,11 @@ import { useLanguage } from "@/contexts/language";
 import { Trophy } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LearnPageLeaderboard } from "./LearnPageLeaderboard";
+import { useLeague } from "../../hooks/useLeague";
 
 export function LeaderboardPillModal() {
   const { t } = useLanguage();
+  const { myRank } = useLeague();
   const [open, setOpen] = useState(false);
 
   return (
@@ -22,7 +24,7 @@ export function LeaderboardPillModal() {
       >
         <Trophy className="h-4 w-4 text-primary" />
         <span className="font-bangers text-sm text-foreground tracking-wide">
-          {t("learn.leaderboard.title")}
+          {myRank ? `#${myRank}` : t("learn.leaderboard.title")}
         </span>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>

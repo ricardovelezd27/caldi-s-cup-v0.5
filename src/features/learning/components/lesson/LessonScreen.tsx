@@ -83,9 +83,9 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
     (answer: any, isCorrect: boolean) => {
       lesson.submitAnswer(isCorrect, answer);
       if (!isCorrect && user) {
-        loseHeart().then(() => {
-          if (hearts <= 1) setShowHeartsEmpty(true);
-        });
+        // Show modal synchronously if this will drain the last heart
+        if (hearts <= 1) setShowHeartsEmpty(true);
+        loseHeart();
       }
     },
     [lesson, user, loseHeart, hearts],

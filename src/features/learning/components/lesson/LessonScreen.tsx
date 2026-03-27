@@ -260,18 +260,25 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
     const introText = lessonData ? (language === "es" ? lessonData.introTextEs : lessonData.introText) : undefined;
 
     return (
-      <PageLayout>
-        <div className="container mx-auto px-4 py-8 max-w-2xl">
-          <BackLink />
-          <LessonIntro
-            lessonName={lessonName}
-            introText={introText}
-            estimatedMinutes={lessonData?.estimatedMinutes}
-            xpReward={lessonData?.xpReward}
-            onStart={lesson.startLesson}
-          />
-        </div>
-      </PageLayout>
+      <>
+        <PageLayout>
+          <div className="container mx-auto px-4 py-8 max-w-2xl">
+            <BackLink />
+            <LessonIntro
+              lessonName={lessonName}
+              introText={introText}
+              estimatedMinutes={lessonData?.estimatedMinutes}
+              xpReward={lessonData?.xpReward}
+              onStart={lesson.startLesson}
+            />
+          </div>
+        </PageLayout>
+        <HeartsEmptyModal
+          open={showHeartsEmpty}
+          onOpenChange={setShowHeartsEmpty}
+          timeUntilRefill={timeUntilRefill}
+        />
+      </>
     );
   }
 

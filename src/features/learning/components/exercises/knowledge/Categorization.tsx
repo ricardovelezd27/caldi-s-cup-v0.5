@@ -59,14 +59,14 @@ export function Categorization({ data, onSubmit, disabled }: Props) {
   };
 
   const handleCheck = () => {
-    const correct = data.items.every((item) => placements[item.id] === item.category_id);
+    const correct = items.every((item) => placements[item.id] === item.category_id);
     correct ? sounds.playCorrect() : sounds.playIncorrect();
     setSubmitted(true);
     onSubmit(placements, correct);
   };
 
   const btnState = submitted
-    ? data.items.every((item) => placements[item.id] === item.category_id) ? "correct" : "incorrect"
+    ? items.every((item) => placements[item.id] === item.category_id) ? "correct" : "incorrect"
     : allPlaced ? "ready" : "disabled";
 
   return (
@@ -77,7 +77,7 @@ export function Categorization({ data, onSubmit, disabled }: Props) {
         <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(data.categories.length, 3)}, 1fr)` }}>
           {data.categories.map((cat) => {
             const name = language === "es" && cat.name_es ? cat.name_es : cat.name;
-            const catItems = data.items.filter((i) => placements[i.id] === cat.id);
+            const catItems = items.filter((i) => placements[i.id] === cat.id);
             return (
               <button key={cat.id} type="button" onClick={() => handleCategoryClick(cat.id)}
                 disabled={disabled || submitted || !selectedItem}

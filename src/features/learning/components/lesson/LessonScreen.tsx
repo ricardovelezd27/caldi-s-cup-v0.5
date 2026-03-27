@@ -63,6 +63,11 @@ export function LessonScreen({ lessonId, trackId, trackRoute, onExit, onComplete
   const [leaderboardRank, setLeaderboardRank] = useState<number | undefined>();
   const [leaderboardTotal, setLeaderboardTotal] = useState<number | undefined>();
   const hasSubmittedRef = useRef(false);
+  // Local effective hearts ref — tracks hearts synchronously across wrong answers
+  const effectiveHeartsRef = useRef(hearts);
+  useEffect(() => {
+    effectiveHeartsRef.current = hearts;
+  }, [hearts]);
 
   // Block lesson start when hearts are empty
   useEffect(() => {

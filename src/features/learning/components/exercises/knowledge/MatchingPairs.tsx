@@ -20,11 +20,20 @@ interface Props {
 
 export function MatchingPairs({ data, onSubmit, disabled }: Props) {
   const { language } = useLanguage();
+
+  // Ensure every pair has a unique, stable ID — fallback to index-based if missing
+  const [pairs] = useState(() =>
+    data.pairs.map((p, i) => ({
+      ...p,
+      id: p.id && p.id.trim() !== "" ? p.id : `pair_${i}`,
+    })),
+  );
+
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
   const [connections, setConnections] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [shuffledRight] = useState(() =>
-    [...data.pairs].sort(() => Math.random() - 0.5).map((p) => p.id),
+    [...pairs].sort(() => Math.random() - 0.5).map((p) => p.id),
   );
   const containerRef = useRef<HTMLDivElement>(null);
   const [lines, setLines] = useState<{ x1: number; y1: number; x2: number; y2: number; id: string }[]>([]);

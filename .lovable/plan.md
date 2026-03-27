@@ -1,35 +1,27 @@
 
 
-## Plan: Add Field Normalization to Track JSON Importer
+## Plan: Add Delete Button for Sections
 
 ### Problem
-The JSON uses a database-export format with different field names than the schema expects:
-- Units use `name`/`name_es` instead of `unit_title`/`unit_title_es`
-- Lessons use `name`/`name_es` instead of `lesson_title`/`lesson_title_es`
-- Exercises use `exercise_type` instead of `type`, and store exercise fields nested inside `question_data` instead of flat at the top level
+The TrackDetailPage has delete buttons for units but not for sections. The user needs to delete the "History & Culture" **section** inside the "Bean Knowledge" track.
 
-### Fix
+### Changes
 
-**File: `src/features/admin/learning/services/trackImportValidator.ts`**
+**File: `src/features/admin/learning/pages/TrackDetailPage.tsx`**
 
-Add a normalization step between unwrapping and schema validation that maps alternate field names to the expected ones:
+1. Add a separate `deleteSectionTarget` state (to avoid confusion with the existing unit delete state)
+2. Add a delete (trash) button in each section's `CardHeader`, next to the section name, stopping event propagation so it doesn't toggle the collapsible
+3. Add a second `AlertDialog` for section deletion with a clear warning that it will delete all nested units, lessons, and exercises
+4. The delete handler calls `deleteEntity("learning_sections", id)` and invalidates both sections and units queries
 
-```text
-Parse JSON → Unwrap wrappers → Normalize fields → Validate schema
-```
+The delete button will use the section's unique `id` (UUID), so even if two sections share the same display name, only the correct one is deleted.
 
-Normalization logic:
-1. **Exercises**: Map `exercise_type` → `type`. Flatten `question_data` fields (question, options, pairs, etc.) to the top level of the exercise object so the schema can find them.
-2. **Lessons**: Map `name` → `lesson_title`, `name_es` → `lesson_title_es`.
-3. **Units**: Map `name` → `unit_title`, `name_es` → `unit_title_es`.
-
-This is done with three small functions (`normalizeExercise`, `normalizeLesson`, `normalizeUnit`) applied recursively to the section payload before calling `TrackImportSchema.safeParse()`.
+### UI Layout
+Each section header will have a small red trash icon button on the right side (before the chevron), matching the existing unit delete button style.
 
 ### Files to Change
 
 | File | Change |
 |---|---|
-| `trackImportValidator.ts` | Add normalize functions and apply them to `sectionPayload` before validation |
-
-No other files need changes — the downstream import logic in `ImportTrackJsonModal.tsx` already handles the validated output correctly.
+| `TrackDetailPage.tsx` | Add `deleteSectionTarget` state, trash button per section header, and confirmation AlertDialog for section deletion |
 
